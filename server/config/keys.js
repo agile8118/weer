@@ -1,8 +1,10 @@
-if (
+import prod from "./prod.js";
+import dev from "./dev.js";
+
+const config =
   process.env.NODE_ENV === "production" ||
   (process.env.NODE_ENV === "test" && process.env.DOMAIN)
-) {
-  module.exports = require("./prod");
-} else {
-  module.exports = require("./dev");
-}
+    ? prod
+    : dev;
+
+export default config;

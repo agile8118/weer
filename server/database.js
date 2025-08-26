@@ -1,8 +1,8 @@
-const mysql = require("mysql");
-const keys = require("./config/keys");
+import mysql from "mysql";
+import keys from "./config/keys.js";
 
 // Connect to the database
-let connection = mysql.createConnection(keys.mysqlUrl);
+const connection = mysql.createConnection(keys.mysqlUrl);
 
 // Create user table
 connection.query(
@@ -91,4 +91,4 @@ DB.delete = (sql) => {
   });
 };
 
-module.exports = { DB, connection };
+export { DB, connection };

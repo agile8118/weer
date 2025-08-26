@@ -1,32 +1,46 @@
-const express = require("express");
-const path = require("path");
-const bodyParser = require("body-parser");
-const passport = require("passport");
-const cookieSession = require("cookie-session");
-const compression = require("compression");
-const helmet = require("helmet");
-const log = require("./lib/log");
-const keys = require("./config/keys");
-require("./passport");
+import cpeak, { serveStatic, parseJSON, render } from "cpeak";
 
-const app = express();
-const publicPath = path.join(__dirname, "../public");
+// For development: ../../cpeak/lib/index.js
+
+import path from "path";
+import passport from "passport";
+import cookieSession from "cookie-session";
+import compression from "compression";
+import helmet from "helmet";
+import log from "./lib/log.js";
+import keys from "./config/keys.js";
+import apiRouter from "./router.js";
+
+import "./passport.js";
+
+const server = new cpeak();
+
+// For parsing JSON body
+server.beforeEach(parseJSON);
+
 const port = process.env.PORT || 2080;
 
-app.use(helmet());
-app.use(compression());
-app.use(express.static(publicPath));
-app.use(bodyParser.json()).use(bodyParser.urlencoded({ extended: true }));
-app.use(
+server.beforeEach(helmet());
+server.beforeEach(compression());
+
+const publicPath = new URL("../public", import.meta.url).pathname;
+server.beforeEach(serveStatic(publicPath));
+
+// For sever side rendering
+server.beforeEach(render());
+
+server.beforeEach(
   cookieSession({
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     keys: [keys.cookieKey],
   })
 );
-app.use(passport.initialize());
-app.use(passport.session());
 
-app.use((req, res, next) => {
+// Passport authentication
+server.beforeEach(passport.initialize());
+server.beforeEach(passport.session());
+
+server.beforeEach((req, res, next) => {
   const requestStart = Date.now();
   // Grab requester ip address
   const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
@@ -58,20 +72,35 @@ app.use((req, res, next) => {
 });
 
 // Show the home page
-app.get("/", (req, res) => {
-  res.sendFile("index.html", { root: __dirname + "/../public" });
+server.route("get", "/", (req, res) => {
+  res.sendFile(path.join(publicPath, "./index.html"), "text/html");
 });
 
-// Routes
-require("./routes/authRoutes")(app);
-require("./routes/urlRoutes")(app);
+// ------ API Routes ------ //
+apiRouter(server);
+
+/*
 
 // Send 404 page
 app.get("*", (req, res) => {
   res.sendFile("404.html", { root: __dirname + "/../public" });
 });
 
-const server = app.listen(port, () => {
+*/
+
+// Handle all the errors that could happen in the routes
+server.handleErr((error, req, res) => {
+  if (error && error.status) {
+    res.status(error.status).json({ error: error.message });
+  } else {
+    console.error(error);
+    res.status(500).json({
+      error: "Sorry, something unexpected happened from our side.",
+    });
+  }
+});
+
+server.listen(port, () => {
   log(
     "Starting the server..." +
       "\n----------------------------------\n" +
@@ -83,4 +112,4 @@ const server = app.listen(port, () => {
 });
 
 // Export the server for testing
-module.exports = { app, server };
+export { server };
