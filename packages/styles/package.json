@@ -1,0 +1,26 @@
+{
+  "name": "@weer/styles",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "node-sass src/main.scss ../server/public/styles.css -w",
+    "compile:sass": "node-sass src/main.scss ../server/public/style.comp.css",
+    "concat:css": "concat -o ../server/public/style.concat.css ../server/public/style.comp.css",
+    "prefix:css": "postcss --use autoprefixer -b \"last 10 versions\" ../server/public/style.concat.css -o ../server/public/style.prefix.css",
+    "compress:css": "node-sass ../server/public/style.prefix.css ../server/public/styles.css --output-style compressed",
+    "cleanup": "rm ../server/public/style.prefix.css ../server/public/style.concat.css ../server/public/style.comp.css",
+    "build": "npm-run-all compile:sass concat:css prefix:css compress:css cleanup"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.2.4",
+    "concat": "^1.0.3",
+    "npm-run-all": "^4.1.5",
+    "postcss": "^8.2.6",
+    "postcss-cli": "^8.3.1"
+  },
+  "dependencies": {
+    "node-sass": "^7.0.1"
+  }
+}

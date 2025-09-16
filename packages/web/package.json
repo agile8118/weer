@@ -1,5 +1,5 @@
 {
-  "name": "client-js",
+  "name": "@weer/web",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,6 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@weer/common": "1.0.0",
+    "@weer/reusable": "1.0.0",
     "axios": "^0.19.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6"

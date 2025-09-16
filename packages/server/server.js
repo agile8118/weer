@@ -1,7 +1,4 @@
 import cpeak, { serveStatic, parseJSON, render } from "cpeak";
-
-// For development: ../../cpeak/lib/index.js
-
 import path from "path";
 import passport from "passport";
 import cookieSession from "cookie-session";

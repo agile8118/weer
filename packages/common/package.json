@@ -1,0 +1,14 @@
+{
+  "name": "@weer/common",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^4.7.4"
+  },
+  "scripts": {
+    "start": "tsc --watch",
+    "build": "tsc"
+  }
+}
