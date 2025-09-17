@@ -1,43 +1,53 @@
 import cpeak, { serveStatic, parseJSON, render } from "cpeak";
+import type { CpeakRequest as Request, CpeakResponse as Response } from "cpeak";
+
 import path from "path";
 import passport from "passport";
 import cookieSession from "cookie-session";
 import compression from "compression";
-import helmet from "helmet";
+// import helmet from "helmet";
+
 import log from "./lib/log.js";
 import keys from "./config/keys.js";
 import apiRouter from "./router.js";
 
 import "./passport.js";
 
-const server = new cpeak();
+const app = new cpeak();
 
 // For parsing JSON body
-server.beforeEach(parseJSON);
+app.beforeEach(parseJSON);
 
-const port = process.env.PORT || 2080;
+const port = Number(process.env.PORT || 2080);
 
-server.beforeEach(helmet());
-server.beforeEach(compression());
+// app.beforeEach(helmet());
+app.beforeEach(compression() as any);
 
 const publicPath = new URL("../public", import.meta.url).pathname;
-server.beforeEach(serveStatic(publicPath));
+app.beforeEach(serveStatic(publicPath));
 
 // For sever side rendering
-server.beforeEach(render());
+app.beforeEach(render());
 
-server.beforeEach(
+if (!keys.cookieKey || keys.cookieKey.length < 32) {
+  console.log(
+    "You must set a cookie key in config/keys.ts file and it must be at least 32 characters long."
+  );
+  process.exit(1);
+}
+
+app.beforeEach(
   cookieSession({
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     keys: [keys.cookieKey],
-  })
+  }) as any
 );
 
 // Passport authentication
-server.beforeEach(passport.initialize());
-server.beforeEach(passport.session());
+app.beforeEach(passport.initialize() as any);
+app.beforeEach(passport.session());
 
-server.beforeEach((req, res, next) => {
+app.beforeEach((req, res, next) => {
   const requestStart = Date.now();
   // Grab requester ip address
   const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
@@ -69,12 +79,12 @@ server.beforeEach((req, res, next) => {
 });
 
 // Show the home page
-server.route("get", "/", (req, res) => {
+app.route("get", "/", (req: Request, res: Response) => {
   res.sendFile(path.join(publicPath, "./index.html"), "text/html");
 });
 
 // ------ API Routes ------ //
-apiRouter(server);
+apiRouter(app);
 
 /*
 
@@ -86,10 +96,14 @@ app.get("*", (req, res) => {
 */
 
 // Handle all the errors that could happen in the routes
-server.handleErr((error, req, res) => {
+app.handleErr((error: any, req: Request, res: Response) => {
   if (error && error.status) {
     res.status(error.status).json({ error: error.message });
   } else {
+    // if (error.code === "CPEAK_ERR_FILE_NOT_FOUND") {
+    //   return res.status(404).json({ error: "File not found." });
+    // }
+
     console.error(error);
     res.status(500).json({
       error: "Sorry, something unexpected happened from our side.",
@@ -97,7 +111,7 @@ server.handleErr((error, req, res) => {
   }
 });
 
-server.listen(port, () => {
+const server = app.listen(port, () => {
   log(
     "Starting the server..." +
       "\n----------------------------------\n" +

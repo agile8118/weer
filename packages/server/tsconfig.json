@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ES2022",
+    "moduleResolution": "Bundler",        
+    "strict": true,
+
+    "declaration": true,
+    "declarationMap": false,
+    "sourceMap": true,
+    "removeComments": true,
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["node", "jest"],
+
+    "outDir": "dist",
+    "rootDir": "src",
+    "verbatimModuleSyntax": false,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "public"]
+}

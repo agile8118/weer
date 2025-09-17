@@ -1,12 +1,14 @@
+import type { CpeakRequest as Request, CpeakResponse as Response } from "cpeak";
+
 import { DB } from "../database.js";
 
-const logOut = (req, res) => {
+const logOut = (req: Request, res: Response) => {
   req.logout();
   res.redirect("/");
 };
 
 // Check to see if a user is logged in or not
-const isLoggedIn = async (req, res) => {
+const isLoggedIn = async (req: Request, res: Response) => {
   if (req.user) {
     const { email } = await DB.find(
       `SELECT email FROM users WHERE id=${req.user.id}`

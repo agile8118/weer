@@ -6,6 +6,11 @@
     "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "start": "cd packages/server && npm start",
+    "dev": "cd packages/server && npm run dev",
+    "build": "cd packages/web && npm run build && cd ../styles && npm run build && cd ../reusable && npm run build && cd ../common && npm run build"
+  },
   "repository": "git@github.com:agile8118/weer.git",
   "author": "Cododev Technology",
   "license": "ISC"

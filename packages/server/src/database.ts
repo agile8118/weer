@@ -2,6 +2,10 @@ import mysql from "mysql";
 import keys from "./config/keys.js";
 
 // Connect to the database
+if (!keys.mysqlUrl) {
+  throw new Error("MySQL connection string is not provided.");
+}
+
 const connection = mysql.createConnection(keys.mysqlUrl);
 
 // Create user table
@@ -34,11 +38,16 @@ connection.query(
   }
 );
 
-const DB = {};
+interface DBInterface {
+  find: (query: string) => Promise<any>;
+  insert: (table: string, data: any) => Promise<number>;
+  update: (sql: string, data: any) => Promise<void>;
+  delete: (sql: string) => Promise<void>;
+}
 
 // Fetch from the database, returns an array if there were more than one
 // record or an object if there was only one record
-DB.find = (query) => {
+function find(query: string) {
   return new Promise(function (resolve, reject) {
     connection.query(query, function (error, results) {
       if (error) {
@@ -52,10 +61,10 @@ DB.find = (query) => {
       }
     });
   });
-};
+}
 
 // Insert an item to a specified table
-DB.insert = (table, data) => {
+function insert(table: string, data: any): Promise<number> {
   return new Promise(function (resolve, reject) {
     const query = `INSERT INTO ${table} SET ?`;
     connection.query(query, data, function (error, result) {
@@ -65,10 +74,10 @@ DB.insert = (table, data) => {
       resolve(result.insertId);
     });
   });
-};
+}
 
 // Update an item in the database
-DB.update = (sql, data) => {
+function update(sql: string, data: any): Promise<void> {
   return new Promise(function (resolve, reject) {
     connection.query(sql, data, (error, results) => {
       if (error) {
@@ -77,10 +86,10 @@ DB.update = (sql, data) => {
       resolve();
     });
   });
-};
+}
 
 // Delete an item from a table
-DB.delete = (sql) => {
+function del(sql: string): Promise<void> {
   return new Promise(function (resolve, reject) {
     connection.query(sql, (error, results) => {
       if (error) {
@@ -89,6 +98,13 @@ DB.delete = (sql) => {
       resolve();
     });
   });
+}
+
+const DB: DBInterface = {
+  find,
+  insert,
+  update,
+  delete: del,
 };
 
 export { DB, connection };

@@ -1,3 +1,9 @@
+import type {
+  Cpeak,
+  CpeakRequest as Request,
+  CpeakResponse as Response,
+} from "cpeak";
+
 import passport from "passport";
 import middlewares from "./middlewares.js";
 import Auth from "./controllers/auth.js";
@@ -7,8 +13,8 @@ import Url from "./controllers/url.js";
 // ************ AUTH ROUTES ************* //
 // ------------------------------------------------ //
 
-export default (server) => {
-  server.route(
+export default (app: Cpeak) => {
+  app.route(
     "get",
     "/auth/google",
     passport.authenticate("google", {
@@ -16,29 +22,29 @@ export default (server) => {
     })
   );
 
-  server.route(
+  app.route(
     "get",
     "/auth/google/callback",
     passport.authenticate("google"),
-    (req, res) => {
+    (req: Request, res: Response) => {
       res.redirect("/");
     }
   );
 
-  server.route("get", "/logout", Auth.logOut);
+  app.route("get", "/logout", Auth.logOut);
 
   // Check to see if a user is logged in or not
-  server.route("post", "/auth", Auth.isLoggedIn);
+  app.route("post", "/auth", Auth.isLoggedIn);
 
   // ------------------------------------------------ //
   // ************ URL ROUTES ************* //
   // ------------------------------------------------ //
 
   // Return the list of urls user has shortened
-  server.route("get", "/url", middlewares.requireAuth, Url.getUrls);
+  app.route("get", "/url", middlewares.requireAuth, Url.getUrls);
 
   // Get the url, shorten it and save to database
-  server.route(
+  app.route(
     "post",
     "/url",
     middlewares.isValidURL,
@@ -47,10 +53,10 @@ export default (server) => {
   );
 
   // Redirect to the real url
-  server.route("get", "/:id", Url.redirect);
+  app.route("get", "/:id", Url.redirect);
 
   // Delete an url record
-  server.route(
+  app.route(
     "delete",
     "/url/:id",
     middlewares.requireAuth,

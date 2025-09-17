@@ -4,7 +4,7 @@ import path from "path";
 /*
   if the message parameter is object we log error and if it's string we log info
 */
-export default (message) => {
+export default (message: string | Error): void => {
   // Format the current date to use for each log
   const d = new Date();
   const dateString =
