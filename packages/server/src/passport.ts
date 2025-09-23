@@ -1,6 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
-import { DB } from "./database.js";
+import { DB } from "./database/index.js";
+import { IUser } from "./database/types.js";
 import keys from "./config/keys.js";
 
 interface User {
@@ -41,9 +42,13 @@ passport.use(
       const userName = profile._json.name as string;
       const userEmail = profile._json.email as string;
 
-      const { id } = await DB.find(
-        `SELECT id FROM users WHERE google_id=${googleId}`
+      const user = await DB.find<IUser>(
+        "SELECT id FROM users WHERE google_id=$1",
+        [googleId]
       );
+
+      if (!user) return done(null, false);
+      const id = user.id;
 
       if (id) {
         // Login user
@@ -51,12 +56,13 @@ passport.use(
         done(null, user);
       } else {
         // Create the user
-        const newId = await DB.insert("users", {
+        const newUser = await DB.insert<IUser>("users", {
           email: userEmail,
           name: userName,
           google_id: googleId,
         });
-        const user: User = { id: newId };
+        if (!newUser) return done(null, false);
+        const user: User = { id: newUser.id };
         done(null, user);
       }
     }

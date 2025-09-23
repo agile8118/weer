@@ -29,7 +29,7 @@ class Urls extends Component {
       urls: data.urls,
       domain: data.domain,
       selectedUrlIdForDeletion: null,
-      confirmationShow: false
+      confirmationShow: false,
     });
   }
 
@@ -38,22 +38,22 @@ class Urls extends Component {
     if (urlId) {
       this.setState({
         selectedUrlIdForDeletion: urlId,
-        confirmationShow: true
+        confirmationShow: true,
       });
       this.confirmationDisplayedUrl.current.innerHTML = realUrl;
     } else {
       this.setState({
-        confirmationShow: false
+        confirmationShow: false,
       });
     }
   };
 
   // Send the delete request to the server
-  onDeleteConfirmed = async callback => {
+  onDeleteConfirmed = async (callback) => {
     const urlId = this.state.selectedUrlIdForDeletion;
     try {
       await axios.delete("/url/" + urlId);
-      const newUrls = this.state.urls.filter(url => {
+      const newUrls = this.state.urls.filter((url) => {
         if (url.id === urlId) {
           return false;
         }
@@ -87,7 +87,7 @@ class Urls extends Component {
 
     // User has urls
     if (this.state.urls.length > 0) {
-      return this.state.urls.map(url => {
+      return this.state.urls.map((url) => {
         return (
           <LinkShow
             key={url.id}
@@ -119,7 +119,7 @@ class Urls extends Component {
           {this.renderUrls()}
         </section>
         <p className="a-2">
-          Signed in as {this.props.email}. <a href="/logout">Singout.</a>
+          Signed in as {this.props.email}. <a href="/logout">Sign out.</a>
         </p>
         <ConfirmationModal
           show={this.state.confirmationShow}

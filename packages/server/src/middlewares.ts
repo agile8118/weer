@@ -5,7 +5,8 @@ import type {
   Next,
   RouteMiddleware,
 } from "cpeak";
-import { DB } from "./database.js";
+import { DB } from "./database/index.js";
+import { IUser, IUrl } from "./database/types.js";
 import keys from "./config/keys.js";
 
 interface Middlewares {
@@ -58,18 +59,20 @@ async function checkRealUrlExistence(
     const body = req.body as { url?: string };
     const realUrl = body.url || "";
 
-    let result;
+    let result: IUrl | null;
     if (userId) {
-      result = await DB.find(
-        `SELECT * FROM urls WHERE real_url = '${realUrl}' AND user_id = '${userId}'`
+      result = await DB.find<IUrl>(
+        `SELECT * FROM urls WHERE real_url = $1 AND user_id = $2`,
+        [realUrl, userId]
       );
     } else {
-      result = await DB.find(
-        `SELECT * FROM urls WHERE real_url = '${realUrl}' AND user_id IS NULL`
+      result = await DB.find<IUrl>(
+        `SELECT * FROM urls WHERE real_url = $1 AND user_id IS NULL`,
+        [realUrl]
       );
     }
 
-    if (result.id) {
+    if (result && result.id) {
       res.status(200).json({
         URLId: result.id,
         realURL: result.real_url,
@@ -90,10 +93,11 @@ async function checkUrlOwnership(
   handleErr: HandleErr
 ) {
   const urlId = req.vars?.id;
-  const { user_id } = await DB.find(
+  const user = await DB.find<IUser>(
     `SELECT user_id FROM urls WHERE id=${urlId}`
   );
-  if (user_id === req.user.id) {
+
+  if (user && user.id === req.user.id) {
     next();
   } else {
     return handleErr({ status: 403, message: "Not allowed to access." });

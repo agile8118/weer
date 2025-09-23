@@ -5,7 +5,8 @@ import type {
 } from "cpeak";
 
 import path from "path";
-import { DB } from "../database.js";
+import { DB } from "../database/index.js";
+import { IUrl } from "../database/types.js";
 import util from "../lib/util.js";
 import keys from "../config/keys.js";
 
@@ -13,8 +14,9 @@ const publicPath = new URL("../../public", import.meta.url).pathname;
 
 // Return the list of urls user has shortened
 const getUrls = async (req: Request, res: Response) => {
-  let data = await DB.find(
-    `SELECT real_url, shortened_url_id, id FROM urls WHERE user_id=${req.user.id} ORDER BY created_at DESC`
+  let data = await DB.findMany<IUrl>(
+    `SELECT real_url, shortened_url_id, id FROM urls WHERE user_id=$1 ORDER BY created_at DESC`,
+    [req.user.id]
   );
 
   // If there's only one url
@@ -47,21 +49,23 @@ const shorten = async (req: Request, res: Response) => {
   let userId = req.user ? req.user.id : null;
 
   const realUrl = (req.body as { url: string }).url;
+
   // Generate a 6 digits number to be used as url shortened id
   let urlId = (Math.floor(Math.random() * 90000) + 100000).toString();
 
-  let url_ids = [];
+  let url_ids: string[] = [];
 
-  const shortened_url_ids = await DB.find("SELECT shortened_url_id FROM urls");
+  // @Todo: Optimize this to not to fetch all the ids each time
+  // Get all the existing shortened_url_id from database to check for uniqueness
+  const shortened_urls = await DB.findMany<IUrl>(
+    "SELECT shortened_url_id FROM urls"
+  );
 
-  if (shortened_url_ids[0]) {
-    shortened_url_ids.map((id: { shortened_url_id: string }) => {
-      url_ids.push(id.shortened_url_id);
-    });
-  } else {
-    url_ids.push(shortened_url_ids.shortened_url_id);
-  }
+  shortened_urls.map((url: IUrl) => {
+    url_ids.push(url.shortened_url_id);
+  });
 
+  // Make sure the generated id is unique
   while (url_ids.includes(urlId)) {
     urlId = String(Math.floor(Math.random() * 90000) + 10000);
   }
@@ -69,13 +73,16 @@ const shorten = async (req: Request, res: Response) => {
   // Insert a new record to url table
   let insertedId = null;
   if (userId) {
-    insertedId = await DB.insert("urls", {
+    insertedId = await DB.insert<IUrl>("urls", {
       real_url: realUrl,
       shortened_url_id: urlId,
       user_id: userId,
     });
   } else {
-    await DB.insert("urls", { real_url: realUrl, shortened_url_id: urlId });
+    await DB.insert<IUrl>("urls", {
+      real_url: realUrl,
+      shortened_url_id: urlId,
+    });
   }
 
   return res.json({
@@ -96,24 +103,32 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
     return res.sendFile(path.join(publicPath, "./no-url.html"), "text/html");
   }
 
-  const { real_url, id } = await DB.find(
-    `SELECT real_url, id FROM urls WHERE shortened_url_id=${req.vars.id}`
+  const url = await DB.find<IUrl>(
+    `SELECT real_url, id, views FROM urls WHERE shortened_url_id=$1`,
+    [req.vars.id]
   );
 
-  // We have found the link
-  if (id) {
-    // increment the views number by one
-    await DB.update(`UPDATE urls SET views = views + 1 WHERE id = ?`, [id]);
-
-    res.redirect(real_url);
-  } else {
-    res.sendFile(path.join(publicPath, "./no-url.html"), "text/html");
+  if (!url) {
+    return res.sendFile(path.join(publicPath, "./no-url.html"), "text/html");
   }
+
+  // We have found the link
+  // increment the views number by one
+  await DB.update<IUrl>(
+    "urls",
+    {
+      views: url.views + 1,
+    },
+    `id = $2`,
+    [url.id]
+  );
+
+  res.redirect(url.real_url);
 };
 
 // Delete an url record
 const remove = async (req: Request, res: Response) => {
-  await DB.delete(`DELETE FROM urls WHERE id=${req.vars?.id}`);
+  await DB.delete<IUrl>("urls", `id=$1`, [req.vars?.id]);
   res.json({ message: "deleted" });
 };
 
