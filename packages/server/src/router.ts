@@ -19,7 +19,8 @@ export default (app: Cpeak) => {
     "/auth/google",
     passport.authenticate("google", {
       scope: ["profile", "email"],
-    })
+    }),
+    (req: Request, res: Response) => {}
   );
 
   app.route(

@@ -1,8 +1,9 @@
 import pkg from "pg";
 import { TTables, IUser, IUrl } from "./types.js";
+import keys from "../config/keys.js";
 
 /**
- * @important Run the seed.js file first to get our tables, triggers and some starter data
+ * @important Run the seed.js file first to get our tables and triggers
  */
 
 // Make properties of a type optional
@@ -12,11 +13,11 @@ type Partial<T> = {
 
 // Connect to the postgres database
 const pool = new pkg.Pool({
-  user: "joseph",
-  host: "localhost",
-  database: "weer",
-  password: "",
-  port: 5432,
+  user: keys.dbUser,
+  host: keys.dbHost,
+  database: keys.dbDatabase,
+  password: keys.dbPassword,
+  port: keys.dbPort,
 });
 
 // Fetch from the database, returns only one object or null
@@ -130,7 +131,6 @@ const update = <T>(
       });
     }
 
-    console.log(query, _values);
     pool.query(query, _values, function (error, result) {
       if (error) {
         reject(error);

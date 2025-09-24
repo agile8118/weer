@@ -47,13 +47,10 @@ passport.use(
         [googleId]
       );
 
-      if (!user) return done(null, false);
-      const id = user.id;
-
-      if (id) {
+      if (user && user.id) {
         // Login user
-        const user: User = { id };
-        done(null, user);
+        const loggedInUser: User = { id: user.id };
+        done(null, loggedInUser);
       } else {
         // Create the user
         const newUser = await DB.insert<IUser>("users", {
@@ -62,8 +59,8 @@ passport.use(
           google_id: googleId,
         });
         if (!newUser) return done(null, false);
-        const user: User = { id: newUser.id };
-        done(null, user);
+        const loggedInUser: User = { id: newUser.id };
+        done(null, loggedInUser);
       }
     }
   )

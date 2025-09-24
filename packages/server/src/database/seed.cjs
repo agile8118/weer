@@ -1,14 +1,14 @@
 const { Pool } = require("pg");
 const fs = require("fs");
 const path = require("path");
-// const bcrypt = require("bcrypt");
+const keys = require("../config/keys.js");
 
 const pool = new Pool({
-  user: "joseph",
-  host: "localhost",
-  database: "weer",
-  password: "",
-  port: 5432,
+  user: keys.dbUser,
+  host: keys.dbHost,
+  database: keys.dbDatabase,
+  password: keys.dbPassword,
+  port: keys.dbPort,
 });
 
 // Create triggers and tables
