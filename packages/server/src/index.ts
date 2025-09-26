@@ -5,7 +5,8 @@ import path from "path";
 import passport from "passport";
 import cookieSession from "cookie-session";
 import compression from "compression";
-// import helmet from "helmet";
+// import expressSession from "express-session";
+import helmet from "helmet";
 
 import log from "./lib/log.js";
 import keys from "./config/keys.js";
@@ -17,6 +18,13 @@ const app = new cpeak();
 
 // For parsing JSON body
 app.beforeEach(parseJSON);
+
+// express session
+// app.beforeEach(
+//   expressSession({
+//     secret: "jhfweufiewhkjfweihfweifhwkjhkjhfiweh976tgu",
+//   }) as any
+// );
 
 const port = Number(process.env.PORT || 2080);
 
@@ -65,7 +73,7 @@ app.beforeEach((req, res, next) => {
         " -- " +
         req.method +
         " " +
-        req.originalUrl +
+        req.url +
         " " +
         statusCode +
         " " +

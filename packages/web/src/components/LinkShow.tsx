@@ -1,12 +1,20 @@
-import React from "react";
+import React, { FC } from "react";
 
-export default ({
+interface LinkShow {
+  urlId?: string | null;
+  realUrl: string;
+  shortenedUrl: string;
+  onList: boolean;
+  toggleConfirmationModal: (urlId: string | null, realUrl: string) => void;
+}
+
+export default (({
   urlId = null,
   realUrl,
   shortenedUrl,
   onList,
-  toggleConfirmationModal
-}) => {
+  toggleConfirmationModal,
+}: LinkShow) => {
   // Decide whether to show the link component or not
   let linkClassName = realUrl ? "link" : "link display-none";
   linkClassName = onList ? linkClassName + " link--on-list" : linkClassName;
@@ -41,28 +49,29 @@ export default ({
           <div className="text-center">
             <div className="tooltip">
               <button
-                onClick={e => {
-                  Clipboard.copy(shortenedUrl);
+                onClick={(e) => {
+                  navigator.clipboard?.writeText(shortenedUrl);
 
                   // Represent to the user that the link was copied
-                  if (e.target.tagName === "IMG") {
-                    // if image tag got clicked
-                    e.target.parentElement.nextSibling.innerHTML = "Copied!";
+                  if ((e.target as HTMLElement).tagName === "IMG") {
+                    (
+                      e.target as HTMLElement
+                    ).parentElement!.nextSibling!.textContent = "Copied!";
                   }
-                  if (e.target.tagName === "BUTTON") {
-                    // if the button got clicked
-                    e.target.nextSibling.innerHTML = "Copied!";
+                  if ((e.target as HTMLElement).tagName === "BUTTON") {
+                    (e.target as HTMLElement).nextSibling!.textContent =
+                      "Copied!";
                   }
                 }}
-                onMouseLeave={e => {
+                onMouseLeave={(e) => {
                   // Revert the tooltip text to the original
-                  if (e.target.tagName === "IMG") {
-                    // if image tag got clicked
-                    e.target.parentElement.nextSibling.innerHTML = "Copy";
+                  if ((e.target as HTMLElement).tagName === "IMG") {
+                    (
+                      e.target as HTMLElement
+                    ).parentElement!.nextSibling!.textContent = "Copy";
                   }
-                  if (e.target.tagName === "BUTTON") {
-                    // if the button got clicked
-                    e.target.nextSibling.innerHTML = "Copy";
+                  if ((e.target as HTMLElement).tagName === "BUTTON") {
+                    (e.target as HTMLElement).nextSibling!.textContent = "Copy";
                   }
                 }}
                 className="link__copy"
@@ -77,4 +86,4 @@ export default ({
       </div>
     </div>
   );
-};
+}) as FC<LinkShow>;

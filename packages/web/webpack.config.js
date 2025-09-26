@@ -1,20 +1,36 @@
 const path = require("path");
-const webpack = require("webpack");
-require("babel-polyfill");
 
 module.exports = {
-  entry: ["babel-polyfill", "./src/index.js"],
+  entry: path.join(__dirname, "src", "index.tsx"),
   output: {
     filename: "app.js",
-    path: path.resolve(__dirname, "../server/public"),
+    chunkFilename: "[name].bundle.js",
+    path: path.resolve(__dirname, "../server/public/scripts"),
   },
+  devtool: "inline-source-map",
   module: {
     rules: [
       {
-        use: "babel-loader",
-        test: /\.js$/,
+        test: /\.(ts|tsx)$/,
+        exclude: [/node_modules/],
+        loader: "ts-loader",
+      },
+      {
+        test: /\.(js|jsx)$/,
         exclude: /node_modules/,
+        use: ["babel-loader"],
+      },
+      {
+        test: /\.(css|scss)$/,
+        use: ["style-loader", "css-loader"],
+      },
+      {
+        test: /\.(jpg|jpeg|png|gif|mp3|svg)$/,
+        use: ["file-loader"],
       },
     ],
+  },
+  resolve: {
+    extensions: [".tsx", ".ts", ".js"],
   },
 };

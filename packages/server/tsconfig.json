@@ -6,6 +6,8 @@
     "moduleResolution": "Bundler",        
     "strict": true,
 
+    "typeRoots": ["./node_modules/@types"],
+
     "declaration": true,
     "declarationMap": false,
     "sourceMap": true,

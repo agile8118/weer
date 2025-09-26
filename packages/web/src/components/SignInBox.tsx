@@ -1,8 +1,8 @@
-import React from "react";
+import React, { FC } from "react";
 
-const SingInBox = () => {
+const SingInBox: FC = () => {
   return (
-    <section className="section section--2">
+    <section className="section section--2" data-testid="sign-in-box">
       <h2>Sign in to get permanent shortened links</h2>
       <p>
         If you create shortened links as a guest, your links will be removed

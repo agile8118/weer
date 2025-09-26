@@ -1,6 +1,6 @@
-import React from "react";
+import React, { FC } from "react";
 
-export default () => {
+const EllipsisLoader: FC = () => {
   return (
     <div className="lds-ellipsis">
       <div></div>
@@ -10,3 +10,5 @@ export default () => {
     </div>
   );
 };
+
+export default EllipsisLoader;

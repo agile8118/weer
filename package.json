@@ -3,7 +3,7 @@
   "description": "URL Shortner Application",
   "version": "1.0.0",
   "private": true,
-    "workspaces": [
+  "workspaces": [
     "packages/*"
   ],
   "scripts": {

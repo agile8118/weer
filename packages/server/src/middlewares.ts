@@ -93,11 +93,9 @@ async function checkUrlOwnership(
   handleErr: HandleErr
 ) {
   const urlId = req.vars?.id;
-  const user = await DB.find<IUser>(
-    `SELECT user_id FROM urls WHERE id=${urlId}`
-  );
+  const url = await DB.find<IUrl>(`SELECT user_id FROM urls WHERE id=${urlId}`);
 
-  if (user && user.id === req.user.id) {
+  if (url && url.user_id === req.user.id) {
     next();
   } else {
     return handleErr({ status: 403, message: "Not allowed to access." });

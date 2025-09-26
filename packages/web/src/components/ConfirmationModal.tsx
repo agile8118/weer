@@ -1,7 +1,15 @@
-import React from "react";
+import React, { FC, ReactNode } from "react";
 import Loading from "./Loading";
 
-export default props => {
+interface ConfirmationModalProps {
+  show: boolean;
+  headerText: string;
+  onClosed: () => void;
+  onConfirmed: (done: () => void) => void;
+  children?: ReactNode;
+}
+
+const ConfirmationModal: FC<ConfirmationModalProps> = (props) => {
   // Decode whether or not to show the modal
   let modalClassName = props.show
     ? "confirmation-modal-container"
@@ -27,9 +35,10 @@ export default props => {
             Deleting <Loading />
           </button>
           <button
-            onClick={e => {
-              const loadingButton = e.target.previousSibling;
-              const normalButton = e.target;
+            onClick={(e) => {
+              const loadingButton = (e.target as HTMLElement)
+                .previousSibling as HTMLElement;
+              const normalButton = e.target as HTMLElement;
               // Make as the button as loading
               loadingButton.classList.remove("display-none");
               normalButton.classList.add("display-none");
@@ -48,3 +57,5 @@ export default props => {
     </div>
   );
 };
+
+export default ConfirmationModal;
