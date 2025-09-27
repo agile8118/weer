@@ -4,9 +4,28 @@
 
 .text-center {
   text-align: center;
-  align-items: flex-start
+  align-items: flex-start;
 }
 
 .margin-top-md {
   margin-top: 2rem;
+}
+
+.u-text-center {
+  text-align: center;
+}
+
+.u-display-none {
+  display: none !important;
+}
+
+.u-flex-text-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.u-flex-text-right {
+  display: flex;
+  justify-content: right;
 }

@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { Button } from "@weer/reusable";
 import LinkShow from "./LinkShow";
-import Loading from "./Loading";
 import lib from "../lib";
 
 interface UrlShortenerProps {
@@ -16,15 +16,13 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
   const [shortenedUrl, setShortenedUrl] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const loadingButton = useRef<HTMLButtonElement>(null);
-  const shortenButton = useRef<HTMLButtonElement>(null);
+  const [loading, setLoading] = useState<boolean>(false); // for URL shorten form button
 
   useEffect(() => {
     props.onRef({ onDeleteUrl });
     return () => {
       props.onRef(undefined);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Check to see if a deleted url is shown in this component
@@ -39,12 +37,8 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
 
   async function onFormSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // Move the focus out of the text input after form submition
-    shortenButton.current?.focus();
-    // Make the button as loading
-    shortenButton.current?.classList.add("display-none");
-    loadingButton.current?.classList.remove("display-none");
 
+    setLoading(true);
     let newUrl = url;
     if (!newUrl.match(/^[a-zA-Z]+:\/\//)) {
       newUrl = "http://" + newUrl;
@@ -62,9 +56,6 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
         setUrlId(data.URLId);
         setShortenedUrl(data.shortenedURL);
 
-        // Make the button as normall
-        shortenButton.current?.classList.remove("display-none");
-        loadingButton.current?.classList.add("display-none");
         props.onNewUrl();
       } catch (e: any) {
         // Show relevant errors to user on server errors
@@ -83,16 +74,14 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
       // Show an error to user if no url has been provided
       showError("Please first put your URL here.");
     }
+
+    setLoading(false);
   }
 
   function showError(msg: string) {
     setRealUrl("");
     setShortenedUrl("");
     setErrorMessage(msg);
-
-    // Make the button normal
-    shortenButton.current?.classList.remove("display-none");
-    loadingButton.current?.classList.add("display-none");
   }
 
   function hideError() {
@@ -103,15 +92,17 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
 
   return (
     <section className="section" data-testid="url-shortener">
-      <h1>URL Shortener App</h1>
-      <p>
-        Just put your long URL in the text box below and click shorten to get a
-        nice small URL!
-      </p>
+      <div className="main-heading">
+        <h1 className="heading-primary">Shorten a URL</h1>
+        <span className="main-heading__span">Like a professional!</span>
+      </div>
 
       <div className={boxClassName}>
         <div className="message">{errorMessage}</div>
-        <form onSubmit={(event) => onFormSubmit(event)}>
+        <form
+          onSubmit={(event) => onFormSubmit(event)}
+          className="u-flex-text-center"
+        >
           <input
             type="text"
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,21 +115,18 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
               event.target.placeholder = "Put your link here...";
             }}
             value={url}
-            placeholder="Put your link here..."
+            placeholder="Just put your link here..."
           />
-          <br />
-          <button type="submit" ref={shortenButton} className="button">
-            Shorten
-          </button>
-          <button
-            type="button"
-            ref={loadingButton}
-            className="button display-none"
-            disabled
+
+          <Button
+            type="submit"
+            loading={loading}
+            color="blue"
+            size="big"
+            loadingText="Shortening"
           >
-            Shortening
-            <Loading />
-          </button>
+            Shorten
+          </Button>
         </form>
       </div>
 

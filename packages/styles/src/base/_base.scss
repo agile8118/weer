@@ -20,21 +20,20 @@ html {
 
 body {
   font-display: fallback;
-  font-family: "Helvetica", "Arial", sans-serif;
+  font-family: "Lato", "Helvetica", "Arial", sans-serif;
   font-weight: 400;
   line-height: 1.7;
   color: #555;
   position: relative;
-  background: #7b88ac;
+  background: #f9f9f9;
   height: 100vh;
   padding: 2rem 0;
 }
 
-h1 {
+.heading-primary {
   display: block;
   text-align: center;
-  color: #fff;
-  text-transform: uppercase;
+  // text-transform: uppercase;
   font-size: 3rem;
   font-weight: 300;
 }
@@ -43,12 +42,12 @@ h2 {
   font-size: 2.5rem;
   display: block;
   text-align: center;
-  color: #fff;
+  // color: #fff;
   font-weight: 300;
 }
 
 p {
-  color: #fff;
+  // color: #fff;
   display: block;
   text-align: center;
   font-size: 1.6rem;
@@ -56,7 +55,7 @@ p {
 }
 
 a {
-  color: #fff;
+  // color: #fff;
   text-decoration: none;
 }
 
@@ -65,12 +64,14 @@ a:hover {
 }
 
 .section {
-  background: #0a1636;
-  border-radius: 7px;
+  background: #fff;
+  border-radius: 10px;
   max-width: 100rem;
-  padding: 5rem 2rem 4.5rem 2rem;
+  padding: 2.5rem 2rem 4.5rem 2rem;
   margin: 4rem auto;
-  box-shadow: 5px 5px 12px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d0d9e1;
+  box-shadow: 6px 7px 30px 7px rgba(116, 123, 129, 0.14);
+  // box-shadow: 5px 5px 12px 4px rgba(0, 0, 0, 0.1);
 
   @media only screen and (max-width: 820px) {
     max-width: 95%;

@@ -1,36 +1,132 @@
 .button {
-  padding: 1.5rem 4rem;
-  font-size: 1.6rem;
-  background-color: #2A5BD7;
   border: none;
-  color: #fff;
+  line-height: 0;
   border-radius: 7px;
-}
-
-.button:hover {
+  padding: 1.9rem 2rem;
+  font-size: 1.6rem;
+  transition: all 0.2s;
   cursor: pointer;
-  background-color: #234ebd;
+  text-decoration: none;
+  color: inherit;
+  align-items: center;
+  justify-content: center;
+  height: 1px;
+  display: flex;
+  align-items: center;
+  font-family: inherit;
+  width: max-content;
+
+  &:hover {
+    color: inherit;
+  }
+
+  &-rounded {
+    border-radius: 500px !important;
+  }
+
+  &-block {
+    width: 100%;
+  }
+
+  &__icon-left {
+    margin-right: 0.5rem;
+  }
+
+  &__icon-right {
+    margin-left: 0.5rem;
+  }
 }
 
-.button:focus {
-  outline: none;
-  background-color: #234ebd;
+.button-icon {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+
+  & .button__icon {
+    width: 2rem;
+    margin-right: 0.4rem;
+
+    img {
+      color: red;
+    }
+  }
 }
 
-.button:disabled {
-  background: rgba(42, 91, 215, 0.5);
-  cursor: not-allowed;
+.button-blue {
+  background: $color-blue;
+  color: #fff;
+  border: 1px solid $color-blue;
+
+  &:hover {
+    background-color: darken($color-blue, 8%);
+    border-color: darken($color-blue, 8%);
+    color: #fff;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba($color-blue, 0.3);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    background: #ebebe4;
+    border-color: #ccc;
+    color: #757575;
+
+    &:hover {
+      background: #ebebe4;
+      border-color: #ccc;
+      color: #757575;
+    }
+  }
+
+  &-outlined {
+    background-color: transparent;
+    color: $color-blue;
+    border: 1px solid $color-blue;
+
+    &:hover,
+    &:active {
+      background-color: $color-blue;
+      color: #fff;
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba($color-blue, 0.3);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      border-color: lighten($color-blue, 20%);
+      background-color: #fff;
+      color: lighten($color-blue, 20%);
+
+      &:hover {
+        border-color: lighten($color-blue, 20%);
+      }
+    }
+  }
 }
 
+.button-big {
+  padding: 2.5rem 2.8rem;
+  font-size: 1.8rem;
+}
+
+.button-small {
+  padding: 1.6rem 1.4rem;
+  font-size: 1.5rem;
+  border-radius: 5px;
+}
+
+// Google Signin button
 .button-google-signin {
-  background: #D73D32;
+  background: #d73d32;
   text-decoration: none;
   display: flex;
   align-items: center;
   width: 26rem;
   height: 5rem;
   margin: 3rem auto 0 auto;
-
 }
 
 .button-google-signin img {

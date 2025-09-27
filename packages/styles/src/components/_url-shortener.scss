@@ -1,0 +1,11 @@
+.main-heading {
+  text-align: center;
+
+  &__span {
+    font-size: 1.6rem;
+    color: #7e7a7a;
+    font-style: italic;
+    margin-top: -10px;
+    display: inline-block;
+  }
+}
