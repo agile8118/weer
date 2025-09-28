@@ -1,24 +1,193 @@
-input {
-  width: 70rem;
-  text-align: center;
-  color: #555;
-  font-size: 1.6rem;
-  padding: 1.3rem 2rem;
-  border: 1px solid #eee;
-  border-radius: 7px;
-  margin-bottom: 3rem;
+.form-group {
+  margin: 2rem 0;
+}
 
-  @media only screen and (max-width: 640px) {
-    width: 90%;
+// text form
+.form-text {
+  position: relative;
+  width: 100%;
+  font-size: 1.6rem;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+
+  &--textarea {
+    .form-text__label {
+      top: 2.3rem;
+    }
+
+    .form-text__input {
+      height: auto;
+    }
   }
 
-  @media only screen and (max-width: 400px) {
+  &--rounded {
+    .form-text__input {
+      border-radius: 500px !important;
+    }
+  }
+
+  &--big {
+    .form-text__input {
+      padding: 1.4rem 1.6rem;
+    }
+
+    .form-text__label {
+      left: 1.5rem;
+    }
+  }
+
+  &--small {
+    font-size: 1.4rem;
+
+    .form-text__inner-input-label {
+      top: 0.9rem;
+    }
+
+    .form-text__input {
+      padding: 0.8rem 1rem;
+      border-radius: 0.3rem;
+    }
+  }
+
+  &--disabled {
+    cursor: not-allowed;
+
+    .form-text__input {
+      cursor: not-allowed;
+      background: #ebebe4;
+    }
+
+    .form-text__label {
+      cursor: not-allowed;
+      user-select: none;
+    }
+  }
+
+  &--success {
+    .form-text__input {
+      border: 1px solid $color-green;
+    }
+  }
+
+  &--error {
+    .form-text__input {
+      border: 1px solid $color-red;
+
+      &:focus {
+        border-color: $color-red-dark;
+        outline: 0 none;
+      }
+    }
+  }
+
+  &__label {
+    position: absolute;
+    left: 1.4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0 !important;
+    color: #555;
+    transition: all 0.1s;
+    color: #9c9c9c;
+    line-height: 1.6;
+
+    &--top {
+      top: 1px !important;
+      background: #fff;
+      color: $color-text;
+      padding: 0 0.7rem;
+      font-size: 85%;
+    }
+  }
+
+  &__input-container {
+    display: flex;
+    position: relative;
+  }
+
+  & .tooltip {
+    position: absolute;
+    top: 50%;
+    transform: translate(0, -50%);
+    right: 1rem;
+
+    & + .form-text__input {
+      padding-right: 3.5rem;
+    }
+  }
+
+  &__input {
+    border: 1px solid #ccc;
+    padding: 1.2rem 1.2rem;
+    border-radius: 0.5rem;
+    font-size: 100%;
+    color: #555;
     width: 100%;
+    font-family: inherit;
+
+    &:focus {
+      border-color: rgba(41, 128, 185, 0.57);
+      outline: 0 none;
+
+      & + .form-text__label {
+        top: 1px;
+        background: #fff;
+        color: $color-text;
+        padding: 0 0.7rem;
+        font-size: 85%;
+      }
+    }
+  }
+
+  &__inner-input-label {
+    position: absolute;
+    top: 1.2rem;
+    left: 3px;
+    background: #000;
+    border-radius: 4px;
+    padding: 0.1rem 0.8rem;
+    font-size: inherit;
+    color: #fff;
+  }
+
+  &__number-indicator {
+    font-size: 90%;
+    margin-top: 5px;
+    text-align: right;
+  }
+
+  &__length-display {
+    background: #5d5d5d;
+    border-radius: 500px;
+    padding: 0.3rem 0.6rem;
+    line-height: 1;
+    color: #fff;
+    margin-top: 0.6rem;
+    display: flex;
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 1.2rem;
+    margin-left: auto;
+  }
+
+  &__footer {
+    display: flex;
+    position: relative;
   }
 }
 
-input:focus {
-  outline-color: #2a5bd7;
-  outline-width: thick;
-  outline-offset: -1px;
+.input-error {
+  font-size: 1.4rem;
+  color: $color-red;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+
+  i {
+    margin-right: 0.3rem;
+  }
 }

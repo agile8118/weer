@@ -1,2 +1,3 @@
 import Button from "./forms/Button";
-export { Button };
+import Input from "./forms/Input";
+export { Button, Input };

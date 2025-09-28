@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Button } from "@weer/reusable";
+import { Button, Input } from "@weer/reusable";
 import LinkShow from "./LinkShow";
 import lib from "../lib";
 
@@ -88,7 +88,7 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
     setErrorMessage("");
   }
 
-  let boxClassName = errorMessage ? "box box--error" : "box";
+  // let boxClassName = errorMessage ? "box box--error" : "box";
 
   return (
     <section className="section" data-testid="url-shortener">
@@ -97,25 +97,18 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
         <span className="main-heading__span">Like a professional!</span>
       </div>
 
-      <div className={boxClassName}>
-        <div className="message">{errorMessage}</div>
+      <div className="box">
+        {/* <div className="message">{errorMessage}</div> */}
         <form
           onSubmit={(event) => onFormSubmit(event)}
-          className="u-flex-text-center"
+          className="url-input u-flex-text-center"
         >
-          <input
-            type="text"
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              setUrl(event.target.value);
-            }}
-            onFocus={(event: React.FocusEvent<HTMLInputElement>) => {
-              event.target.placeholder = "";
-            }}
-            onBlur={(event: React.FocusEvent<HTMLInputElement>) => {
-              event.target.placeholder = "Put your link here...";
-            }}
+          <Input
+            placeholder="Put your link here..."
             value={url}
-            placeholder="Just put your link here..."
+            onChange={(value) => setUrl(value)}
+            error={errorMessage}
+            // help="this is some text"
           />
 
           <Button

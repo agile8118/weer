@@ -9,3 +9,22 @@
     display: inline-block;
   }
 }
+
+.url-input {
+  .form-text,
+  .form-text__footer {
+    width: 70rem;
+
+    @media only screen and (max-width: 640px) {
+      width: 90%;
+    }
+
+    @media only screen and (max-width: 400px) {
+      width: 100%;
+    }
+  }
+
+  .button {
+    margin-top: 2.5rem;
+  }
+}

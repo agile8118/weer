@@ -274,26 +274,131 @@ a:hover {
   background: #c2362c;
   text-decoration: none; }
 
-input {
-  width: 70rem;
-  text-align: center;
-  color: #555;
-  font-size: 1.6rem;
-  padding: 1.3rem 2rem;
-  border: 1px solid #eee;
-  border-radius: 7px;
-  margin-bottom: 3rem; }
-  @media only screen and (max-width: 640px) {
-    input {
-      width: 90%; } }
-  @media only screen and (max-width: 400px) {
-    input {
-      width: 100%; } }
+.form-group {
+  margin: 2rem 0; }
 
-input:focus {
-  outline-color: #2a5bd7;
-  outline-width: thick;
-  outline-offset: -1px; }
+.form-text {
+  position: relative;
+  width: 100%;
+  font-size: 1.6rem;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column; }
+  .form-text--textarea .form-text__label {
+    top: 2.3rem; }
+  .form-text--textarea .form-text__input {
+    height: auto; }
+  .form-text--rounded .form-text__input {
+    border-radius: 500px !important; }
+  .form-text--big .form-text__input {
+    padding: 1.4rem 1.6rem; }
+  .form-text--big .form-text__label {
+    left: 1.5rem; }
+  .form-text--small {
+    font-size: 1.4rem; }
+    .form-text--small .form-text__inner-input-label {
+      top: 0.9rem; }
+    .form-text--small .form-text__input {
+      padding: 0.8rem 1rem;
+      border-radius: 0.3rem; }
+  .form-text--disabled {
+    cursor: not-allowed; }
+    .form-text--disabled .form-text__input {
+      cursor: not-allowed;
+      background: #ebebe4; }
+    .form-text--disabled .form-text__label {
+      cursor: not-allowed;
+      user-select: none; }
+  .form-text--success .form-text__input {
+    border: 1px solid #35b46b; }
+  .form-text--error .form-text__input {
+    border: 1px solid #c0392b; }
+    .form-text--error .form-text__input:focus {
+      border-color: #c0392b;
+      outline: 0 none; }
+  .form-text__label {
+    position: absolute;
+    left: 1.4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0 !important;
+    color: #555;
+    transition: all 0.1s;
+    color: #9c9c9c;
+    line-height: 1.6; }
+    .form-text__label--top {
+      top: 1px !important;
+      background: #fff;
+      color: #555;
+      padding: 0 0.7rem;
+      font-size: 85%; }
+  .form-text__input-container {
+    display: flex;
+    position: relative; }
+  .form-text .tooltip {
+    position: absolute;
+    top: 50%;
+    transform: translate(0, -50%);
+    right: 1rem; }
+    .form-text .tooltip + .form-text__input {
+      padding-right: 3.5rem; }
+  .form-text__input {
+    border: 1px solid #ccc;
+    padding: 1.2rem 1.2rem;
+    border-radius: 0.5rem;
+    font-size: 100%;
+    color: #555;
+    width: 100%;
+    font-family: inherit; }
+    .form-text__input:focus {
+      border-color: rgba(41, 128, 185, 0.57);
+      outline: 0 none; }
+      .form-text__input:focus + .form-text__label {
+        top: 1px;
+        background: #fff;
+        color: #555;
+        padding: 0 0.7rem;
+        font-size: 85%; }
+  .form-text__inner-input-label {
+    position: absolute;
+    top: 1.2rem;
+    left: 3px;
+    background: #000;
+    border-radius: 4px;
+    padding: 0.1rem 0.8rem;
+    font-size: inherit;
+    color: #fff; }
+  .form-text__number-indicator {
+    font-size: 90%;
+    margin-top: 5px;
+    text-align: right; }
+  .form-text__length-display {
+    background: #5d5d5d;
+    border-radius: 500px;
+    padding: 0.3rem 0.6rem;
+    line-height: 1;
+    color: #fff;
+    margin-top: 0.6rem;
+    display: flex;
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 1.2rem;
+    margin-left: auto; }
+  .form-text__footer {
+    display: flex;
+    position: relative; }
+
+.input-error {
+  font-size: 1.4rem;
+  color: #c0392b;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem; }
+  .input-error i {
+    margin-right: 0.3rem; }
 
 .link {
   display: flex;
@@ -603,3 +708,18 @@ input:focus {
     font-style: italic;
     margin-top: -10px;
     display: inline-block; }
+
+.url-input .form-text,
+.url-input .form-text__footer {
+  width: 70rem; }
+  @media only screen and (max-width: 640px) {
+    .url-input .form-text,
+    .url-input .form-text__footer {
+      width: 90%; } }
+  @media only screen and (max-width: 400px) {
+    .url-input .form-text,
+    .url-input .form-text__footer {
+      width: 100%; } }
+
+.url-input .button {
+  margin-top: 2.5rem; }

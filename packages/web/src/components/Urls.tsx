@@ -129,7 +129,7 @@ const Urls: FC<UrlsProps> = (props) => {
   return (
     <div data-testid="urls">
       <section className="section section--2">
-        <h2>URLs you have shortened with this account</h2>
+        <h2>Your Shortened URLs</h2>
         {renderUrls()}
       </section>
       <p className="a-2">
