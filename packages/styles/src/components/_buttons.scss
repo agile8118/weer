@@ -118,6 +118,39 @@
   border-radius: 5px;
 }
 
+// Button Icon
+.button-icon {
+  border: none;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 500px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  background: #e4e3e3;
+}
+
+.button-icon:hover,
+.button-icon:focus {
+  background: #dcdbdb;
+  outline: none;
+}
+
+.button-icon:focus {
+  box-shadow: 0 0 0 3px rgba($color-text, 0.3);
+}
+
+.button-icon--default {
+  color: $color-text;
+}
+
+.button-icon--red {
+  color: $color-red;
+}
+
 // Google Signin button
 .button-google-signin {
   background: #d73d32;

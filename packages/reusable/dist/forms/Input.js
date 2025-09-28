@@ -43,18 +43,6 @@ const Input = (props) => {
         var _a, _b;
         setValue((_b = (_a = props.value) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "");
     }, [props.value]);
-    // useEffect(() => {
-    //   if (props.value) {
-    //     setValue(props.value.toString());
-    //   } else {
-    //     setValue("");
-    //   }
-    // }, [props.value]);
-    // useEffect(() => {
-    //   if (props.onChange && typeof value === "string") {
-    //     props.onChange(value);
-    //   }
-    // }, [value]);
     let className = "form-text";
     switch (props.size) {
         case "big":
@@ -72,10 +60,6 @@ const Input = (props) => {
         className += " form-text--error";
     if (props.disabled)
         className += " form-text--disabled";
-    // let shouldDivideNumberByThree = true;
-    // if (typeof props.shouldDivideNumberByThree === "boolean") {
-    //   shouldDivideNumberByThree = props.shouldDivideNumberByThree;
-    // }
     if (props.requiredWithError && !value) {
         className += " form-text--error";
     }
@@ -85,7 +69,7 @@ const Input = (props) => {
     return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("div", { className: className, children: [props.placeholder && !props.lined && ((0, jsx_runtime_1.jsx)("label", { className: "form__label", onClick: () => {
                             var _a;
                             (_a = input.current) === null || _a === void 0 ? void 0 : _a.focus();
-                        }, children: props.label })), (0, jsx_runtime_1.jsxs)("div", { className: "form-text__input-container", children: [props.help && ((0, jsx_runtime_1.jsxs)("div", { className: "tooltip tooltip-top", children: [(0, jsx_runtime_1.jsx)("a", { href: "#", className: "tooltip__icon", children: "?" }), (0, jsx_runtime_1.jsx)("div", { className: "tooltip__text", children: props.help })] })), props.innerInputLabel && ((0, jsx_runtime_1.jsx)("span", { className: "form-text__inner-input-label", ref: (elem) => {
+                        }, children: props.label })), (0, jsx_runtime_1.jsxs)("div", { className: "form-text__input-container", children: [props.help && ((0, jsx_runtime_1.jsx)("div", { className: "form-text__help-tooltip", children: (0, jsx_runtime_1.jsxs)("div", { className: "tooltip", children: [(0, jsx_runtime_1.jsx)("i", { class: "fa-regular fa-circle-question" }), (0, jsx_runtime_1.jsx)("div", { className: "tooltip__text", children: props.help })] }) })), props.innerInputLabel && ((0, jsx_runtime_1.jsx)("span", { className: "form-text__inner-input-label", ref: (elem) => {
                                     // Add a left padding to the input because of the name label
                                     if (elem)
                                         // @ts-ignore

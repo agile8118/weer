@@ -256,6 +256,33 @@ a:hover {
   font-size: 1.5rem;
   border-radius: 5px; }
 
+.button-icon {
+  border: none;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 500px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  background: #e4e3e3; }
+
+.button-icon:hover,
+.button-icon:focus {
+  background: #dcdbdb;
+  outline: none; }
+
+.button-icon:focus {
+  box-shadow: 0 0 0 3px rgba(85, 85, 85, 0.3); }
+
+.button-icon--default {
+  color: #555; }
+
+.button-icon--red {
+  color: #c0392b; }
+
 .button-google-signin {
   background: #d73d32;
   text-decoration: none;
@@ -335,12 +362,12 @@ a:hover {
   .form-text__input-container {
     display: flex;
     position: relative; }
-  .form-text .tooltip {
+  .form-text .form-text__help-tooltip {
     position: absolute;
     top: 50%;
     transform: translate(0, -50%);
     right: 1rem; }
-    .form-text .tooltip + .form-text__input {
+    .form-text .form-text__help-tooltip + .form-text__input {
       padding-right: 3.5rem; }
   .form-text__input {
     border: 1px solid #ccc;
@@ -451,32 +478,11 @@ a:hover {
   .link__shortened a:hover {
     text-decoration: underline; }
 
-.link__copy,
-.link__delete {
-  border: none;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 500px;
-  cursor: pointer;
-  background: #eee; }
-
 .link__copy {
   margin-left: 1rem; }
 
 .link__delete {
   margin-left: 0.5rem; }
-
-.link__copy:hover,
-.link__copy:focus,
-.link__delete:hover,
-.link__delete:focus {
-  background: #e8e8e8;
-  outline: none; }
-
-.link__copy img,
-.link__delete img {
-  width: 1.6rem; }
 
 .lds-ellipsis {
   display: inline-block;
@@ -543,22 +549,22 @@ a:hover {
 
 .tooltip {
   position: relative;
-  display: inline-block; }
+  display: inline-flex; }
 
 .tooltip .tooltip__text {
   visibility: hidden;
-  width: 6.5rem;
   background-color: #333;
   color: #fff;
   text-align: center;
   border-radius: 7px;
-  padding: 3px 0;
+  padding: 0.4rem 1rem;
   position: absolute;
   z-index: 1;
-  bottom: 125%;
-  left: 135%;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, 0);
   font-size: 1.4rem;
-  margin-left: -6rem;
+  margin-bottom: 6px;
   opacity: 0;
   transition: opacity 0.3s; }
 

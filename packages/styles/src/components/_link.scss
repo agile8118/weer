@@ -32,6 +32,7 @@
     }
   }
 }
+
 .link__shortened {
   display: flex;
   align-content: center;
@@ -64,34 +65,10 @@
   }
 }
 
-.link__copy,
-.link__delete {
-  border: none;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 500px;
-  cursor: pointer;
-  background: #eee;
-}
-
 .link__copy {
   margin-left: 1rem;
 }
 
 .link__delete {
   margin-left: 0.5rem;
-}
-
-.link__copy:hover,
-.link__copy:focus,
-.link__delete:hover,
-.link__delete:focus {
-  background: #e8e8e8;
-  outline: none;
-}
-
-.link__copy img,
-.link__delete img {
-  width: 1.6rem;
 }

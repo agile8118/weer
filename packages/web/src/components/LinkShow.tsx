@@ -1,4 +1,5 @@
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
+import { ButtonIcon } from "@weer/reusable";
 
 interface LinkShow {
   urlId?: string | null;
@@ -15,6 +16,8 @@ export default (({
   onList,
   toggleConfirmationModal,
 }: LinkShow) => {
+  const [copyTooltipText, setCopyTooltipText] = useState<string>("Copy");
+
   // Decide whether to show the link component or not
   let linkClassName = realUrl ? "link" : "link display-none";
   linkClassName = onList ? linkClassName + " link--on-list" : linkClassName;
@@ -25,16 +28,18 @@ export default (({
 
   // If on list show the delete button
   let deleteButton;
+
   if (onList) {
     deleteButton = (
-      <button
-        onClick={() => {
-          toggleConfirmationModal(urlId, realUrl);
-        }}
-        className="link__delete"
-      >
-        <img src="/trash.svg" alt="Delete icon" />
-      </button>
+      <div className="link__delete">
+        <ButtonIcon
+          color="red"
+          icon="fa-solid fa-trash-can"
+          onClick={() => {
+            toggleConfirmationModal(urlId, realUrl);
+          }}
+        />
+      </div>
     );
   }
 
@@ -46,42 +51,21 @@ export default (({
           <a target="_blank" href={shortenedUrl}>
             {shortenedUrl}
           </a>
-          <div className="text-center">
-            <div className="tooltip">
-              <button
-                onClick={(e) => {
-                  navigator.clipboard?.writeText(shortenedUrl);
-
-                  // Represent to the user that the link was copied
-                  if ((e.target as HTMLElement).tagName === "IMG") {
-                    (
-                      e.target as HTMLElement
-                    ).parentElement!.nextSibling!.textContent = "Copied!";
-                  }
-                  if ((e.target as HTMLElement).tagName === "BUTTON") {
-                    (e.target as HTMLElement).nextSibling!.textContent =
-                      "Copied!";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  // Revert the tooltip text to the original
-                  if ((e.target as HTMLElement).tagName === "IMG") {
-                    (
-                      e.target as HTMLElement
-                    ).parentElement!.nextSibling!.textContent = "Copy";
-                  }
-                  if ((e.target as HTMLElement).tagName === "BUTTON") {
-                    (e.target as HTMLElement).nextSibling!.textContent = "Copy";
-                  }
-                }}
-                className="link__copy"
-              >
-                <img src="/copy-document.svg" alt="Copy icon" />
-              </button>
-              <span className="tooltip__text">Copy</span>
-            </div>
-            {deleteButton}
+          <div className="link__copy">
+            <ButtonIcon
+              color="default"
+              icon="fa-solid fa-copy"
+              tooltipText={copyTooltipText}
+              onClick={() => {
+                navigator.clipboard?.writeText(shortenedUrl);
+                setCopyTooltipText("Copied!");
+              }}
+              onMouseLeave={() => {
+                setCopyTooltipText("Copy");
+              }}
+            />
           </div>
+          {deleteButton}
         </div>
       </div>
     </div>

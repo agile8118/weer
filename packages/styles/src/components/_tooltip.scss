@@ -1,22 +1,22 @@
 .tooltip {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
 }
 
-.tooltip  .tooltip__text {
+.tooltip .tooltip__text {
   visibility: hidden;
-  width: 6.5rem;
   background-color: #333;
   color: #fff;
   text-align: center;
   border-radius: 7px;
-  padding: 3px 0;
+  padding: 0.4rem 1rem;
   position: absolute;
   z-index: 1;
-  bottom: 125%;
-  left: 135%;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, 0);
   font-size: 1.4rem;
-  margin-left: -6rem;
+  margin-bottom: 6px;
   opacity: 0;
   transition: opacity 0.3s;
 }

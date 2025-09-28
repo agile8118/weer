@@ -108,7 +108,7 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
             value={url}
             onChange={(value) => setUrl(value)}
             error={errorMessage}
-            // help="this is some text"
+            help="this is some text"
           />
 
           <Button

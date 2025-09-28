@@ -9,7 +9,6 @@ interface Props {
   autoFocus?: boolean;
   autoComplete?: string;
   error?: string;
-  // shouldDivideNumberByThree?: boolean;
   onChange?: (s: string) => void;
   onBlur?: (s: string) => void;
   requiredWithError?: boolean;
@@ -33,20 +32,6 @@ const Input = (props: Props) => {
     setValue(props.value?.toString() ?? "");
   }, [props.value]);
 
-  // useEffect(() => {
-  //   if (props.value) {
-  //     setValue(props.value.toString());
-  //   } else {
-  //     setValue("");
-  //   }
-  // }, [props.value]);
-
-  // useEffect(() => {
-  //   if (props.onChange && typeof value === "string") {
-  //     props.onChange(value);
-  //   }
-  // }, [value]);
-
   let className = "form-text";
 
   switch (props.size) {
@@ -62,11 +47,6 @@ const Input = (props: Props) => {
   if (props.success && !props.disabled) className += " form-text--success";
   if (props.error && !props.disabled) className += " form-text--error";
   if (props.disabled) className += " form-text--disabled";
-
-  // let shouldDivideNumberByThree = true;
-  // if (typeof props.shouldDivideNumberByThree === "boolean") {
-  //   shouldDivideNumberByThree = props.shouldDivideNumberByThree;
-  // }
 
   if (props.requiredWithError && !value) {
     className += " form-text--error";
@@ -91,12 +71,12 @@ const Input = (props: Props) => {
         )}
         <div className="form-text__input-container">
           {props.help && (
-            <div className="tooltip tooltip-top">
-              <a href="#" className="tooltip__icon">
-                ?
-              </a>
+            <div className="form-text__help-tooltip">
+              <div className="tooltip">
+                <i class="fa-regular fa-circle-question"></i>
 
-              <div className="tooltip__text">{props.help}</div>
+                <div className="tooltip__text">{props.help}</div>
+              </div>
             </div>
           )}
 
