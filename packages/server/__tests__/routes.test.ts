@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import request from "supertest";
 import { after, describe, it } from "mocha";
 import { server } from "../src/index";
-import { connection } from "../src/database";
+import { pool } from "../src/database";
 
 describe("URL Endpoints", () => {
   it("should create a new shortened url", async () => {
@@ -25,7 +25,7 @@ describe("URL Endpoints", () => {
 
   after(async () => {
     // Closing the DB connection
-    connection.end();
+    pool.end();
     // Close the server (promisified so mocha waits)
     await new Promise<void>((resolve) => server.close(() => resolve()));
   });

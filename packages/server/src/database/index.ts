@@ -12,7 +12,7 @@ type Partial<T> = {
 };
 
 // Connect to the postgres database
-const pool = new pkg.Pool({
+export const pool = new pkg.Pool({
   user: keys.dbUser,
   host: keys.dbHost,
   database: keys.dbDatabase,

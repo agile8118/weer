@@ -6,8 +6,6 @@
     "moduleResolution": "Bundler",        
     "strict": true,
 
-    "typeRoots": ["./node_modules/@types"],
-
     "declaration": true,
     "declarationMap": false,
     "sourceMap": true,
@@ -15,7 +13,7 @@
 
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "types": ["node", "jest"],
+    "types": ["node"],
 
     "outDir": "dist",
     "rootDir": "src",
