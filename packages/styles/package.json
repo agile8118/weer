@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "node-sass src/main.scss ../server/public/styles.css -w",
+    "dev": "node-sass src/main.scss ../server/public/styles.css -w",
     "compile:sass": "node-sass src/main.scss ../server/public/style.comp.css",
     "concat:css": "concat -o ../server/public/style.concat.css ../server/public/style.comp.css",
     "prefix:css": "postcss --use autoprefixer -b \"last 10 versions\" ../server/public/style.concat.css -o ../server/public/style.prefix.css",

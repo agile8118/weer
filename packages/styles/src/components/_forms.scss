@@ -172,6 +172,10 @@
     margin-left: auto;
   }
 
+  &__help-tooltip .tooltip__text {
+    width: 33rem;
+  }
+
   &__footer {
     display: flex;
     position: relative;

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "start": "webpack --mode development -w",
+    "dev": "webpack --mode development -w",
     "build": "webpack --mode production"
   },
   "author": "",

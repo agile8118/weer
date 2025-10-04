@@ -46,7 +46,12 @@ export default (({
   return (
     <div>
       <div className={linkClassName}>
-        <div className="link__real">{displayedRealUrl}</div>
+        <div className="link__real">
+          <div className="tooltip">
+            {displayedRealUrl}
+            <div className="tooltip__text">{realUrl}</div>
+          </div>
+        </div>
         <div className="link__shortened">
           <a target="_blank" href={shortenedUrl}>
             {shortenedUrl}
@@ -65,6 +70,27 @@ export default (({
               }}
             />
           </div>
+
+          <div className="link__qrcode">
+            <ButtonIcon
+              color="default"
+              icon="fa-solid fa-qrcode"
+              tooltipText="Get a QR Code"
+              onClick={() => {}}
+              onMouseLeave={() => {}}
+            />
+          </div>
+
+          <div className="link__customize">
+            <ButtonIcon
+              color="blue"
+              icon="fa-solid fa-gear"
+              tooltipText="Customize Your Link"
+              onClick={() => {}}
+              onMouseLeave={() => {}}
+            />
+          </div>
+
           {deleteButton}
         </div>
       </div>

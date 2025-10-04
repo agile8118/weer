@@ -6,8 +6,12 @@
   font-size: 1.6rem;
   margin: 4rem auto 0 auto;
   border-radius: 7px;
-  width: 65rem;
+  width: 75rem;
   padding: 1.4rem 3rem;
+
+  &__real .tooltip .tooltip__text {
+    margin-bottom: 0;
+  }
 
   @media only screen and (max-width: 700px) {
     width: 90%;
@@ -66,7 +70,23 @@
 }
 
 .link__copy {
-  margin-left: 1rem;
+  margin-left: 2rem;
+}
+
+.link__customize {
+  margin-left: 0.5rem;
+
+  .tooltip__text {
+    width: 15rem;
+  }
+}
+
+.link__qrcode {
+  margin-left: 0.5rem;
+
+  .tooltip__text {
+    width: 12rem;
+  }
 }
 
 .link__delete {
