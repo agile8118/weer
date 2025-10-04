@@ -27,7 +27,8 @@ body {
   position: relative;
   background: #f9f9f9;
   height: 100vh;
-  padding: 2rem 0;
+  padding-top: 5rem;
+  padding-bottom: 2rem;
 }
 
 .heading-primary {
@@ -55,13 +56,20 @@ p {
 }
 
 a {
-  // color: #fff;
+  color: $color-blue;
   text-decoration: none;
+  border-bottom: 1px solid transparent;
+  // padding-bottom: 0.1rem;
 }
 
-a:hover {
-  text-decoration: underline;
-}
+// a {
+//   // color: #fff;
+//   text-decoration: none;
+// }
+
+// a:hover {
+//   text-decoration: underline;
+// }
 
 .section {
   background: #fff;

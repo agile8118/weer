@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
+import Navigation from "./Navigation";
 import UrlShortener from "./UrlShortener";
 import SignInBox from "./SignInBox";
 import Urls from "./Urls";
@@ -41,6 +42,7 @@ const App: React.FC = () => {
 
   return (
     <div>
+      <Navigation />
       <UrlShortener
         onRef={(ref) => (urlShortenerRef.current = ref)}
         onNewUrl={() => {

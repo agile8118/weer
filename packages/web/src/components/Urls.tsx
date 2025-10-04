@@ -132,9 +132,9 @@ const Urls: FC<UrlsProps> = (props) => {
         <h2>Your Shortened URLs</h2>
         {renderUrls()}
       </section>
-      <p className="a-2">
+      {/* <p className="a-2">
         Signed in as {props.email}. <a href="/logout">Sign out.</a>
-      </p>
+      </p> */}
       <ConfirmationModal
         show={confirmationShow}
         headerText="Delete The URL"

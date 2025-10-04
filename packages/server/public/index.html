@@ -40,50 +40,49 @@
     <br /><br /><br />
     <script src="/scripts/app.js"></script>
     <script>
-      // To copy a text in the clipboard
-      window.Clipboard = (function (window, document, navigator) {
-        var textArea, copy;
-
-        function isOS() {
-          return navigator.userAgent.match(/ipad|iphone/i);
-        }
-
-        function createTextArea(text) {
-          textArea = document.createElement("textArea");
-          textArea.value = text;
-          document.body.appendChild(textArea);
-        }
-
-        function selectText() {
-          var range, selection;
-
-          if (isOS()) {
-            range = document.createRange();
-            range.selectNodeContents(textArea);
-            selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            textArea.setSelectionRange(0, 999999);
+      // For dropdown(s)
+      document.querySelector("body").addEventListener("click", (e) => {
+        console.log(e.target.getAttribute("data-role"));
+        // Open or close a dropdown
+        function toggleDropDowns(element, e) {
+          if (
+            element.getAttribute("data-dropdown") !==
+            e.target.getAttribute("data-dropdown")
+          ) {
+            element.classList.remove("dropdown--open");
+            element.classList.add("dropdown--close");
           } else {
-            textArea.select();
+            // Open or close the selected dropdown
+            if (element.classList.contains("dropdown--open")) {
+              // Close the dropdown
+              element.classList.remove("dropdown--open");
+              element.classList.add("dropdown--close");
+            } else {
+              // Open the dropdown
+              element.classList.add("dropdown--open");
+              element.classList.remove("dropdown--close");
+            }
           }
         }
 
-        function copyToClipboard() {
-          document.execCommand("copy");
-          document.body.removeChild(textArea);
+        // If user clicks anywhere other that a dropdown
+        if (e.target.getAttribute("data-role") !== "dropdown") {
+          // Close all regular dropdowns except navigation dropdowns
+          document.querySelectorAll(".dropdown").forEach((element) => {
+            element.classList.remove("dropdown--open");
+            element.classList.add("dropdown--close");
+          });
+        } else {
+          // If user clicks on the dropdown
+          // Open the dropdown clicked on and close the others
+          document.querySelectorAll(".dropdown").forEach((element) => {
+            toggleDropDowns(element, e);
+          });
+          document.querySelectorAll(".nav-dropdown").forEach((element) => {
+            toggleDropDowns(element, e);
+          });
         }
-
-        copy = function (text) {
-          createTextArea(text);
-          selectText();
-          copyToClipboard();
-        };
-
-        return {
-          copy: copy,
-        };
-      })(window, document, navigator);
+      });
 
       // Buttons won't get focused on click
       document.addEventListener("click", function (e) {
