@@ -1,7 +1,7 @@
 -- CREATE URLS TABLE
 CREATE TABLE IF NOT EXISTS urls (
   id SERIAL PRIMARY KEY,
-  real_url VARCHAR(200) NOT NULL,
+  real_url VARCHAR(2200) NOT NULL,
   shortened_url_id VARCHAR(100) NOT NULL,
   user_id INT,
   views INT DEFAULT 0,

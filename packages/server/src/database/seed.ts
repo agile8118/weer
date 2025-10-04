@@ -1,33 +1,35 @@
-const { Pool } = require("pg");
-const fs = require("fs");
-const path = require("path");
-const keys = require("../config/keys.js");
+import { Pool } from "pg";
+import fs from "fs";
+import path from "path";
+import keys from "../config/keys.js";
 
 const pool = new Pool({
-  user: keys.dbUser,
-  host: keys.dbHost,
-  database: keys.dbDatabase,
-  password: keys.dbPassword,
-  port: keys.dbPort,
+  user: keys.dbUser as string,
+  host: keys.dbHost as string,
+  database: keys.dbDatabase as string,
+  password: keys.dbPassword as string,
+  port: keys.dbPort as number,
 });
 
+const databasePath = new URL("./", import.meta.url).pathname;
+
 // Create triggers and tables
-(async () => {
+(async (): Promise<void> => {
   // Grab the tables sql file
-  const usersTableSQL = fs
-    .readFileSync(path.join(__dirname, "./tables/users.sql"))
+  const usersTableSQL: string = fs
+    .readFileSync(path.join(databasePath, "./tables/users.sql"))
     .toString();
-  const urlsTableSQL = fs
-    .readFileSync(path.join(__dirname, "./tables/urls.sql"))
+  const urlsTableSQL: string = fs
+    .readFileSync(path.join(databasePath, "./tables/urls.sql"))
     .toString();
 
   // Grab the triggers sql file
-  const triggersSQL = fs
-    .readFileSync(path.join(__dirname, "./triggers.sql"))
+  const triggersSQL: string = fs
+    .readFileSync(path.join(databasePath, "./triggers.sql"))
     .toString();
 
   try {
-    // Drop all out tables
+    // Drop all our tables
     console.log("\nDropping the tables...");
     await pool.query("DROP TABLE IF EXISTS urls");
     console.log("[postgres] urls table was dropped.");
@@ -46,7 +48,7 @@ const pool = new Pool({
     await pool.query(triggersSQL);
     console.log("[postgres] triggers were fired up successfully.");
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 })();
 

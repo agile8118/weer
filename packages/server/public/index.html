@@ -27,7 +27,7 @@
     ></script>
 
     <link
-      href="https://fonts.googleapis.com/css?family=Lato:100,300,300i,400"
+      href="https://fonts.googleapis.com/css?family=Lato:100,300,300i,400,500,700"
       rel="stylesheet"
     />
 
@@ -36,13 +36,13 @@
 
   <body>
     <div id="root"></div>
+    <div id="modal-root"></div>
     <div id="snackbar"></div>
     <br /><br /><br />
     <script src="/scripts/app.js"></script>
     <script>
       // For dropdown(s)
       document.querySelector("body").addEventListener("click", (e) => {
-        console.log(e.target.getAttribute("data-role"));
         // Open or close a dropdown
         function toggleDropDowns(element, e) {
           if (

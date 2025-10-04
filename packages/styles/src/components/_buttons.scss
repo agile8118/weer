@@ -107,6 +107,62 @@
   }
 }
 
+.button-red {
+  background: $color-red;
+  color: #fff;
+  border: 1px solid $color-red;
+
+  &:hover {
+    background-color: darken($color-red, 8%);
+    border-color: darken($color-red, 8%);
+    color: #fff;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba($color-red, 0.3);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    background: #ebebe4;
+    border-color: #ccc;
+    color: #757575;
+
+    &:hover {
+      background: #ebebe4;
+      border-color: #ccc;
+      color: #757575;
+    }
+  }
+
+  &-outlined {
+    background-color: transparent;
+    color: $color-red;
+    border: 1px solid $color-red;
+
+    &:hover,
+    &:active {
+      background-color: $color-red;
+      color: #fff;
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba($color-red, 0.3);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      border-color: lighten($color-red, 20%);
+      background-color: #fff;
+      color: lighten($color-red, 20%);
+
+      &:hover {
+        border-color: lighten($color-red, 20%);
+      }
+    }
+  }
+}
+
 .button-big {
   padding: 2.5rem 2.8rem;
   font-size: 1.8rem;

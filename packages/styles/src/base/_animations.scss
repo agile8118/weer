@@ -24,3 +24,15 @@
     transform: translate(9px, 0);
   }
 }
+
+// Scale an element in
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

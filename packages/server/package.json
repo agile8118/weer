@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "seed": "node ./src/database/seed.cjs",
+    "seed": "tsx ./src/database/seed.ts",
     "test": "tsx ../../node_modules/mocha/bin/_mocha --extension ts \"__tests__/**/*.test.ts\" --timeout 10000",
     "dev": "tsx watch ./src/index.ts",
     "build": "rm -rf ./dist && tsc -p .",

@@ -1,8 +1,8 @@
 import React, { FC, useEffect, useState, useRef } from "react";
 import axios from "axios";
+import { ConfirmModal } from "@weer/reusable";
 import dom from "../lib/dom";
 import LinkShow from "./LinkShow";
-import ConfirmationModal from "./ConfirmationModal";
 import Loading from "./Loading";
 
 interface Url {
@@ -20,13 +20,15 @@ interface UrlsProps {
 const Urls: FC<UrlsProps> = (props) => {
   const [urls, setUrls] = useState<Url[] | null>(null);
   const [domain, setDomain] = useState<string | null>(null);
+
+  // For deleting a url
   const [selectedUrlIdForDeletion, setSelectedUrlIdForDeletion] = useState<
     string | null
   >(null);
   const [confirmationShow, setConfirmationShow] = useState<boolean>(false);
-
-  // in confirmation modal to show a complete url
-  const [confirmationUrl, setConfirmationUrl] = useState<string>("");
+  const [confirmationLoading, setConfirmationLoading] =
+    useState<boolean>(false);
+  const [confirmationUrl, setConfirmationUrl] = useState<string>(""); // in confirmation modal to show a complete url
 
   useEffect(() => {
     props.onRef({ fetchUrls });
@@ -35,7 +37,6 @@ const Urls: FC<UrlsProps> = (props) => {
     return () => {
       props.onRef(undefined);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchUrls() {
@@ -62,8 +63,9 @@ const Urls: FC<UrlsProps> = (props) => {
   };
 
   // Send the delete request to the server
-  const onDeleteConfirmed = async (callback: () => void) => {
+  const onDeleteConfirmed = async () => {
     const urlId = selectedUrlIdForDeletion;
+    setConfirmationLoading(true);
     try {
       await axios.delete("/url/" + urlId);
       const newUrls =
@@ -76,7 +78,7 @@ const Urls: FC<UrlsProps> = (props) => {
       setUrls(newUrls);
       setSelectedUrlIdForDeletion(null);
       toggleConfirmationModal();
-      callback();
+
       dom.message("URL deleted successfully.", "success");
       if (urlId) props.onDeleteUrl(urlId);
     } catch (e) {
@@ -86,8 +88,8 @@ const Urls: FC<UrlsProps> = (props) => {
         "error"
       );
       toggleConfirmationModal();
-      callback();
     }
+    setConfirmationLoading(false);
   };
 
   const renderUrls = () => {
@@ -132,24 +134,28 @@ const Urls: FC<UrlsProps> = (props) => {
         <h2>Your Shortened URLs</h2>
         {renderUrls()}
       </section>
-      {/* <p className="a-2">
-        Signed in as {props.email}. <a href="/logout">Sign out.</a>
-      </p> */}
-      <ConfirmationModal
-        show={confirmationShow}
-        headerText="Delete The URL"
-        onConfirmed={onDeleteConfirmed}
-        onClosed={() => {
+
+      <ConfirmModal
+        header="Delete The URL"
+        open={confirmationShow}
+        loading={confirmationLoading}
+        onConfirm={onDeleteConfirmed}
+        onCancel={() => {
           setConfirmationShow(false);
         }}
+        btnName="Delete"
       >
         <p>
           Are you sure that you want to delete this URL and its shortened URL?
           You cannot undo this.
           <br />
-          <strong>{confirmationUrl}</strong>
+          <strong className="a-4">{confirmationUrl}</strong>
         </p>
-      </ConfirmationModal>
+      </ConfirmModal>
+
+      {/* <p className="a-2">
+        Signed in as {props.email}. <a href="/logout">Sign out.</a>
+      </p> */}
     </div>
   );
 };
