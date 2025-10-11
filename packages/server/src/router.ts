@@ -34,8 +34,8 @@ export default (app: Cpeak) => {
 
   app.route("get", "/logout", Auth.logOut);
 
-  // Check to see if a user is logged in or not
-  app.route("post", "/auth", Auth.isLoggedIn);
+  // Check to see if a user is logged in or not. Return user data if logged in
+  app.route("get", "/auth/status", Auth.checkAuthStatus);
 
   // ------------------------------------------------ //
   // ************ URL ROUTES ************* //
@@ -54,7 +54,7 @@ export default (app: Cpeak) => {
   );
 
   // Redirect to the real url
-  app.route("get", "/:id", Url.redirect);
+  // app.route("get", "/:id", Url.redirect);
 
   // Delete an url record
   app.route(

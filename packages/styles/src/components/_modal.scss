@@ -109,6 +109,22 @@
 
   .mdl__content {
     max-width: 35%;
+
+    @media only screen and (max-width: 1460px) {
+      max-width: 50%;
+    }
+
+    @media only screen and (max-width: 62.5em) {
+      max-width: 70%;
+    }
+
+    @media only screen and (max-width: 51.25em) {
+      max-width: 80%;
+    }
+
+    @media only screen and (max-width: 38.75em) {
+      max-width: 95%;
+    }
   }
 
   .mdl__body {

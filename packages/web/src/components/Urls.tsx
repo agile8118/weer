@@ -12,7 +12,6 @@ interface Url {
 }
 
 interface UrlsProps {
-  email: string;
   onRef: (ref: any | undefined) => void;
   onDeleteUrl: (id: string) => void;
 }

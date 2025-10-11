@@ -8,19 +8,23 @@ const logOut = (req: Request, res: Response) => {
   res.redirect("/");
 };
 
-// Check to see if a user is logged in or not
-const isLoggedIn = async (req: Request, res: Response) => {
+// If user is logged in, return their info (email, username) else return false
+const checkAuthStatus = async (req: Request, res: Response) => {
   if (req.user) {
     const user = await DB.find<IUser>(
-      `SELECT email FROM users WHERE id=${req.user.id}`
+      `SELECT email, username FROM users WHERE id=${req.user.id}`
     );
 
     if (user && user.email) {
-      return res.json({ isSignedIn: true, email: user.email });
+      return res.json({
+        isSignedIn: true,
+        email: user.email,
+        username: user.username,
+      });
     }
   }
 
   res.json({ isSignedIn: false });
 };
 
-export default { logOut, isLoggedIn };
+export default { logOut, checkAuthStatus };

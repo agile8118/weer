@@ -1,7 +1,9 @@
 import React, { FC, useState } from "react";
-import { ButtonIcon } from "@weer/reusable";
+import { useAuth } from "../AuthContext";
 
 const Navigation: FC = () => {
+  const { isSignedIn, email, username } = useAuth();
+
   return (
     <nav className="navigation navigation-md">
       <a href="/" className="navigation__logo">
@@ -10,40 +12,42 @@ const Navigation: FC = () => {
       </a>
 
       <div className="navigation__right">
-        {/* <a href="/login" className="navigation__link">
-          Login
-        </a> */}
-
-        <div
-          className="nav-dropdown dropdown--close"
-          data-role="dropdown"
-          data-dropdown="user-dropdown-md"
-        >
+        {!isSignedIn ? (
+          <a href="/login" className="navigation__link">
+            Login
+          </a>
+        ) : (
           <div
-            className="nav-dropdown__button"
+            className="nav-dropdown dropdown--close"
             data-role="dropdown"
             data-dropdown="user-dropdown-md"
           >
-            <a href="#" data-role="dropdown" data-dropdown="user-dropdown-md">
-              <i
-                data-role="dropdown"
-                data-dropdown="user-dropdown-md"
-                className="fa-regular fa-circle-user"
-              ></i>
-            </a>
+            <div
+              className="nav-dropdown__button"
+              data-role="dropdown"
+              data-dropdown="user-dropdown-md"
+            >
+              <a href="#" data-role="dropdown" data-dropdown="user-dropdown-md">
+                <i
+                  data-role="dropdown"
+                  data-dropdown="user-dropdown-md"
+                  className="fa-regular fa-circle-user"
+                ></i>
+              </a>
+            </div>
+            <div className="nav-dropdown__content">
+              <a href="#">
+                <i className="fa-solid fa-user"></i> {username}
+              </a>
+              <a href="#">
+                <i className="fa fa-key"></i>Account
+              </a>
+              <a href="/logout">
+                <i className="fa fa-sign-out"></i> Logout
+              </a>
+            </div>
           </div>
-          <div className="nav-dropdown__content">
-            <a href="#">
-              <i className="fa-solid fa-user"></i> joe320
-            </a>
-            <a href="#">
-              <i className="fa fa-key"></i>Account
-            </a>
-            <a href="/logout">
-              <i className="fa fa-sign-out"></i> Logout
-            </a>
-          </div>
-        </div>
+        )}
       </div>
     </nav>
   );

@@ -73,7 +73,7 @@ const Input = (props: Props) => {
           {props.help && (
             <div className="form-text__help-tooltip">
               <div className="tooltip">
-                <i class="fa-regular fa-circle-question"></i>
+                <i className="fa-regular fa-circle-question"></i>
 
                 <div className="tooltip__text">{props.help}</div>
               </div>
