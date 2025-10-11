@@ -80,6 +80,28 @@
   }
 }
 
+.mdl-narrow {
+  .mdl__content {
+    max-width: 20%;
+
+    @media only screen and (max-width: 1460px) {
+      max-width: 30%;
+    }
+
+    @media only screen and (max-width: 62.5em) {
+      max-width: 40%;
+    }
+
+    @media only screen and (max-width: 51.25em) {
+      max-width: 45%;
+    }
+
+    @media only screen and (max-width: 38.75em) {
+      max-width: 95%;
+    }
+  }
+}
+
 .mdl-sm {
   .mdl__header {
     border: none;

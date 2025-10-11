@@ -1,55 +1,121 @@
 import React, { FC, useState } from "react";
+import { Modal, Input, Button } from "@weer/reusable";
 import { useAuth } from "../AuthContext";
 
 const Navigation: FC = () => {
-  const { isSignedIn, email, username } = useAuth();
+  const { isSignedIn, email, username, loading } = useAuth();
+
+  const [logInModal, setLogInModal] = useState<boolean>(false);
 
   return (
-    <nav className="navigation navigation-md">
-      <a href="/" className="navigation__logo">
-        <img src="/logo.svg" alt="Weer Logo" />
-        <span>Weer</span>
-      </a>
+    <>
+      <nav className="navigation navigation-md">
+        <a href="/" className="navigation__logo">
+          <img src="/logo.svg" alt="Weer Logo" />
+          <span>Weer</span>
+        </a>
 
-      <div className="navigation__right">
-        {!isSignedIn ? (
-          <a href="/login" className="navigation__link">
-            Login
-          </a>
-        ) : (
-          <div
-            className="nav-dropdown dropdown--close"
-            data-role="dropdown"
-            data-dropdown="user-dropdown-md"
-          >
+        <div className="navigation__right">
+          {!isSignedIn && !loading && (
+            <a
+              href="#"
+              className="navigation__link"
+              onClick={() => setLogInModal(true)}
+            >
+              Login
+            </a>
+          )}
+
+          {isSignedIn && !loading && (
             <div
-              className="nav-dropdown__button"
+              className="nav-dropdown dropdown--close"
               data-role="dropdown"
               data-dropdown="user-dropdown-md"
             >
-              <a href="#" data-role="dropdown" data-dropdown="user-dropdown-md">
-                <i
+              <div
+                className="nav-dropdown__button"
+                data-role="dropdown"
+                data-dropdown="user-dropdown-md"
+              >
+                <a
+                  href="#"
                   data-role="dropdown"
                   data-dropdown="user-dropdown-md"
-                  className="fa-regular fa-circle-user"
-                ></i>
-              </a>
+                >
+                  <i
+                    data-role="dropdown"
+                    data-dropdown="user-dropdown-md"
+                    className="fa-regular fa-circle-user"
+                  ></i>
+                </a>
+              </div>
+              <div
+                className={
+                  "nav-dropdown__content" +
+                  (!username ? " nav-dropdown__content--wide" : "")
+                }
+                id="user-dropdown-md"
+              >
+                <a href="#">
+                  <i className="fa-solid fa-user"></i>{" "}
+                  {username ? username : "Choose a username"}
+                </a>
+                <a href="#">
+                  <i className="fa fa-key"></i>Account
+                </a>
+                <a href="/logout">
+                  <i className="fa fa-sign-out"></i> Logout
+                </a>
+              </div>
             </div>
-            <div className="nav-dropdown__content">
-              <a href="#">
-                <i className="fa-solid fa-user"></i> {username}
-              </a>
-              <a href="#">
-                <i className="fa fa-key"></i>Account
-              </a>
-              <a href="/logout">
-                <i className="fa fa-sign-out"></i> Logout
-              </a>
+          )}
+        </div>
+      </nav>
+
+      <Modal
+        open={logInModal}
+        onClose={() => setLogInModal(false)}
+        header="Log in to Weer"
+        type="narrow"
+      >
+        <div className="auth">
+          <form action="">
+            <div className="form-group">
+              <Input label="Email" type="email" id="email" required />
+            </div>
+
+            <div className="form-group">
+              <Input label="Password" type="password" id="password" required />
+            </div>
+
+            <div className="form-group u-flex-text-right">
+              <Button type="submit" color="blue" outlined={true} block={true}>
+                Log In
+              </Button>
+            </div>
+          </form>
+          <div className="auth-or">or</div>
+          <div className="u-flex-text-center u-margin-top-2">
+            <a
+              className="button button-block button-google-signin"
+              href="/auth/google"
+            >
+              <i className="fa-brands fa-google"></i>
+              Continue with Google
+            </a>
+          </div>
+
+          <div className="auth__footer">
+            <button className="button-text">Forgot your password?</button>
+
+            <div className="auth__other">
+              New to Weer?{" "}
+              <button className="button-text">Create an account</button>
             </div>
           </div>
-        )}
-      </div>
-    </nav>
+        </div>
+      </Modal>
+    </>
   );
 };
 

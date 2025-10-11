@@ -10,7 +10,6 @@
   color: inherit;
   align-items: center;
   justify-content: center;
-  height: 1px;
   display: flex;
   align-items: center;
   font-family: inherit;
@@ -215,24 +214,57 @@
   color: $color-blue;
 }
 
+// Button Text
+
+.button-text {
+  background-color: transparent;
+  border: none;
+  padding-top: 0;
+  padding-bottom: 0;
+  color: $color-blue;
+  font-size: inherit;
+  font-weight: 400;
+  cursor: pointer;
+
+  &--big {
+    font-size: 1.9rem;
+  }
+
+  &:hover,
+  &:focus {
+    text-decoration: underline !important;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+}
+
 // Google Signin button
 .button-google-signin {
   background: #d73d32;
-  text-decoration: none;
+  color: #fff;
   display: flex;
-  align-items: center;
-  width: 26rem;
-  height: 5rem;
-  margin: 3rem auto 0 auto;
-}
+  padding: 1rem 3rem;
 
-.button-google-signin img {
-  width: 3rem;
-  margin-right: 1rem;
-}
+  i {
+    font-size: 2rem;
+    margin-right: 0.5rem;
+  }
 
-.button-google-signin:hover,
-.button-google-signin:focus {
-  background: #c2362c;
-  text-decoration: none;
+  &:hover {
+    background: #c2362c;
+    color: #fff;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(#d73d32, 0.3);
+    background: #c2362c;
+    color: #fff;
+  }
 }

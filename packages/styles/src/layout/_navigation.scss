@@ -123,6 +123,12 @@
       background-color: #f9f9f9;
     }
   }
+
+  &--wide {
+    a {
+      width: 20rem;
+    }
+  }
 }
 
 .dropdown--close .nav-dropdown__content {
