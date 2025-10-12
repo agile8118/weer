@@ -1,0 +1,241 @@
+import React, { FC, useEffect, useState } from "react";
+
+import { ConfirmModal, Loading, Modal, Button, Input } from "@weer/reusable";
+import { useAuth } from "../../AuthContext";
+import dom from "../../lib/dom";
+
+interface LinkCustomizationProps {
+  open: boolean;
+  onClose: () => void;
+  urlId: string | null;
+}
+
+const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
+  const { isSignedIn, username } = useAuth();
+
+  return (
+    <Modal
+      header="Customize Your URL"
+      open={props.open}
+      onClose={() => {
+        props.onClose();
+      }}
+    >
+      <div className="customization">
+        <div className="customization-option customization-option--selected">
+          <div className="customization-option__header">
+            <div>
+              <h3>6-Character Code</h3>
+
+              <div className="customization-option__example">
+                Your Current URL: <span>weer.pro/f3hc42</span>
+              </div>
+            </div>
+
+            <div className="customization-option__validity">
+              {/* If user is not signed in, it should be "Valid up to a year after last view" */}
+              Valid permanently
+            </div>
+          </div>
+
+          <div className="customization-option__body">
+            <div className="customization-option__description">
+              The code will contain only lowercase letters and numbers from 1 to
+              9. Great if you just want a shorten link, don't want to worry
+              about your link expiring, selecting anything and even creating an
+              account!
+            </div>
+
+            <div className="u-text-center">
+              <div className="customization-option__message">
+                Currently selected
+              </div>
+            </div>
+
+            {/* <div className="u-flex-text-right">
+              <Button color="blue" outlined={true} rounded={true}>
+                Select
+              </Button>
+            </div> */}
+          </div>
+        </div>
+
+        <div className="customization-option">
+          <div className="customization-option__header">
+            <div>
+              <h3>3-Digit Code</h3>
+
+              <div className="customization-option__example">
+                Example: <span>weer.pro/532</span>
+              </div>
+            </div>
+
+            <div className="customization-option__validity">
+              Valid for 2 hours
+            </div>
+          </div>
+
+          <div className="customization-option__body">
+            <div className="customization-option__description">
+              Great if you quickly want to share a link with others during a
+              presentation! Keep in mind that your link will be valid for{" "}
+              <strong>only 2 hours</strong> and after someone else might claim
+              it.
+            </div>
+
+            <div className="u-flex-text-right">
+              <Button color="blue" outlined={true} rounded={true}>
+                Select
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="customization-option">
+          <div className="customization-option__header">
+            <div className="">
+              <h3>Choose Your Own with Username</h3>
+
+              <div className="customization-option__example">
+                Example: <span>{`weer.pro/${username}/anything-really`}</span>
+              </div>
+            </div>
+
+            <div className="customization-option__validity">
+              Valid permanently
+            </div>
+          </div>
+
+          <div className="customization-option__body">
+            <div className="customization-option__description">
+              Great if you want a more personalized link on top of your
+              username. Just type your desired custom URL below. You can choose
+              whatever you want for as long as you abide by these limits:
+              <ul>
+                <li>
+                  You final link should be understandable by browsers (so a
+                  valid URL).
+                </li>
+                <li>You have not selected that before.</li>
+              </ul>
+            </div>
+
+            <div className="customization-option__action">
+              <div className="form-group">
+                <Input
+                  type="text"
+                  id="custom-username-url-input"
+                  label="Custom Code"
+                />
+                <strong className="customization-option__preview">
+                  weer.pro/{username}/
+                </strong>
+              </div>
+
+              <div className="u-flex-text-right">
+                <Button color="blue" outlined={true} rounded={true}>
+                  Select
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="customization-option">
+          <div className="customization-option__header">
+            <div className="">
+              <h3>Choose Your Own</h3>
+
+              <div className="customization-option__example">
+                Example: <span>{`weer.pro/think-of-something123`}</span>
+              </div>
+            </div>
+
+            <div className="customization-option__validity">
+              Valid permanently
+              {/* If not logged in, valid for a month after last view. */}
+            </div>
+          </div>
+
+          <div className="customization-option__body">
+            <div className="customization-option__description">
+              Great if you want to personalize your link. Type your desired
+              custom URL below and see if it's available. You can choose
+              whatever you want for as long as you abide by these limits:
+              <ul>
+                <li>
+                  You final link should be understandable by browsers (so a
+                  valid URL).
+                </li>
+                <li>No other user has selected that before.</li>
+                <li>Must be at least 7 characters long.</li>
+              </ul>
+            </div>
+
+            <div className="customization-option__action">
+              <div className="form-group">
+                <Input
+                  type="text"
+                  id="custom-username-url-input"
+                  label="Custom Code"
+                />
+                <strong className="customization-option__preview">
+                  weer.pro/
+                </strong>
+              </div>
+
+              <div className="u-flex-text-right">
+                <Button color="blue" outlined={true} rounded={true}>
+                  Select
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="customization-option customization-option--disabled">
+          <div className="customization-option__header">
+            <div>
+              <h3>Up to a 2-Digit Code</h3>
+
+              <div className="customization-option__example">
+                Example: <span>weer.pro/6</span>
+              </div>
+            </div>
+
+            <div className="customization-option__validity">
+              Valid for 30 minutes
+            </div>
+          </div>
+
+          <div className="customization-option__body">
+            <div className="customization-option__description">
+              Great if you quickly want to share a link with others during a
+              middle of a conversation! Keep in mind that your link will be
+              valid for <strong>only 30 minutes</strong> and after someone else
+              will claim it.
+            </div>
+
+            <div className="u-text-center">
+              <div className="customization-option__message">
+                You must first{" "}
+                <button className="button-text button-text--white">
+                  login
+                </button>{" "}
+                to select this option.
+              </div>
+            </div>
+
+            {/* <div className="u-flex-text-right">
+              <Button color="blue" outlined={true} rounded={true}>
+                Select
+              </Button>
+            </div> */}
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+export default LinkCustomization;

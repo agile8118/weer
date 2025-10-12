@@ -7,6 +7,7 @@ interface LinkShow {
   shortenedUrl: string;
   onList: boolean;
   toggleConfirmationModal: (urlId: string | null, realUrl: string) => void;
+  toggleCustomizationModal: (urlId: string | null) => void;
 }
 
 export default (({
@@ -15,6 +16,7 @@ export default (({
   shortenedUrl,
   onList,
   toggleConfirmationModal,
+  toggleCustomizationModal,
 }: LinkShow) => {
   const [copyTooltipText, setCopyTooltipText] = useState<string>("Copy");
 
@@ -86,7 +88,9 @@ export default (({
               color="blue"
               icon="fa-solid fa-gear"
               tooltipText="Customize Your Link"
-              onClick={() => {}}
+              onClick={() => {
+                toggleCustomizationModal(urlId);
+              }}
               onMouseLeave={() => {}}
             />
           </div>

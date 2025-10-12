@@ -1,9 +1,10 @@
 import React, { FC, useEffect, useState } from "react";
 import axios from "axios";
-import { ConfirmModal, Loading } from "@weer/reusable";
+import { ConfirmModal, Loading, Modal, Button, Input } from "@weer/reusable";
 import { useAuth } from "../AuthContext";
 import dom from "../lib/dom";
 import LinkShow from "./LinkShow";
+import CustomizationModal from "./modals/LinkCustomization";
 
 interface Url {
   id: string;
@@ -21,7 +22,7 @@ const Urls: FC<UrlsProps> = (props) => {
   const [urls, setUrls] = useState<Url[] | null>(null);
   const [domain, setDomain] = useState<string | null>(null);
 
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, username } = useAuth();
 
   // For deleting a url
   const [selectedUrlIdForDeletion, setSelectedUrlIdForDeletion] = useState<
@@ -31,6 +32,11 @@ const Urls: FC<UrlsProps> = (props) => {
   const [confirmationLoading, setConfirmationLoading] =
     useState<boolean>(false);
   const [confirmationUrl, setConfirmationUrl] = useState<string>(""); // in confirmation modal to show a complete url
+
+  // For customizing a url
+  const [customizeModalShow, setCustomizeModalShow] = useState<boolean>(false);
+  const [selectedUrlIdForCustomization, setSelectedUrlIdForCustomization] =
+    useState<string | null>(null);
 
   useEffect(() => {
     props.onRef({ fetchUrls });
@@ -63,6 +69,16 @@ const Urls: FC<UrlsProps> = (props) => {
       setConfirmationUrl(realUrl);
     } else {
       setConfirmationShow(false);
+    }
+  };
+
+  // Open/Close the customization modal for a url
+  const toggleCustomizationModal = (urlId: string | null = null) => {
+    if (urlId) {
+      setSelectedUrlIdForCustomization(urlId);
+      setCustomizeModalShow(true);
+    } else {
+      setCustomizeModalShow(false);
     }
   };
 
@@ -116,6 +132,7 @@ const Urls: FC<UrlsProps> = (props) => {
             onList={true}
             shortenedUrl={`${domain}/${url.shortened_url_id}`}
             toggleConfirmationModal={toggleConfirmationModal}
+            toggleCustomizationModal={toggleCustomizationModal}
           />
         );
       });
@@ -145,23 +162,31 @@ const Urls: FC<UrlsProps> = (props) => {
       </section>
 
       {!loading && urls.length > 0 && (
-        <ConfirmModal
-          header="Delete The URL"
-          open={confirmationShow}
-          loading={confirmationLoading}
-          onConfirm={onDeleteConfirmed}
-          onCancel={() => {
-            setConfirmationShow(false);
-          }}
-          btnName="Delete"
-        >
-          <p>
-            Are you sure that you want to delete this URL and its shortened URL?
-            You cannot undo this.
-            <br />
-            <strong className="a-4">{confirmationUrl}</strong>
-          </p>
-        </ConfirmModal>
+        <>
+          <ConfirmModal
+            header="Delete The URL"
+            open={confirmationShow}
+            loading={confirmationLoading}
+            onConfirm={onDeleteConfirmed}
+            onCancel={() => {
+              setConfirmationShow(false);
+            }}
+            btnName="Delete"
+          >
+            <p>
+              Are you sure that you want to delete this URL and its shortened
+              URL? You cannot undo this.
+              <br />
+              <strong className="a-4">{confirmationUrl}</strong>
+            </p>
+          </ConfirmModal>
+
+          <CustomizationModal
+            open={customizeModalShow}
+            onClose={() => toggleCustomizationModal()}
+            urlId={selectedUrlIdForCustomization}
+          />
+        </>
       )}
     </div>
   );
