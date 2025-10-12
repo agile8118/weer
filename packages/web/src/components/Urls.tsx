@@ -1,6 +1,7 @@
 import React, { FC, useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { ConfirmModal } from "@weer/reusable";
+import { useAuth } from "../AuthContext";
 import dom from "../lib/dom";
 import LinkShow from "./LinkShow";
 import Loading from "./Loading";
@@ -17,8 +18,11 @@ interface UrlsProps {
 }
 
 const Urls: FC<UrlsProps> = (props) => {
+  const [loading, setLoading] = useState<boolean>(true); // for url loading
   const [urls, setUrls] = useState<Url[] | null>(null);
   const [domain, setDomain] = useState<string | null>(null);
+
+  const { isSignedIn } = useAuth();
 
   // For deleting a url
   const [selectedUrlIdForDeletion, setSelectedUrlIdForDeletion] = useState<
@@ -39,11 +43,13 @@ const Urls: FC<UrlsProps> = (props) => {
   }, []);
 
   async function fetchUrls() {
+    setLoading(true);
     const { data } = await axios.get("/url");
 
     setUrls(data.urls);
     setDomain(data.domain);
     setSelectedUrlIdForDeletion(null);
+    setLoading(false);
     setConfirmationShow(false);
   }
 
@@ -92,8 +98,7 @@ const Urls: FC<UrlsProps> = (props) => {
   };
 
   const renderUrls = () => {
-    // Data has not came from database yet
-    if (!urls) {
+    if (loading) {
       return (
         <div className="text-center margin-top-md">
           <Loading />
@@ -120,9 +125,7 @@ const Urls: FC<UrlsProps> = (props) => {
     // User has no url
     if (urls.length === 0) {
       return (
-        <p className="text-center a-3">
-          No URL yet. Try one by putting a URL in the input above.
-        </p>
+        <p className="text-center a-3">You haven't shortened any URLs yet.</p>
       );
     }
   };
@@ -132,29 +135,35 @@ const Urls: FC<UrlsProps> = (props) => {
       <section className="section section--2">
         <h2>Your Shortened URLs</h2>
         {renderUrls()}
+
+        {/*  User has url but not logged in */}
+        {!loading && urls && urls.length > 0 && !isSignedIn && (
+          <p className="text-center a-2">
+            You are not logged in! Login to save your URLs and be able to better
+            manage and customize them.
+          </p>
+        )}
       </section>
 
-      <ConfirmModal
-        header="Delete The URL"
-        open={confirmationShow}
-        loading={confirmationLoading}
-        onConfirm={onDeleteConfirmed}
-        onCancel={() => {
-          setConfirmationShow(false);
-        }}
-        btnName="Delete"
-      >
-        <p>
-          Are you sure that you want to delete this URL and its shortened URL?
-          You cannot undo this.
-          <br />
-          <strong className="a-4">{confirmationUrl}</strong>
-        </p>
-      </ConfirmModal>
-
-      {/* <p className="a-2">
-        Signed in as {props.email}. <a href="/logout">Sign out.</a>
-      </p> */}
+      {!loading && urls.length > 0 && (
+        <ConfirmModal
+          header="Delete The URL"
+          open={confirmationShow}
+          loading={confirmationLoading}
+          onConfirm={onDeleteConfirmed}
+          onCancel={() => {
+            setConfirmationShow(false);
+          }}
+          btnName="Delete"
+        >
+          <p>
+            Are you sure that you want to delete this URL and its shortened URL?
+            You cannot undo this.
+            <br />
+            <strong className="a-4">{confirmationUrl}</strong>
+          </p>
+        </ConfirmModal>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import pkg from "pg";
-import { TTables, IUser, IUrl } from "./types.js";
+import { TTables, IUser, IUrl, ISession } from "./types.js";
 import keys from "../config/keys.js";
 
 /**
@@ -58,10 +58,7 @@ const findMany = <T>(query: string, values: any[] = []): Promise<T[]> => {
 };
 
 // Insert an item to the the specified table
-const insert = <T>(
-  table: TTables,
-  data: T extends IUser ? Partial<T> : T extends IUrl ? Partial<T> : never
-) => {
+const insert = <T>(table: TTables, data: Partial<T>) => {
   return new Promise(function (resolve: (insertedData: T) => void, reject) {
     const _values: any[] = [];
     let _valuesSpecifiers = "";

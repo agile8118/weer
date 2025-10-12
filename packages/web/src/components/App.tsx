@@ -7,29 +7,29 @@ import Urls from "./Urls";
 import { AuthProvider, useAuth } from "../AuthContext";
 
 const AppContent: React.FC = () => {
-  const { isSignedIn } = useAuth();
+  // const { isSignedIn } = useAuth();
 
   // Refs to child components
   const urlShortenerRef = useRef<any>(null);
   const urlsRef = useRef<any>(null);
 
-  const renderBottomBox = () => {
-    if (isSignedIn) {
-      return (
-        <Urls
-          onRef={(ref) => (urlsRef.current = ref)}
-          onDeleteUrl={(id: string) => {
-            // notify the UrlShortener component that a url has been deleted
-            urlShortenerRef.current?.onDeleteUrl(id);
-          }}
-        />
-      );
-    } else if (isSignedIn === false) {
-      return <SignInBox />;
-    } else {
-      return <div />;
-    }
-  };
+  // const renderBottomBox = () => {
+  // if (isSignedIn) {
+  //     return (
+  //       <Urls
+  //         onRef={(ref) => (urlsRef.current = ref)}
+  //         onDeleteUrl={(id: string) => {
+  //           // notify the UrlShortener component that a url has been deleted
+  //           urlShortenerRef.current?.onDeleteUrl(id);
+  //         }}
+  //       />
+  //     );
+  //   } else if (isSignedIn === false) {
+  //     return <SignInBox />;
+  //   } else {
+  //     return <div />;
+  //   }
+  // };
 
   return (
     <>
@@ -41,7 +41,14 @@ const AppContent: React.FC = () => {
           urlsRef.current?.fetchUrls();
         }}
       />
-      {renderBottomBox()}
+      <Urls
+        onRef={(ref) => (urlsRef.current = ref)}
+        onDeleteUrl={(id: string) => {
+          // notify the UrlShortener component that a url has been deleted
+          urlShortenerRef.current?.onDeleteUrl(id);
+        }}
+      />
+      {/* {renderBottomBox()} */}
     </>
   );
 };

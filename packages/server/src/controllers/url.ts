@@ -6,7 +6,7 @@ import type {
 
 import path from "path";
 import { DB } from "../database/index.js";
-import { IUrl } from "../database/types.js";
+import { IUrl, ISession } from "../database/types.js";
 import util from "../lib/util.js";
 import keys from "../config/keys.js";
 
@@ -14,10 +14,26 @@ const publicPath = new URL("../../public", import.meta.url).pathname;
 
 // Return the list of urls user has shortened
 const getUrls = async (req: Request, res: Response) => {
-  let data = await DB.findMany<IUrl>(
-    `SELECT real_url, shortened_url_id, id FROM urls WHERE user_id=$1 ORDER BY created_at DESC`,
-    [req.user.id]
-  );
+  let data;
+
+  if (req.user) {
+    data = await DB.findMany<IUrl>(
+      `SELECT real_url, shortened_url_id, id FROM urls WHERE user_id=$1 ORDER BY created_at DESC`,
+      [req.user.id]
+    );
+  } else if (req.session?.session_token) {
+    const session = await DB.find<ISession>(
+      "SELECT id FROM sessions WHERE session_token=$1",
+      [req.session.session_token]
+    );
+
+    data = await DB.findMany<IUrl>(
+      `SELECT real_url, shortened_url_id, id FROM urls WHERE session_id=$1 ORDER BY created_at DESC`,
+      [session?.id]
+    );
+  } else {
+    return res.json({ urls: [], domain: keys.domain });
+  }
 
   // If there's only one url
   if (!data.length && data.length !== 0) {
@@ -45,8 +61,11 @@ const getUrls = async (req: Request, res: Response) => {
 
 // Get the url, shorten it and save to database
 const shorten = async (req: Request, res: Response) => {
-  // Get the user id if the use is logged in
+  // Get the user id if the user is logged in
   let userId = req.user ? req.user.id : null;
+
+  // Get the session token if user is not logged in
+  let sessionToken = req.session?.session_token;
 
   const realUrl = (req.body as { url: string }).url;
 
@@ -79,9 +98,15 @@ const shorten = async (req: Request, res: Response) => {
       user_id: userId,
     });
   } else {
+    const session = await DB.find<ISession>(
+      "SELECT id FROM sessions WHERE session_token=$1",
+      [sessionToken]
+    );
+
     await DB.insert<IUrl>("urls", {
       real_url: realUrl,
       shortened_url_id: urlId,
+      session_id: session?.id,
     });
   }
 

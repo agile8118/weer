@@ -17,13 +17,12 @@ const Navigation: FC = () => {
 
         <div className="navigation__right">
           {!isSignedIn && !loading && (
-            <a
-              href="#"
-              className="navigation__link"
+            <button
+              className="navigation__link button-reset"
               onClick={() => setLogInModal(true)}
             >
               Login
-            </a>
+            </button>
           )}
 
           {isSignedIn && !loading && (
@@ -37,7 +36,8 @@ const Navigation: FC = () => {
                 data-role="dropdown"
                 data-dropdown="user-dropdown-md"
               >
-                <a
+                <button
+                  className="button-reset"
                   href="#"
                   data-role="dropdown"
                   data-dropdown="user-dropdown-md"
@@ -47,7 +47,7 @@ const Navigation: FC = () => {
                     data-dropdown="user-dropdown-md"
                     className="fa-regular fa-circle-user"
                   ></i>
-                </a>
+                </button>
               </div>
               <div
                 className={

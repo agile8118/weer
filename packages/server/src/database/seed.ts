@@ -22,6 +22,9 @@ const databasePath = new URL("./", import.meta.url).pathname;
   const urlsTableSQL: string = fs
     .readFileSync(path.join(databasePath, "./tables/urls.sql"))
     .toString();
+  const sessionsTableSQL: string = fs
+    .readFileSync(path.join(databasePath, "./tables/sessions.sql"))
+    .toString();
 
   // Grab the triggers sql file
   const triggersSQL: string = fs
@@ -35,11 +38,15 @@ const databasePath = new URL("./", import.meta.url).pathname;
     console.log("[postgres] urls table was dropped.");
     await pool.query("DROP TABLE IF EXISTS users");
     console.log("[postgres] users table was dropped.");
+    await pool.query("DROP TABLE IF EXISTS sessions");
+    console.log("[postgres] sessions table was dropped.");
 
     // Execute the sql file to create our tables
     console.log("\nCreating the tables...");
     await pool.query(usersTableSQL);
     console.log("[postgres] users table was created successfully.");
+    await pool.query(sessionsTableSQL);
+    console.log("[postgres] sessions table was created successfully.");
     await pool.query(urlsTableSQL);
     console.log("[postgres] urls table was created successfully.");
 

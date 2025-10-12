@@ -19,7 +19,17 @@ export interface IUrl {
   real_url: string;
   shortened_url_id: string;
   user_id?: number;
+  session_id?: number;
   views: number;
   updated_at: Date;
   created_at: Date;
+}
+
+export interface ISession {
+  id: number;
+  session_token: string;
+  data: object;
+  created_at: Date;
+  last_active: Date;
+  expires_at: Date;
 }

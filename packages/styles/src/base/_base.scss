@@ -76,3 +76,12 @@ a {
     padding: 3rem 2.5rem 3.5rem 2.5rem;
   }
 }
+
+// So that we have use <button> and get the same styles as <a>
+.button-reset {
+  all: unset;
+  cursor: pointer;
+  display: inline;
+  color: inherit;
+  text-decoration: none;
+}

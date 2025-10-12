@@ -6,7 +6,7 @@ import type {
   RouteMiddleware,
 } from "cpeak";
 import { DB } from "./database/index.js";
-import { IUser, IUrl } from "./database/types.js";
+import { IUser, IUrl, ISession } from "./database/types.js";
 import keys from "./config/keys.js";
 
 interface Middlewares {
@@ -93,10 +93,21 @@ async function checkUrlOwnership(
   handleErr: HandleErr
 ) {
   const urlId = req.vars?.id;
-  const url = await DB.find<IUrl>(`SELECT user_id FROM urls WHERE id=${urlId}`);
+  const url = await DB.find<IUrl>(
+    `SELECT user_id, session_id FROM urls WHERE id=${urlId}`
+  );
 
-  if (url && url.user_id === req.user.id) {
-    next();
+  if (!req.user) {
+    const session = await DB.find<ISession>(
+      `SELECT id FROM sessions WHERE session_token=$1`,
+      [req.session?.session_token]
+    );
+
+    if (url && url.session_id === session?.id) {
+      return next();
+    }
+  } else if (url && url.user_id === req.user.id) {
+    return next();
   } else {
     return handleErr({ status: 403, message: "Not allowed to access." });
   }

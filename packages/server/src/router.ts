@@ -27,9 +27,7 @@ export default (app: Cpeak) => {
     "get",
     "/auth/google/callback",
     passport.authenticate("google"),
-    (req: Request, res: Response) => {
-      res.redirect("/");
-    }
+    Auth.login
   );
 
   app.route("get", "/logout", Auth.logOut);
@@ -42,7 +40,7 @@ export default (app: Cpeak) => {
   // ------------------------------------------------ //
 
   // Return the list of urls user has shortened
-  app.route("get", "/url", middlewares.requireAuth, Url.getUrls);
+  app.route("get", "/url", Url.getUrls);
 
   // Get the url, shorten it and save to database
   app.route(
@@ -54,14 +52,8 @@ export default (app: Cpeak) => {
   );
 
   // Redirect to the real url
-  // app.route("get", "/:id", Url.redirect);
+  app.route("get", "/:id", Url.redirect);
 
   // Delete an url record
-  app.route(
-    "delete",
-    "/url/:id",
-    middlewares.requireAuth,
-    middlewares.checkUrlOwnership,
-    Url.remove
-  );
+  app.route("delete", "/url/:id", middlewares.checkUrlOwnership, Url.remove);
 };

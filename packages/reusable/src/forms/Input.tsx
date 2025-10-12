@@ -24,7 +24,7 @@ interface Props {
 }
 
 const Input = (props: Props) => {
-  const [value, setValue] = useState(props.value?.toString());
+  const [value, setValue] = useState(props.value?.toString() || "");
 
   const input = useRef<HTMLInputElement>(null);
 
