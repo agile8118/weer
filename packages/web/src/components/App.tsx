@@ -1,35 +1,14 @@
 import React, { useRef } from "react";
 import Navigation from "./Navigation";
 import UrlShortener from "./UrlShortener";
-import SignInBox from "./SignInBox";
 import Urls from "./Urls";
 
-import { AuthProvider, useAuth } from "../AuthContext";
+import { AuthProvider } from "../AuthContext";
 
 const AppContent: React.FC = () => {
-  // const { isSignedIn } = useAuth();
-
   // Refs to child components
   const urlShortenerRef = useRef<any>(null);
   const urlsRef = useRef<any>(null);
-
-  // const renderBottomBox = () => {
-  // if (isSignedIn) {
-  //     return (
-  //       <Urls
-  //         onRef={(ref) => (urlsRef.current = ref)}
-  //         onDeleteUrl={(id: string) => {
-  //           // notify the UrlShortener component that a url has been deleted
-  //           urlShortenerRef.current?.onDeleteUrl(id);
-  //         }}
-  //       />
-  //     );
-  //   } else if (isSignedIn === false) {
-  //     return <SignInBox />;
-  //   } else {
-  //     return <div />;
-  //   }
-  // };
 
   return (
     <>
@@ -48,7 +27,6 @@ const AppContent: React.FC = () => {
           urlShortenerRef.current?.onDeleteUrl(id);
         }}
       />
-      {/* {renderBottomBox()} */}
     </>
   );
 };

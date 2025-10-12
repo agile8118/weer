@@ -66,9 +66,14 @@ async function checkRealUrlExistence(
         [realUrl, userId]
       );
     } else {
+      const session = await DB.find<ISession>(
+        `SELECT id FROM sessions WHERE session_token=$1`,
+        [req.session?.session_token]
+      );
+
       result = await DB.find<IUrl>(
-        `SELECT * FROM urls WHERE real_url = $1 AND user_id IS NULL`,
-        [realUrl]
+        `SELECT * FROM urls WHERE real_url = $1 AND session_id = $2`,
+        [realUrl, session?.id]
       );
     }
 

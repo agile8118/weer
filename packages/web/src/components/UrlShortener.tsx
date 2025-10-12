@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useRef, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import axios from "axios";
 import { Button, Input } from "@weer/reusable";
 import LinkShow from "./LinkShow";

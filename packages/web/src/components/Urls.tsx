@@ -1,10 +1,9 @@
-import React, { FC, useEffect, useState, useRef } from "react";
+import React, { FC, useEffect, useState } from "react";
 import axios from "axios";
-import { ConfirmModal } from "@weer/reusable";
+import { ConfirmModal, Loading } from "@weer/reusable";
 import { useAuth } from "../AuthContext";
 import dom from "../lib/dom";
 import LinkShow from "./LinkShow";
-import Loading from "./Loading";
 
 interface Url {
   id: string;
@@ -101,7 +100,7 @@ const Urls: FC<UrlsProps> = (props) => {
     if (loading) {
       return (
         <div className="text-center margin-top-md">
-          <Loading />
+          <Loading color="dark" />
         </div>
       );
     }
@@ -125,7 +124,7 @@ const Urls: FC<UrlsProps> = (props) => {
     // User has no url
     if (urls.length === 0) {
       return (
-        <p className="text-center a-3">You haven't shortened any URLs yet.</p>
+        <p className="text-center a-2">You haven't shortened any URLs yet.</p>
       );
     }
   };
@@ -136,7 +135,7 @@ const Urls: FC<UrlsProps> = (props) => {
         <h2>Your Shortened URLs</h2>
         {renderUrls()}
 
-        {/*  User has url but not logged in */}
+        {/* User has url but not logged in */}
         {!loading && urls && urls.length > 0 && !isSignedIn && (
           <p className="text-center a-2">
             You are not logged in! Login to save your URLs and be able to better
