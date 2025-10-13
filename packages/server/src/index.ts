@@ -112,7 +112,9 @@ app.handleErr((error: any, req: Request, res: Response) => {
     //   return res.status(404).json({ error: "File not found." });
     // }
 
-    console.error(error);
+    console.error("An unexpected error happened.");
+    log(error);
+
     res.status(500).json({
       error: "Sorry, something unexpected happened from our side.",
     });

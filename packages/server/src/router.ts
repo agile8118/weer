@@ -47,12 +47,15 @@ export default (app: Cpeak) => {
     "post",
     "/url",
     middlewares.isValidURL,
-    middlewares.checkRealUrlExistence,
+    // middlewares.checkRealUrlExistence,
     Url.shorten
   );
 
   // Redirect to the real url
   app.route("get", "/:id", Url.redirect);
+
+  // Send a QR code image for a link
+  app.route("get", "/qr/:id", Url.sendQrCode);
 
   // Delete an url record
   app.route("delete", "/url/:id", middlewares.checkUrlOwnership, Url.remove);

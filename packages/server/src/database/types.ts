@@ -18,8 +18,10 @@ export interface IUrl {
   id: number;
   real_url: string;
   shortened_url_id: string;
+  qr_code_id: string;
   user_id?: number;
   session_id?: number;
+  is_on_username: boolean;
   views: number;
   updated_at: Date;
   created_at: Date;
