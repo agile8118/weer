@@ -81,6 +81,22 @@
   }
 }
 
+.link__views {
+  margin-left: 0.5rem;
+
+  .tooltip__text {
+    width: 9rem;
+  }
+}
+
+.link__edit {
+  margin-left: 0.5rem;
+
+  .tooltip__text {
+    width: 8rem;
+  }
+}
+
 .link__qrcode {
   margin-left: 0.5rem;
 
@@ -91,4 +107,8 @@
 
 .link__delete {
   margin-left: 0.5rem;
+
+  .tooltip__text {
+    width: 10rem;
+  }
 }

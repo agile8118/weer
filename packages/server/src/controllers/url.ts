@@ -3,7 +3,7 @@ import type {
   CpeakResponse as Response,
   HandleErr,
 } from "cpeak";
-
+import QRCode from "qrcode";
 import path from "path";
 import crypto from "crypto";
 import { DB } from "../database/index.js";
@@ -163,8 +163,8 @@ const shorten = async (req: Request, res: Response, handleError: HandleErr) => {
       );
       updated = true; // If update is successful, the ID is unique
     } catch (error: any) {
+      // The official PostgreSQL error code for unique violations
       if (error.code === "23505") {
-        // The official PostgreSQL error code for unique violations
         // If there's a duplicate key error, generate a new ID and retry
         updated = false;
         attempts++;
@@ -224,19 +224,35 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
   res.redirect(url.real_url);
 };
 
-// Delete an url record
+// Delete a url record
 const remove = async (req: Request, res: Response) => {
   await DB.delete<IUrl>("urls", `id=$1`, [req.vars?.id]);
   res.json({ message: "deleted" });
 };
 
+// Generates and sends a QR code
 const sendQrCode = async (
   req: Request,
   res: Response,
   handleErr: HandleErr
 ) => {
+  const QR_CODE_VERSION = 4; // 33x33 matrix, 50 chars max
+  const QR_CODE_ERROR_CORRECTION_LEVEL = "H"; // L, M, Q, H (L lowest, H highest)
+
   if (!req.vars?.id) {
-    return handleErr(new Error("No URL ID provided"));
+    return handleErr({ status: 400, message: "No URL ID provided" });
+  }
+
+  const download = req.query.download === "true" ? true : false;
+  const type = req.query.type === "png" ? "png" : "svg";
+  let size = Number(req.query.size); // only for png valid options only: 256, 512, 1024, 2048
+
+  // Validate size if type is png
+  if (type === "png") {
+    const validSizes = [256, 512, 1024, 2048];
+    if (!validSizes.includes(size)) {
+      size = 512; // default size
+    }
   }
 
   const url = await DB.find<IUrl>(`SELECT qr_code_id FROM urls WHERE id=$1`, [
@@ -244,11 +260,48 @@ const sendQrCode = async (
   ]);
 
   if (!url) {
-    return handleErr(new Error("URL not found"));
+    return handleErr({ status: 404, message: "URL not found" });
   }
 
-  const qrCode = await generateQrCode(`${keys.domain}/${url.qr_code_id}`);
-  res.type("image/png").send(qrCode);
+  const data = `${keys.domain}/${url.qr_code_id}`;
+
+  // This header is needed to trigger a browser download
+  if (download) {
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${url.qr_code_id}.${type}"`
+    );
+  }
+
+  if (type === "svg") {
+    try {
+      const svg = await QRCode.toString(data, {
+        type: "svg",
+        version: QR_CODE_VERSION,
+        margin: 0.5,
+
+        errorCorrectionLevel: QR_CODE_ERROR_CORRECTION_LEVEL,
+      });
+
+      res.setHeader("Content-Type", "image/svg+xml");
+      res.end(svg);
+    } catch (error) {
+      return handleErr(error);
+    }
+  } else {
+    try {
+      res.setHeader("Content-Type", "image/png");
+
+      await QRCode.toFileStream(res, data, {
+        version: QR_CODE_VERSION,
+        margin: 0.5,
+        errorCorrectionLevel: QR_CODE_ERROR_CORRECTION_LEVEL,
+        width: size,
+      });
+    } catch (err) {
+      return handleErr(err);
+    }
+  }
 };
 
 export default { getUrls, shorten, redirect, remove, sendQrCode };

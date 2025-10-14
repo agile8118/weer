@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS urls (
   id SERIAL PRIMARY KEY,
   real_url VARCHAR(2200) NOT NULL, -- original URL
-  shortened_url_id VARCHAR(80), -- short code for the shortened URL that users see
+  shortened_url_id VARCHAR(80) DEFAULT NULL, -- short code for the shortened URL that users see
   qr_code_id VARCHAR(10) DEFAULT NULL UNIQUE, -- short code for QR code only
 
   -- Owner can be a registered user OR an anonymous session

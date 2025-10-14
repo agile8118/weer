@@ -11,7 +11,6 @@ import keys from "./config/keys.js";
 
 interface Middlewares {
   isValidURL: RouteMiddleware;
-  checkRealUrlExistence: RouteMiddleware;
   checkUrlOwnership: RouteMiddleware;
   requireAuth: RouteMiddleware;
 }
@@ -42,52 +41,6 @@ function isValidURL(
     next();
   } else {
     return handleErr({ status: 400, message: "The URL you put is not valid." });
-  }
-}
-
-// We don't want duplicated urls for a specified user
-async function checkRealUrlExistence(
-  req: Request,
-  res: Response,
-  next: Next,
-  handleErr: HandleErr
-) {
-  try {
-    // Get the user id if the use is logged in
-    let userId = req.user ? req.user.id : null;
-
-    const body = req.body as { url?: string };
-    const realUrl = body.url || "";
-
-    let result: IUrl | null;
-    if (userId) {
-      result = await DB.find<IUrl>(
-        `SELECT * FROM urls WHERE real_url = $1 AND user_id = $2`,
-        [realUrl, userId]
-      );
-    } else {
-      const session = await DB.find<ISession>(
-        `SELECT id FROM sessions WHERE session_token=$1`,
-        [req.session?.session_token]
-      );
-
-      result = await DB.find<IUrl>(
-        `SELECT * FROM urls WHERE real_url = $1 AND session_id = $2`,
-        [realUrl, session?.id]
-      );
-    }
-
-    if (result && result.id) {
-      res.status(200).json({
-        URLId: result.id,
-        realURL: result.real_url,
-        shortenedURL: `${keys.domain}/${result.shortened_url_id}`,
-      });
-    } else {
-      next();
-    }
-  } catch (error) {
-    return handleErr(error);
   }
 }
 
@@ -130,7 +83,6 @@ async function requireAuth(
 
 const middlewares: Middlewares = {
   isValidURL,
-  checkRealUrlExistence,
   checkUrlOwnership,
   requireAuth,
 };

@@ -43,20 +43,17 @@ export default (app: Cpeak) => {
   app.route("get", "/url", Url.getUrls);
 
   // Get the url, shorten it and save to database
-  app.route(
-    "post",
-    "/url",
-    middlewares.isValidURL,
-    // middlewares.checkRealUrlExistence,
-    Url.shorten
-  );
+  app.route("post", "/url", middlewares.isValidURL, Url.shorten);
 
   // Redirect to the real url
   app.route("get", "/:id", Url.redirect);
 
   // Send a QR code image for a link
-  app.route("get", "/qr/:id", Url.sendQrCode);
+  app.route("get", "/qr/:id", middlewares.checkUrlOwnership, Url.sendQrCode);
 
-  // Delete an url record
+  // Redirect to the real url that were created with a username
+  app.route("get", "/:username/:id", () => {});
+
+  // Delete a url record
   app.route("delete", "/url/:id", middlewares.checkUrlOwnership, Url.remove);
 };

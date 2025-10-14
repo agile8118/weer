@@ -5,6 +5,7 @@ import { useAuth } from "../AuthContext";
 import dom from "../lib/dom";
 import LinkShow from "./LinkShow";
 import CustomizationModal from "./modals/LinkCustomization";
+import QRCodeModal from "./modals/QRCode";
 
 interface Url {
   id: string;
@@ -37,6 +38,12 @@ const Urls: FC<UrlsProps> = (props) => {
   const [customizeModalShow, setCustomizeModalShow] = useState<boolean>(false);
   const [selectedUrlIdForCustomization, setSelectedUrlIdForCustomization] =
     useState<string | null>(null);
+
+  // For QR code modal
+  const [qrCodeModalShow, setQrCodeModalShow] = useState<boolean>(false);
+  const [selectedUrlIdForQrCode, setSelectedUrlIdForQrCode] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     props.onRef({ fetchUrls });
@@ -79,6 +86,16 @@ const Urls: FC<UrlsProps> = (props) => {
       setCustomizeModalShow(true);
     } else {
       setCustomizeModalShow(false);
+    }
+  };
+
+  // Open/Close the QR code modal for a url
+  const toggleQRCodeModal = (urlId: string | null = null) => {
+    if (urlId) {
+      setSelectedUrlIdForQrCode(urlId);
+      setQrCodeModalShow(true);
+    } else {
+      setQrCodeModalShow(false);
     }
   };
 
@@ -133,6 +150,7 @@ const Urls: FC<UrlsProps> = (props) => {
             shortenedUrl={`${domain}/${url.shortened_url_id}`}
             toggleConfirmationModal={toggleConfirmationModal}
             toggleCustomizationModal={toggleCustomizationModal}
+            toggleQRCodeModal={toggleQRCodeModal}
           />
         );
       });
@@ -185,6 +203,12 @@ const Urls: FC<UrlsProps> = (props) => {
             open={customizeModalShow}
             onClose={() => toggleCustomizationModal()}
             urlId={selectedUrlIdForCustomization}
+          />
+
+          <QRCodeModal
+            open={qrCodeModalShow}
+            onClose={() => toggleQRCodeModal()}
+            urlId={selectedUrlIdForQrCode}
           />
         </>
       )}

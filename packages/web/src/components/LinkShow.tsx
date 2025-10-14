@@ -8,6 +8,7 @@ interface LinkShow {
   onList: boolean;
   toggleConfirmationModal: (urlId: string | null, realUrl: string) => void;
   toggleCustomizationModal: (urlId: string | null) => void;
+  toggleQRCodeModal: (urlId: string | null) => void;
 }
 
 export default (({
@@ -17,6 +18,7 @@ export default (({
   onList,
   toggleConfirmationModal,
   toggleCustomizationModal,
+  toggleQRCodeModal,
 }: LinkShow) => {
   const [copyTooltipText, setCopyTooltipText] = useState<string>("Copy");
 
@@ -26,7 +28,7 @@ export default (({
 
   // If the real url was longer than 35 characters, substring it
   let displayedRealUrl = realUrl;
-  if (realUrl.length > 35) displayedRealUrl = realUrl.substring(0, 35) + "...";
+  if (realUrl.length > 30) displayedRealUrl = realUrl.substring(0, 30) + "...";
 
   // If on list show the delete button
   let deleteButton;
@@ -37,6 +39,7 @@ export default (({
         <ButtonIcon
           color="red"
           icon="fa-solid fa-trash-can"
+          tooltipText="Delete Link"
           onClick={() => {
             toggleConfirmationModal(urlId, realUrl);
           }}
@@ -73,11 +76,33 @@ export default (({
             />
           </div>
 
+          <div className="link__views">
+            <ButtonIcon
+              color="default"
+              icon="fa-solid fa-chart-simple"
+              tooltipText="View Stats"
+              onClick={() => {}}
+              onMouseLeave={() => {}}
+            />
+          </div>
+
           <div className="link__qrcode">
             <ButtonIcon
               color="default"
               icon="fa-solid fa-qrcode"
               tooltipText="Get a QR Code"
+              onClick={() => {
+                toggleQRCodeModal(urlId);
+              }}
+              onMouseLeave={() => {}}
+            />
+          </div>
+
+          <div className="link__edit">
+            <ButtonIcon
+              color="default"
+              icon="fa-solid fa-pen-to-square"
+              tooltipText="Edit Link"
               onClick={() => {}}
               onMouseLeave={() => {}}
             />
