@@ -40,10 +40,11 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
 
           <div className="customization-option__body">
             <div className="customization-option__description">
-              The code will contain only lowercase letters and numbers from 1 to
-              9. Great if you just want a shorten link, don't want to worry
-              about your link expiring, selecting anything and even creating an
-              account!
+              This code contains only lowercase letters and numbers from 1 to 9.
+              Don't worry about your audience typing uppercase or lowercase,
+              we'll handle that for you. Great if you just want a shorten link,
+              don't want to worry about your link expiring, selecting anything
+              and even creating an account!
             </div>
 
             <div className="u-text-center">
@@ -63,10 +64,10 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
         <div className="customization-option">
           <div className="customization-option__header">
             <div>
-              <h3>3-Digit Code</h3>
+              <h3>Short Numeric Code (3-5 Digits)</h3>
 
               <div className="customization-option__example">
-                Example: <span>weer.pro/532</span>
+                Example: <span>weer.pro/5322</span>
               </div>
             </div>
 
@@ -97,7 +98,10 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
               <h3>Choose Your Own with Username</h3>
 
               <div className="customization-option__example">
-                Example: <span>{`weer.pro/${username}/anything-really`}</span>
+                Example:{" "}
+                <span>{`weer.pro/${
+                  username ? username : "your-username"
+                }/anything-really`}</span>
               </div>
             </div>
 
@@ -128,7 +132,7 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
                   label="Custom Code"
                 />
                 <strong className="customization-option__preview">
-                  weer.pro/{username}/
+                  weer.pro/{username ? username : "your-username"}/
                 </strong>
               </div>
 
@@ -196,10 +200,10 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
         <div className="customization-option customization-option--disabled">
           <div className="customization-option__header">
             <div>
-              <h3>Up to a 2-Digit Code</h3>
+              <h3>Ultra Short Code (1–2 Characters)</h3>
 
               <div className="customization-option__example">
-                Example: <span>weer.pro/6</span>
+                Examples: <span>weer.pro/6 or weer.pro/1a</span>
               </div>
             </div>
 
@@ -210,10 +214,12 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
 
           <div className="customization-option__body">
             <div className="customization-option__description">
-              Great if you quickly want to share a link with others during a
-              middle of a conversation! Keep in mind that your link will be
-              valid for <strong>only 30 minutes</strong> and after someone else
-              will claim it.
+              Our magical shortest possible option, perfect for saying it out
+              loud. Imagine you’re on a call, just say “Go to weer.pro/d, it’s
+              my demo link,” and that's it. Keep in mind that your link will be{" "}
+              <strong>public</strong> and valid for{" "}
+              <strong>only 30 minutes</strong> and after someone else will claim
+              it.
             </div>
 
             <div className="u-text-center">

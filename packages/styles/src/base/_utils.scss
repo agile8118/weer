@@ -23,6 +23,10 @@
   margin-top: 2rem;
 }
 
+.u-margin-top-4 {
+  margin-top: 4rem !important;
+}
+
 .u-text-center {
   text-align: center;
 }
@@ -44,12 +48,4 @@
 .u-flex-text-right {
   display: flex;
   justify-content: right;
-}
-
-.qr__message {
-  font-size: 1.4rem;
-  font-weight: 300;
-  font-style: italic;
-  margin-top: 3rem;
-  text-align: center;
 }

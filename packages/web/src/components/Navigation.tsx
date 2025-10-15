@@ -97,10 +97,10 @@ const Navigation: FC = () => {
           <div className="auth-or">or</div>
           <div className="u-flex-text-center u-margin-top-2">
             <a
-              className="button button-block button-google-signin"
+              className="button button-block button-with-icon button-google-signin"
               href="/auth/google"
             >
-              <i className="fa-brands fa-google"></i>
+              <i className="button__icon-left fa-brands fa-google"></i>
               Continue with Google
             </a>
           </div>

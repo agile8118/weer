@@ -1,5 +1,4 @@
 import React from "react";
-// import Loading from "../InlineLoading";
 
 interface componentProps {
   className?: string;
@@ -95,7 +94,11 @@ const Button = (props: componentProps) => {
 
   if (props.tooltipText) {
     return (
-      <div className={`tooltip ${props.className ? props.className : ""}`}>
+      <div
+        className={`tooltip tooltip-top ${
+          props.className ? props.className : ""
+        }`}
+      >
         {button}
         <span className="tooltip__text">{props.tooltipText}</span>
       </div>

@@ -1,0 +1,151 @@
+// Custom built element to use instead of the default select input
+
+.form-select {
+  position: relative;
+  font-size: 1.6rem;
+
+  // &--small {
+  //   font-size: ;
+  //   .form-select__label {
+  //     height: ;
+  //     border-radius: ;
+  //   }
+
+  //   .form-select__label__top {
+  //     top: -8px;
+  //   }
+  // }
+
+  &--rounded {
+    .form-select__label {
+      border-radius: 500px;
+      padding: 2rem 2.2rem;
+
+      &--open {
+        border-radius: 20px;
+
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+      }
+    }
+  }
+
+  &--error {
+    .form-select__label {
+      border: 1px solid $color-red !important;
+
+      &:focus {
+        box-shadow: 0 0 0 2px rgba($color-red, 0.3) !important;
+      }
+    }
+  }
+
+  &__arrow {
+    display: flex;
+  }
+
+  &__help-tooltip {
+    margin-right: auto;
+    margin-left: 0.3rem;
+
+    .tooltip__text {
+      width: 25rem;
+    }
+  }
+
+  &__label {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 2rem 1.2rem;
+    border-radius: 0.5rem;
+    color: #555;
+    font-family: inherit;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0);
+    font-size: inherit;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+    height: 3rem;
+    line-height: 1.6;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+      border: 1px solid #d4d4d4;
+      color: #6c757d;
+
+      &:hover {
+        border: 1px solid #d4d4d4;
+        color: #6c757d;
+      }
+    }
+
+    &--open {
+      border-bottom-left-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+    }
+
+    &:hover {
+      border: 1px solid darken(#dddddd, 20%);
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  &__label__top {
+    position: absolute;
+    top: -11px;
+    background: white;
+    padding: 0 0.8rem;
+    font-size: 90%;
+    display: flex;
+    align-items: center;
+  }
+
+  &__content {
+    background-color: #fff;
+    position: absolute;
+    width: 100%;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    z-index: 999;
+    animation: custom-select 0.1s ease-in;
+  }
+
+  &__items {
+    border: 1px solid rgb(215, 214, 214);
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    max-height: 15rem;
+  }
+
+  &__item {
+    border: none;
+    display: block;
+    padding: 0.7rem 0.8rem;
+    width: 100%;
+    text-align: left;
+    background-color: #fff;
+    transition: all 0.2s;
+    line-height: 1.6;
+    cursor: pointer;
+
+    &--selected {
+      font-weight: 900;
+    }
+
+    &:focus {
+      background-color: rgb(225, 225, 225);
+    }
+  }
+
+  button.form-select__item:hover {
+    background-color: rgb(238, 237, 237);
+  }
+}

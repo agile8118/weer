@@ -11,6 +11,13 @@ CREATE TABLE IF NOT EXISTS urls (
 
   -- If a user has chosen a code to be on their username [like weer.pro/joe/whatever] this will be true
   is_on_username BOOLEAN DEFAULT FALSE,
+  -- If a logged in user has selected the ultra code option (1-2 characters, expires in 30 minutes)
+  is_ultra_code BOOLEAN DEFAULT FALSE,
+  -- If a user has selected the digit code option (3-5 digits, expires in 2 hours)
+  is_digit_code BOOLEAN DEFAULT FALSE,
+
+  -- Esp. needed for non-logged in users to prevent spamming and impose rate limits
+  ip_address INET,
 
   views INT DEFAULT 0, -- change this so that we have our own views table that saves ip address, user agent, referrer, timestamp etc
   updated_at TIMESTAMP DEFAULT now(),

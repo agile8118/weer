@@ -39,11 +39,11 @@ export default (app: Cpeak) => {
   // ************ URL ROUTES ************* //
   // ------------------------------------------------ //
 
-  // Return the list of urls user has shortened
-  app.route("get", "/url", Url.getUrls);
-
   // Get the url, shorten it and save to database
   app.route("post", "/url", middlewares.isValidURL, Url.shorten);
+
+  // Return the list of urls user has shortened
+  app.route("get", "/url", Url.getUrls);
 
   // Redirect to the real url
   app.route("get", "/:id", Url.redirect);
@@ -52,6 +52,7 @@ export default (app: Cpeak) => {
   app.route("get", "/qr/:id", middlewares.checkUrlOwnership, Url.sendQrCode);
 
   // Redirect to the real url that were created with a username
+  // @TODO: make sure 'qr' counts as a taken username
   app.route("get", "/:username/:id", () => {});
 
   // Delete a url record

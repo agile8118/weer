@@ -1,3 +1,4 @@
+// lds-ellipsis ones are for the loading icon
 @keyframes lds-ellipsis1 {
   0% {
     transform: scale(0);
@@ -34,5 +35,40 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+// Scale the dropdown buttons in
+@keyframes scaleInDropdowns {
+  from {
+    opacity: 0;
+    transform: translateX(50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(50%) scale(1);
+  }
+}
+
+// Scale the mini dropdown buttons in
+@keyframes scaleInMiniDropdowns {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes custom-select {
+  from {
+    opacity: 0.3;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

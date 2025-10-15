@@ -52,7 +52,7 @@ export default (({
     <div>
       <div className={linkClassName}>
         <div className="link__real">
-          <div className="tooltip">
+          <div className="tooltip tooltip-top">
             {displayedRealUrl}
             <div className="tooltip__text">{realUrl}</div>
           </div>
