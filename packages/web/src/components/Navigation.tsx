@@ -1,11 +1,13 @@
 import React, { FC, useState } from "react";
 import { Modal, Input, Button } from "@weer/reusable";
 import { useAuth } from "../AuthContext";
+import { useModal } from "../ModalContext";
 
 const Navigation: FC = () => {
   const { isSignedIn, email, username, loading } = useAuth();
+  const { openModal } = useModal();
 
-  const [logInModal, setLogInModal] = useState<boolean>(false);
+  console.log("Rendering Navigation...");
 
   return (
     <>
@@ -19,7 +21,7 @@ const Navigation: FC = () => {
           {!isSignedIn && !loading && (
             <button
               className="navigation__link button-reset"
-              onClick={() => setLogInModal(true)}
+              onClick={() => openModal("login")}
             >
               Login
             </button>
@@ -71,50 +73,6 @@ const Navigation: FC = () => {
           )}
         </div>
       </nav>
-
-      <Modal
-        open={logInModal}
-        onClose={() => setLogInModal(false)}
-        header="Log in to Weer"
-        type="narrow"
-      >
-        <div className="auth">
-          <form action="">
-            <div className="form-group">
-              <Input label="Email" type="email" id="email" required />
-            </div>
-
-            <div className="form-group">
-              <Input label="Password" type="password" id="password" required />
-            </div>
-
-            <div className="form-group u-flex-text-right">
-              <Button type="submit" color="blue" outlined={true} block={true}>
-                Log In
-              </Button>
-            </div>
-          </form>
-          <div className="auth-or">or</div>
-          <div className="u-flex-text-center u-margin-top-2">
-            <a
-              className="button button-block button-with-icon button-google-signin"
-              href="/auth/google"
-            >
-              <i className="button__icon-left fa-brands fa-google"></i>
-              Continue with Google
-            </a>
-          </div>
-
-          <div className="auth__footer">
-            <button className="button-text">Forgot your password?</button>
-
-            <div className="auth__other">
-              New to Weer?{" "}
-              <button className="button-text">Create an account</button>
-            </div>
-          </div>
-        </div>
-      </Modal>
     </>
   );
 };

@@ -1,11 +1,10 @@
 import React, { FC, useEffect, useState } from "react";
 import axios from "axios";
-import { ConfirmModal, Loading, Modal, Button, Input } from "@weer/reusable";
+import { Loading } from "@weer/reusable";
 import { useAuth } from "../AuthContext";
-import dom from "../lib/dom";
+import { useModal } from "../ModalContext";
+
 import LinkShow from "./LinkShow";
-import CustomizationModal from "./modals/LinkCustomization";
-import QRCodeModal from "./modals/QRCode";
 
 interface Url {
   id: string;
@@ -19,31 +18,13 @@ interface UrlsProps {
 }
 
 const Urls: FC<UrlsProps> = (props) => {
+  const { openModal } = useModal();
+
   const [loading, setLoading] = useState<boolean>(true); // for url loading
   const [urls, setUrls] = useState<Url[] | null>(null);
   const [domain, setDomain] = useState<string | null>(null);
 
   const { isSignedIn, username } = useAuth();
-
-  // For deleting a url
-  const [selectedUrlIdForDeletion, setSelectedUrlIdForDeletion] = useState<
-    string | null
-  >(null);
-  const [confirmationShow, setConfirmationShow] = useState<boolean>(false);
-  const [confirmationLoading, setConfirmationLoading] =
-    useState<boolean>(false);
-  const [confirmationUrl, setConfirmationUrl] = useState<string>(""); // in confirmation modal to show a complete url
-
-  // For customizing a url
-  const [customizeModalShow, setCustomizeModalShow] = useState<boolean>(false);
-  const [selectedUrlIdForCustomization, setSelectedUrlIdForCustomization] =
-    useState<string | null>(null);
-
-  // For QR code modal
-  const [qrCodeModalShow, setQrCodeModalShow] = useState<boolean>(false);
-  const [selectedUrlIdForQrCode, setSelectedUrlIdForQrCode] = useState<
-    string | null
-  >(null);
 
   useEffect(() => {
     props.onRef({ fetchUrls });
@@ -60,74 +41,8 @@ const Urls: FC<UrlsProps> = (props) => {
 
     setUrls(data.urls);
     setDomain(data.domain);
-    setSelectedUrlIdForDeletion(null);
     setLoading(false);
-    setConfirmationShow(false);
   }
-
-  // Open/Close the confirmation modal for deleting a url
-  const toggleConfirmationModal = (
-    urlId: string | null = null,
-    realUrl?: string
-  ) => {
-    if (urlId && realUrl) {
-      setSelectedUrlIdForDeletion(urlId);
-      setConfirmationShow(true);
-      setConfirmationUrl(realUrl);
-    } else {
-      setConfirmationShow(false);
-    }
-  };
-
-  // Open/Close the customization modal for a url
-  const toggleCustomizationModal = (urlId: string | null = null) => {
-    if (urlId) {
-      setSelectedUrlIdForCustomization(urlId);
-      setCustomizeModalShow(true);
-    } else {
-      setCustomizeModalShow(false);
-    }
-  };
-
-  // Open/Close the QR code modal for a url
-  const toggleQRCodeModal = (urlId: string | null = null) => {
-    if (urlId) {
-      setSelectedUrlIdForQrCode(urlId);
-      setQrCodeModalShow(true);
-    } else {
-      setQrCodeModalShow(false);
-    }
-  };
-
-  // Send the delete request to the server
-  const onDeleteConfirmed = async () => {
-    const urlId = selectedUrlIdForDeletion;
-    setConfirmationLoading(true);
-    try {
-      await axios.delete("/url/" + urlId);
-      const newUrls =
-        urls?.filter((url) => {
-          if (url.id === urlId) {
-            return false;
-          }
-          return true;
-        }) || [];
-      setUrls(newUrls);
-      setSelectedUrlIdForDeletion(null);
-      toggleConfirmationModal();
-
-      dom.message("URL deleted successfully.", "success");
-      if (urlId) props.onDeleteUrl(urlId);
-    } catch (e) {
-      // show an error message to user on unexpected errors
-      dom.message(
-        "Sorry, an unknown error occurred, please try again later.",
-        "error"
-      );
-      toggleConfirmationModal();
-    }
-    setConfirmationLoading(false);
-  };
 
   const renderUrls = () => {
     if (loading) {
@@ -148,9 +63,17 @@ const Urls: FC<UrlsProps> = (props) => {
             realUrl={url.real_url}
             onList={true}
             shortenedUrl={`${domain}/${url.shortened_url_id}`}
-            toggleConfirmationModal={toggleConfirmationModal}
-            toggleCustomizationModal={toggleCustomizationModal}
-            toggleQRCodeModal={toggleQRCodeModal}
+            onDelete={() => {
+              const newUrls =
+                urls?.filter((u) => {
+                  if (u.id === url.id) {
+                    return false;
+                  }
+                  return true;
+                }) || [];
+              setUrls(newUrls);
+              props.onDeleteUrl(url.id);
+            }}
           />
         );
       });
@@ -173,45 +96,17 @@ const Urls: FC<UrlsProps> = (props) => {
         {/* User has url but not logged in */}
         {!loading && urls && urls.length > 0 && !isSignedIn && (
           <p className="text-center a-2">
-            You are not logged in! Login to save your URLs and be able to better
-            manage and customize them.
+            You are not logged in!{" "}
+            <button
+              className="button-text button-text-inherit"
+              onClick={() => openModal("login")}
+            >
+              Login
+            </button>{" "}
+            to save your URLs and be able to better manage and customize them.
           </p>
         )}
       </section>
-
-      {!loading && urls.length > 0 && (
-        <>
-          <ConfirmModal
-            header="Delete The URL"
-            open={confirmationShow}
-            loading={confirmationLoading}
-            onConfirm={onDeleteConfirmed}
-            onCancel={() => {
-              setConfirmationShow(false);
-            }}
-            btnName="Delete"
-          >
-            <p>
-              Are you sure that you want to delete this URL and its shortened
-              URL? You cannot undo this.
-              <br />
-              <strong className="a-4">{confirmationUrl}</strong>
-            </p>
-          </ConfirmModal>
-
-          <CustomizationModal
-            open={customizeModalShow}
-            onClose={() => toggleCustomizationModal()}
-            urlId={selectedUrlIdForCustomization}
-          />
-
-          <QRCodeModal
-            open={qrCodeModalShow}
-            onClose={() => toggleQRCodeModal()}
-            urlId={selectedUrlIdForQrCode}
-          />
-        </>
-      )}
     </div>
   );
 };

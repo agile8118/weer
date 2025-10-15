@@ -219,6 +219,13 @@
   font-weight: 400;
   cursor: pointer;
 
+  &-inherit {
+    font-weight: inherit;
+    color: inherit;
+    font-style: inherit;
+    font-size: inherit;
+  }
+
   &--big {
     font-size: 1.9rem;
   }

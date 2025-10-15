@@ -4,6 +4,7 @@ import UrlShortener from "./UrlShortener";
 import Urls from "./Urls";
 
 import { AuthProvider } from "../AuthContext";
+import { ModalProvider } from "../ModalContext";
 
 const AppContent: React.FC = () => {
   // Refs to child components
@@ -34,7 +35,9 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <AppContent />
+      <ModalProvider>
+        <AppContent />
+      </ModalProvider>
     </AuthProvider>
   );
 };

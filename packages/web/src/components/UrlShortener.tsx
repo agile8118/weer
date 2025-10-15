@@ -23,7 +23,7 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
     return () => {
       props.onRef(undefined);
     };
-  }, []);
+  }, [urlId]);
 
   // Check to see if a deleted url is shown in this component
   function onDeleteUrl(id: string) {

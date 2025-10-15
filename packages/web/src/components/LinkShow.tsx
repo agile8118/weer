@@ -1,14 +1,13 @@
 import React, { FC, useState } from "react";
 import { ButtonIcon } from "@weer/reusable";
+import { useModal } from "../ModalContext";
 
 interface LinkShow {
   urlId?: string | null;
   realUrl: string;
   shortenedUrl: string;
   onList: boolean;
-  toggleConfirmationModal: (urlId: string | null, realUrl: string) => void;
-  toggleCustomizationModal: (urlId: string | null) => void;
-  toggleQRCodeModal: (urlId: string | null) => void;
+  onDelete?: (id: string) => void; // when the link is deleted
 }
 
 export default (({
@@ -16,17 +15,16 @@ export default (({
   realUrl,
   shortenedUrl,
   onList,
-  toggleConfirmationModal,
-  toggleCustomizationModal,
-  toggleQRCodeModal,
+  onDelete,
 }: LinkShow) => {
   const [copyTooltipText, setCopyTooltipText] = useState<string>("Copy");
+  const { openModal } = useModal();
 
   // Decide whether to show the link component or not
   let linkClassName = realUrl ? "link" : "link display-none";
   linkClassName = onList ? linkClassName + " link--on-list" : linkClassName;
 
-  // If the real url was longer than 35 characters, substring it
+  // If the real url was longer than 30 characters, substring it
   let displayedRealUrl = realUrl;
   if (realUrl.length > 30) displayedRealUrl = realUrl.substring(0, 30) + "...";
 
@@ -41,7 +39,7 @@ export default (({
           icon="fa-solid fa-trash-can"
           tooltipText="Delete Link"
           onClick={() => {
-            toggleConfirmationModal(urlId, realUrl);
+            openModal("confirmDelete", { urlId, realUrl, onSuccess: onDelete });
           }}
         />
       </div>
@@ -92,7 +90,7 @@ export default (({
               icon="fa-solid fa-qrcode"
               tooltipText="Get a QR Code"
               onClick={() => {
-                toggleQRCodeModal(urlId);
+                openModal("qrCode", { urlId });
               }}
               onMouseLeave={() => {}}
             />
@@ -114,7 +112,7 @@ export default (({
               icon="fa-solid fa-gear"
               tooltipText="Customize Your Link"
               onClick={() => {
-                toggleCustomizationModal(urlId);
+                openModal("customizeLink", { urlId });
               }}
               onMouseLeave={() => {}}
             />
