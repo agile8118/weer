@@ -126,7 +126,7 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
         </form>
       </div>
 
-      <LinkShow realUrl={realUrl} shortenedUrl={shortenedUrl} />
+      <LinkShow urlId={urlId} realUrl={realUrl} shortenedUrl={shortenedUrl} />
 
       <p className="a-1">
         By clicking Shorten, you agree to our <a href="#">Privacy Policy</a> and{" "}
