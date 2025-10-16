@@ -79,15 +79,17 @@ const generateDefault = async (id: number) => {
   let attempts = 0;
   let shortenedCode;
 
+  // Total combinations: 34^6  = 1,544,804,416
+  const possibleChars = "abcdefghijkmnpqrstuvwxyz0123456789"; // removed o and l to avoid confusion
+  const codeLength = 6;
+
   // We will retry updating the record just like before with the QR code id
   while (!updated && attempts <= 10) {
     // Generate a 6-character code to be used as url shortened id
-    const possibleChars = "abcdefghijkmnpqrstuvwxyz0123456789"; // removed o and l to avoid confusion
-    shortenedCode = ""; // total combinations: 34^6  = 1,544,804,416
-    for (let i = 0; i < 6; i++) {
-      shortenedCode += possibleChars.charAt(
-        Math.floor(Math.random() * possibleChars.length)
-      );
+    const bytes = crypto.randomBytes(codeLength);
+    shortenedCode = "";
+    for (let i = 0; i < codeLength; i++) {
+      shortenedCode += possibleChars[bytes[i] % possibleChars.length];
     }
 
     try {
