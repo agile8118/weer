@@ -7,8 +7,6 @@ const Navigation: FC = () => {
   const { isSignedIn, email, username, loading } = useAuth();
   const { openModal } = useModal();
 
-  console.log("Rendering Navigation...");
-
   return (
     <>
       <nav className="navigation navigation-md">

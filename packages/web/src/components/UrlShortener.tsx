@@ -46,7 +46,10 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
 
     if (lib.validURL(newUrl)) {
       try {
-        const { data } = await axios.post("/url", { url: newUrl });
+        const { data } = await axios.post("/url", {
+          url: newUrl,
+          type: "default",
+        });
 
         // Hide the error
         hideError();
@@ -60,7 +63,7 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
       } catch (e: any) {
         // Show relevant errors to user on server errors
         if (e.response && e.response.status === 400) {
-          showError(e.response.data);
+          showError(e.response.data.error);
         }
 
         if (e.response && e.response.status === 500) {

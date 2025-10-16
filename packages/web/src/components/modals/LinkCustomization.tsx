@@ -2,6 +2,7 @@ import React, { FC, useEffect, useState } from "react";
 
 import { ConfirmModal, Loading, Modal, Button, Input } from "@weer/reusable";
 import { useAuth } from "../../AuthContext";
+import { useModal } from "../../ModalContext";
 import dom from "../../lib/dom";
 
 interface LinkCustomizationProps {
@@ -12,6 +13,7 @@ interface LinkCustomizationProps {
 
 const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
   const { isSignedIn, username } = useAuth();
+  const { openModal } = useModal();
 
   return (
     <Modal
@@ -225,7 +227,10 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
             <div className="u-text-center">
               <div className="customization-option__message">
                 You must first{" "}
-                <button className="button-text button-text--white">
+                <button
+                  className="button-text button-text--white"
+                  onClick={() => openModal("login")}
+                >
                   login
                 </button>{" "}
                 to select this option.

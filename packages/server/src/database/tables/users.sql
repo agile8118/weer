@@ -8,6 +8,11 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(200),
   password VARCHAR(200),
   verified BOOLEAN,
+
+  username_id, -- a user can have up to 4 usernames, only one is active and the rest expire in 30 days
+
+  link_count INTEGER DEFAULT 0, -- number of URLs user has shortened. Includes deleted links and customization.
+
   token_code VARCHAR(200),
   token_date TIMESTAMP,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,

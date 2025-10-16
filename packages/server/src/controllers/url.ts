@@ -12,6 +12,7 @@ import util from "../lib/util.js";
 import keys from "../config/keys.js";
 
 const publicPath = new URL("../../public", import.meta.url).pathname;
+const MAX_ATTEMPTS = 10; // Max number of retries for generating unique IDs (QR Code and Shortened URL id)
 
 // Return the list of urls user has shortened
 const getUrls = async (req: Request, res: Response) => {
@@ -60,17 +61,80 @@ const getUrls = async (req: Request, res: Response) => {
   }
 };
 
-// Get the url, shorten it and save to database
-const shorten = async (req: Request, res: Response, handleError: HandleErr) => {
-  const MAX_ATTEMPTS = 10; // Max number of retries for generating unique IDs (QR Code and Shortened URL id)
+interface IRequestBody {
+  url: string;
+  type: "default" | "ultra" | "digits" | "custom" | "customOnUsername";
+  custom?: string; // only if type is custom or customOnUsername
+}
 
+/**
+ * Generates a unique "default" type shortened URL ID for the given database URL ID.
+ * The default type is a 6-Character Code, only lowercase alphabets and digits, without o or l. In redirecting, o is treated as 0 and l as i.
+ *
+ * @param id The database URL ID to update with the generated shortened URL ID
+ * @returns The generated shortened URL Code
+ */
+const generateDefault = async (id: number) => {
+  let updated = false;
+  let attempts = 0;
+  let shortenedCode;
+
+  // We will retry updating the record just like before with the QR code id
+  while (!updated && attempts <= 10) {
+    // Generate a 6-character code to be used as url shortened id
+    const possibleChars = "abcdefghijkmnpqrstuvwxyz0123456789"; // removed o and l to avoid confusion
+    shortenedCode = ""; // total combinations: 34^6  = 1,544,804,416
+    for (let i = 0; i < 6; i++) {
+      shortenedCode += possibleChars.charAt(
+        Math.floor(Math.random() * possibleChars.length)
+      );
+    }
+
+    try {
+      await DB.update<IUrl>(
+        "urls",
+        {
+          shortened_url_id: shortenedCode,
+        },
+        `id = $2`,
+        [id]
+      );
+      updated = true; // If update is successful, the ID is unique
+      return shortenedCode;
+    } catch (error: any) {
+      console.log("======");
+      // The official PostgreSQL error code for unique violations
+      if (error.code === "23505") {
+        // If there's a duplicate key error, generate a new ID and retry
+        updated = false;
+        attempts++;
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  // Max attempts reached
+  if (!updated) {
+    throw new Error(
+      `Could not generate a unique shortened URL ID after ${MAX_ATTEMPTS} attempts`
+    );
+  }
+};
+
+// Get the url, shorten it and save to database
+const shorten = async (
+  req: Request<IRequestBody>,
+  res: Response,
+  handleError: HandleErr
+) => {
   // Get the user id if the user is logged in
   let userId = req.user ? req.user.id : null;
 
   // Get the session token for when the user is not logged in
   let sessionToken = req.session?.session_token;
 
-  const realUrl = (req.body as { url: string }).url;
+  const realUrl = req.body?.url;
 
   /* ---------------------------------------------------------------------------------- 
           We will first generate a code for the QR code and then insert the record. 
@@ -143,50 +207,36 @@ const shorten = async (req: Request, res: Response, handleError: HandleErr) => {
           Now we will generate a unique shortened URL id and update the record.
      -------------------------------------------------------------------------------- */
 
-  let updated = false;
-  attempts = 0;
-  let urlId;
+  const type = req.body?.type;
+  const custom = req.body?.custom;
 
-  // We will retry updating the record just like before with the QR code id
-  while (!updated && attempts <= 10) {
-    // Generate a 6 digits number to be used as url shortened id
-    urlId = (Math.floor(Math.random() * 900000) + 100000).toString();
+  let shortenedCode;
 
-    try {
-      await DB.update<IUrl>(
-        "urls",
-        {
-          shortened_url_id: urlId,
-        },
-        `id = $2`,
-        [inserted_url!.id]
-      );
-      updated = true; // If update is successful, the ID is unique
-    } catch (error: any) {
-      // The official PostgreSQL error code for unique violations
-      if (error.code === "23505") {
-        // If there's a duplicate key error, generate a new ID and retry
-        updated = false;
-        attempts++;
-      } else {
-        return handleError(error); // Handle other errors
+  switch (type) {
+    case "default":
+      try {
+        shortenedCode = await generateDefault(inserted_url!.id);
+      } catch (error) {
+        return handleError(error);
       }
-    }
-  }
+      break;
 
-  // Max attempts reached
-  if (!updated) {
-    return handleError(
-      new Error(
-        `Could not generate a unique shortened URL ID after ${MAX_ATTEMPTS} attempts`
-      )
-    );
+    // case "ultra":
+
+    // case "digits":
+
+    // case "custom":
+
+    // case "customOnUsername":
+
+    default:
+      return handleError({ status: 400, message: "Invalid type" });
   }
 
   return res.json({
     URLId: inserted_url!.id,
     realURL: realUrl,
-    shortenedURL: `${keys.domain}/${urlId}`,
+    shortenedURL: `${keys.domain}/${shortenedCode}`,
   });
 };
 

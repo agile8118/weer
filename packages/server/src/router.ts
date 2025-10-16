@@ -2,6 +2,7 @@ import type {
   Cpeak,
   CpeakRequest as Request,
   CpeakResponse as Response,
+  HandleErr,
 } from "cpeak";
 
 import passport from "passport";
@@ -51,9 +52,31 @@ export default (app: Cpeak) => {
   // Send a QR code image for a link
   app.route("get", "/qr/:id", middlewares.checkUrlOwnership, Url.sendQrCode);
 
+  interface IParams {
+    filter: string;
+    test: string;
+  }
+
+  interface IBody {
+    url?: string;
+    name: number;
+    username: string;
+    id: string;
+    extra: string;
+    test?: string;
+    another?: number;
+  }
   // Redirect to the real url that were created with a username
   // @TODO: make sure 'qr' counts as a taken username
-  app.route("get", "/:username/:id", () => {});
+  app.route(
+    "get",
+    "/:username/:id",
+    (req: Request<IBody, IParams>, res: Response, handleError: HandleErr) => {
+      req.vars?.username; // forget about this, it will always be string
+      console.log(req.params.test); // user has to define this as IParams
+      req.body?.url; // user has to define this as IBody
+    }
+  );
 
   // Delete a url record
   app.route("delete", "/url/:id", middlewares.checkUrlOwnership, Url.remove);
