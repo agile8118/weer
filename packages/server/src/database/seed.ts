@@ -25,6 +25,9 @@ const databasePath = new URL("./", import.meta.url).pathname;
   const sessionsTableSQL: string = fs
     .readFileSync(path.join(databasePath, "./tables/sessions.sql"))
     .toString();
+  const ultraCodesTableSQL: string = fs
+    .readFileSync(path.join(databasePath, "./tables/ultra_codes.sql"))
+    .toString();
 
   // Grab the triggers sql file
   const triggersSQL: string = fs
@@ -34,6 +37,8 @@ const databasePath = new URL("./", import.meta.url).pathname;
   try {
     // Drop all our tables
     console.log("\nDropping the tables...");
+    await pool.query("DROP TABLE IF EXISTS ultra_codes");
+    console.log("[postgres] ultra_codes table was dropped.");
     await pool.query("DROP TABLE IF EXISTS urls");
     console.log("[postgres] urls table was dropped.");
     await pool.query("DROP TABLE IF EXISTS users");
@@ -49,6 +54,8 @@ const databasePath = new URL("./", import.meta.url).pathname;
     console.log("[postgres] sessions table was created successfully.");
     await pool.query(urlsTableSQL);
     console.log("[postgres] urls table was created successfully.");
+    await pool.query(ultraCodesTableSQL);
+    console.log("[postgres] ultra_codes table was created successfully.");
 
     // Execute the sql file to fire up our triggers
     console.log("\nSetting up the triggers...");
@@ -57,6 +64,41 @@ const databasePath = new URL("./", import.meta.url).pathname;
   } catch (err) {
     console.error(err);
   }
+
+  // ----------------------------------
+  //     POPULATING ULTRA CODES TABLE
+  // ----------------------------------
+  console.log("\nAdding ultra codes...");
+  const letters = "0123456789abcdefghijkmnpqrstuvwxyz"; // no o or l to avoid confusion
+
+  // Insert all 1-character codes
+  await pool.query(
+    `
+    INSERT INTO ultra_codes (code)
+    SELECT substr($1, g, 1)
+    FROM generate_series(1, length($1)) AS g;
+  `,
+    [letters]
+  );
+
+  // Insert all 2-character codes
+  await pool.query(
+    `
+    INSERT INTO ultra_codes (code)
+    SELECT substr($1, g1, 1) || substr($1, g2, 1)
+    FROM generate_series(1, length($1)) AS g1,
+        generate_series(1, length($1)) AS g2;
+  `,
+    [letters]
+  );
+
+  console.log(
+    `[postgres] ${
+      (await pool.query("SELECT COUNT(*) FROM ultra_codes")).rows[0].count
+    } records (${letters.length} one-character & ${
+      letters.length * letters.length
+    } two-character ultra codes) were added to the database.`
+  );
 })();
 
 // -----------------------

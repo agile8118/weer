@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(200),
   verified BOOLEAN,
 
-  username_id, -- a user can have up to 4 usernames, only one is active and the rest expire in 30 days
+  -- username_id, -- a user can have up to 4 usernames, only one is active and the rest expire in 30 days
 
   link_count INTEGER DEFAULT 0, -- number of URLs user has shortened. Includes deleted links and customization.
 

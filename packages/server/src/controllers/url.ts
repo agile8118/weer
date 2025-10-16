@@ -124,6 +124,16 @@ const generateDefault = async (id: number) => {
   }
 };
 
+/**
+ * Generates a unique "ultra" type shortened URL ID for the given database URL ID.
+ * The ultra type is a 1 or 2 character code, only lowercase alphabets and digits.
+ * Examples: a, b, z, 0, 5, az, 1z, z1, zl
+ *
+ * @param id The database URL ID to update with the generated shortened URL ID
+ * @returns The generated shortened URL Code
+ */
+const generateUltra = async (id: number) => {};
+
 // Get the url, shorten it and save to database
 const shorten = async (
   req: Request<IRequestBody>,
@@ -223,7 +233,13 @@ const shorten = async (
       }
       break;
 
-    // case "ultra":
+    case "ultra":
+      try {
+        shortenedCode = await generateUltra(inserted_url!.id);
+      } catch (error) {
+        return handleError(error);
+      }
+      break;
 
     // case "digits":
 
