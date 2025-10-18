@@ -1,6 +1,7 @@
 import React, { FC, useEffect, useState } from "react";
 
 import { ConfirmModal, Loading, Modal, Button, Input } from "@weer/reusable";
+import type { LinkType } from "@weer/common";
 import { useAuth } from "../../AuthContext";
 import { useModal } from "../../ModalContext";
 import dom from "../../lib/dom";
@@ -9,11 +10,18 @@ interface LinkCustomizationProps {
   open: boolean;
   onClose: () => void;
   urlId: string | null;
+  url: string; // real URL
+  shortenedUrl: string; // the current shortened code
+  type: LinkType;
 }
 
 const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
   const { isSignedIn, username } = useAuth();
   const { openModal } = useModal();
+
+  console.log("Current Type:", props.type);
+
+  const onUltraSelect = () => {};
 
   return (
     <Modal
@@ -199,7 +207,8 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
           </div>
         </div>
 
-        <div className="customization-option customization-option--disabled">
+        {/* customization-option--disabled */}
+        <div className="customization-option ">
           <div className="customization-option__header">
             <div>
               <h3>Ultra Short Code (1–2 Characters)</h3>
@@ -224,7 +233,7 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
               it.
             </div>
 
-            <div className="u-text-center">
+            {/* <div className="u-text-center">
               <div className="customization-option__message">
                 You must first{" "}
                 <button
@@ -235,13 +244,18 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
                 </button>{" "}
                 to select this option.
               </div>
-            </div>
+            </div> */}
 
-            {/* <div className="u-flex-text-right">
-              <Button color="blue" outlined={true} rounded={true}>
+            <div className="u-flex-text-right">
+              <Button
+                color="blue"
+                outlined={true}
+                rounded={true}
+                onClick={onUltraSelect}
+              >
                 Select
               </Button>
-            </div> */}
+            </div>
           </div>
         </div>
       </div>

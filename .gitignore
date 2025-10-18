@@ -10,4 +10,5 @@ ecosystem.config.js
 packages/server/public/styles.css
 packages/server/public/scripts
 packages/reusable/dist
+packages/common/dist
 packages/server/dist

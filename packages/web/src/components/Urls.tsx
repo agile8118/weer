@@ -1,6 +1,7 @@
 import React, { FC, useEffect, useState } from "react";
 import axios from "axios";
 import { Loading } from "@weer/reusable";
+import type { LinkType } from "@weer/common";
 import { useAuth } from "../AuthContext";
 import { useModal } from "../ModalContext";
 
@@ -10,6 +11,7 @@ interface Url {
   id: string;
   real_url: string;
   shortened_url_id: string;
+  link_type: LinkType;
 }
 
 interface UrlsProps {
@@ -61,6 +63,7 @@ const Urls: FC<UrlsProps> = (props) => {
             key={url.id}
             urlId={url.id}
             realUrl={url.real_url}
+            type={url.link_type}
             onList={true}
             shortenedUrl={`${domain}/${url.shortened_url_id}`}
             onDelete={() => {

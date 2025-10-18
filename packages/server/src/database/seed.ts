@@ -41,6 +41,8 @@ const databasePath = new URL("./", import.meta.url).pathname;
     console.log("[postgres] ultra_codes table was dropped.");
     await pool.query("DROP TABLE IF EXISTS urls");
     console.log("[postgres] urls table was dropped.");
+    await pool.query("DROP TYPE IF EXISTS link_type");
+    console.log("[postgres] link_type type was dropped.");
     await pool.query("DROP TABLE IF EXISTS users");
     console.log("[postgres] users table was dropped.");
     await pool.query("DROP TABLE IF EXISTS sessions");

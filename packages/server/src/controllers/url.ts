@@ -6,6 +6,7 @@ import type {
 import QRCode from "qrcode";
 import path from "path";
 import crypto from "crypto";
+import type { LinkType } from "@weer/common";
 import { DB } from "../database/index.js";
 import { IUrl, ISession } from "../database/types.js";
 import util from "../lib/util.js";
@@ -20,7 +21,7 @@ const getUrls = async (req: Request, res: Response) => {
 
   if (req.user) {
     data = await DB.findMany<IUrl>(
-      `SELECT real_url, shortened_url_id, id FROM urls WHERE user_id=$1 ORDER BY created_at DESC`,
+      `SELECT id, real_url, shortened_url_id, link_type FROM urls WHERE user_id=$1 ORDER BY created_at DESC`,
       [req.user.id]
     );
   } else if (req.session?.session_token) {
@@ -30,35 +31,17 @@ const getUrls = async (req: Request, res: Response) => {
     );
 
     data = await DB.findMany<IUrl>(
-      `SELECT real_url, shortened_url_id, id FROM urls WHERE session_id=$1 ORDER BY created_at DESC`,
+      `SELECT id, real_url, shortened_url_id, link_type FROM urls WHERE session_id=$1 ORDER BY created_at DESC`,
       [session?.id]
     );
   } else {
     return res.json({ urls: [], domain: keys.domain });
   }
 
-  // If there's only one url
-  if (!data.length && data.length !== 0) {
-    // Create a new arr with the object if we have only one record
-    let arr = [];
-    arr.push(data);
-    res.json({
-      urls: arr,
-      domain: keys.domain,
-    });
-    // If there is no url
-  } else if (data.length === 0) {
-    res.json({
-      urls: [],
-      domain: keys.domain,
-    });
-    // If there are more than one url
-  } else {
-    res.json({
-      urls: data,
-      domain: keys.domain,
-    });
-  }
+  res.json({
+    urls: data,
+    domain: keys.domain,
+  });
 };
 
 interface IRequestBody {
@@ -132,7 +115,18 @@ const generateDefault = async (id: number) => {
  * @param id The database URL ID to update with the generated shortened URL ID
  * @returns The generated shortened URL Code
  */
-const generateUltra = async (id: number) => {};
+const generateUltra = async (id: number) => {
+  const result = await DB.query(`
+      SELECT code FROM ultra_codes
+      WHERE url_id IS NULL OR expires_at < NOW()
+      ORDER BY length(code), code
+      LIMIT 1;
+  `);
+
+  console.log(result);
+
+  // SELECT code FROM ultra_codes WHERE expires_at > NOW() OR expires_at IS NULL LIMIT 1 SORT BY code ASC;
+};
 
 // Get the url, shorten it and save to database
 const shorten = async (
@@ -219,7 +213,7 @@ const shorten = async (
           Now we will generate a unique shortened URL id and update the record.
      -------------------------------------------------------------------------------- */
 
-  const type = req.body?.type;
+  const type = req.body?.type as LinkType;
   const custom = req.body?.custom;
 
   let shortenedCode;
@@ -254,6 +248,7 @@ const shorten = async (
   return res.json({
     URLId: inserted_url!.id,
     realURL: realUrl,
+    linkType: type,
     shortenedURL: `${keys.domain}/${shortenedCode}`,
   });
 };

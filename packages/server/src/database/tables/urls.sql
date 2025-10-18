@@ -1,3 +1,19 @@
+CREATE TYPE link_type_enum AS ENUM (
+  'default',
+
+  -- if a user has chosen a custom code but not on their username [like weer.pro/whatever] 
+  'custom',
+
+  -- If a user has chosen a custom code to be on their username [like weer.pro/joe/whatever] this will be true
+  'custom_on_username', 
+
+  -- If a logged in user has selected the ultra code option (1-2 characters, expires in 30 minutes)
+  'ultra',
+
+  -- If a user has selected the digit code option (3-5 digits, expires in 2 hours)
+  'digit'
+);
+
 -- URLS TABLE
 CREATE TABLE IF NOT EXISTS urls (
   id SERIAL PRIMARY KEY,
@@ -9,12 +25,7 @@ CREATE TABLE IF NOT EXISTS urls (
   user_id INT,
   session_id INT,
 
-  -- If a user has chosen a code to be on their username [like weer.pro/joe/whatever] this will be true
-  is_on_username BOOLEAN DEFAULT FALSE,
-  -- If a logged in user has selected the ultra code option (1-2 characters, expires in 30 minutes)
-  is_ultra_code BOOLEAN DEFAULT FALSE,
-  -- If a user has selected the digit code option (3-5 digits, expires in 2 hours)
-  is_digit_code BOOLEAN DEFAULT FALSE,
+  link_type link_type_enum NOT NULL DEFAULT 'default',
 
   -- Esp. needed for non-logged in users to prevent spamming and impose rate limits
   ip_address INET,
@@ -40,4 +51,10 @@ CREATE TABLE IF NOT EXISTS urls (
 -- Ensure a record cannot have the same shortened_url_id more than once if it's not on a username
 CREATE UNIQUE INDEX unique_global_url_code
   ON urls (shortened_url_id)
-  WHERE is_on_username = FALSE;
+  WHERE link_type IN ('default'::link_type_enum, 'custom'::link_type_enum);
+
+
+-- Ensure a user cannot have the same shortened_url_id more than once if it's on their username
+CREATE UNIQUE INDEX unique_per_user_custom_code
+  ON urls (user_id, shortened_url_id)
+  WHERE link_type = 'custom_on_username'::link_type_enum;

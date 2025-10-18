@@ -5,10 +5,10 @@
   "typings": "dist/index.d.ts",
   "private": true,
   "devDependencies": {
-    "typescript": "^4.7.4"
+    "typescript": "^5.9.2"
   },
   "scripts": {
-    "start": "tsc --watch",
+    "dev": "tsc --watch",
     "build": "tsc"
   }
 }

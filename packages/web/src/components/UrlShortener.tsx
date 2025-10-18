@@ -1,6 +1,7 @@
 import React, { FC, useEffect, useState } from "react";
 import axios from "axios";
 import { Button, Input } from "@weer/reusable";
+import type { LinkType } from "@weer/common";
 import LinkShow from "./LinkShow";
 import lib from "../lib";
 
@@ -13,6 +14,7 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
   const [url, setUrl] = useState<string>("");
   const [urlId, setUrlId] = useState<string>("");
   const [realUrl, setRealUrl] = useState<string>("");
+  const [linkType, setLinkType] = useState<LinkType | null>(null);
   const [shortenedUrl, setShortenedUrl] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
@@ -31,6 +33,7 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
       // remove the url from the dom
       setRealUrl("");
       setShortenedUrl("");
+      setLinkType(null);
       setUrlId("");
     }
   }
@@ -57,6 +60,7 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
         setUrl("");
         setRealUrl(data.realURL);
         setUrlId(data.URLId);
+        setLinkType(data.linkType);
         setShortenedUrl(data.shortenedURL);
 
         props.onNewUrl();
@@ -126,7 +130,12 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
         </form>
       </div>
 
-      <LinkShow urlId={urlId} realUrl={realUrl} shortenedUrl={shortenedUrl} />
+      <LinkShow
+        urlId={urlId}
+        realUrl={realUrl}
+        shortenedUrl={shortenedUrl}
+        type={linkType}
+      />
 
       <p className="a-1">
         By clicking Shorten, you agree to our <a href="#">Privacy Policy</a> and{" "}

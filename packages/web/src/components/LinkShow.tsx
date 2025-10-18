@@ -1,11 +1,13 @@
 import React, { FC, useState } from "react";
 import { ButtonIcon } from "@weer/reusable";
 import { useModal } from "../ModalContext";
+import type { LinkType } from "@weer/common";
 
 interface LinkShow {
   urlId?: string | null;
   realUrl: string;
   shortenedUrl: string;
+  type: LinkType;
   onList: boolean;
   onDelete?: (id: string) => void; // when the link is deleted
 }
@@ -15,6 +17,7 @@ export default (({
   realUrl,
   shortenedUrl,
   onList,
+  type,
   onDelete,
 }: LinkShow) => {
   const [copyTooltipText, setCopyTooltipText] = useState<string>("Copy");
@@ -112,7 +115,12 @@ export default (({
               icon="fa-solid fa-gear"
               tooltipText="Customize Your Link"
               onClick={() => {
-                openModal("customizeLink", { urlId });
+                openModal("customizeLink", {
+                  urlId,
+                  realUrl,
+                  shortenedUrl,
+                  type,
+                });
               }}
               onMouseLeave={() => {}}
             />
