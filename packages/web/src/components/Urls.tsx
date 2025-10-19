@@ -58,14 +58,27 @@ const Urls: FC<UrlsProps> = (props) => {
     // User has urls
     if (urls.length > 0) {
       return urls.map((url) => {
+        let shortenedUrl;
+        switch (url.link_type) {
+          case "default":
+            shortenedUrl = `${domain}/${url.shortened_url_id}`;
+            break;
+          case "ultra":
+            shortenedUrl = `${domain}/${url.ultra_code}`;
+            break;
+          default:
+            shortenedUrl = `${domain}/${url.shortened_url_id}`;
+        }
+
         return (
           <LinkShow
             key={url.id}
             urlId={url.id}
             realUrl={url.real_url}
             type={url.link_type}
+            expiresAt={url.expires_at}
             onList={true}
-            shortenedUrl={`${domain}/${url.shortened_url_id}`}
+            shortenedUrl={shortenedUrl}
             onDelete={() => {
               const newUrls =
                 urls?.filter((u) => {

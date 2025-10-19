@@ -43,6 +43,9 @@ export default (app: Cpeak) => {
   // Get the url, shorten it and save to database
   app.route("post", "/url", middlewares.isValidURL, Url.shorten);
 
+  // Change the type of a url (e.g. from default to custom). User can do this from the customization modal
+  app.route("patch", "/url/:id/type", Url.changeUrlType);
+
   // Return the list of urls user has shortened
   app.route("get", "/url", Url.getUrls);
 
@@ -52,30 +55,12 @@ export default (app: Cpeak) => {
   // Send a QR code image for a link
   app.route("get", "/qr/:id", middlewares.checkUrlOwnership, Url.sendQrCode);
 
-  interface IParams {
-    filter: string;
-    test: string;
-  }
-
-  interface IBody {
-    url?: string;
-    name: number;
-    username: string;
-    id: string;
-    extra: string;
-    test?: string;
-    another?: number;
-  }
-  // Redirect to the real url that were created with a username
-  // @TODO: make sure 'qr' counts as a taken username
+  // Redirect to the real url that was created with a username
+  // @TODO: make sure these count as a taken username: 'qr'
   app.route(
     "get",
     "/:username/:id",
-    (req: Request<IBody, IParams>, res: Response, handleError: HandleErr) => {
-      req.vars?.username; // forget about this, it will always be string
-      console.log(req.params.test); // user has to define this as IParams
-      req.body?.url; // user has to define this as IBody
-    }
+    (req: Request, res: Response, handleError: HandleErr) => {}
   );
 
   // Delete a url record

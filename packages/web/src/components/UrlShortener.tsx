@@ -95,8 +95,6 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
     setErrorMessage("");
   }
 
-  // let boxClassName = errorMessage ? "box box--error" : "box";
-
   return (
     <section className="section" data-testid="url-shortener">
       <div className="main-heading">
@@ -105,7 +103,6 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
       </div>
 
       <div className="box">
-        {/* <div className="message">{errorMessage}</div> */}
         <form
           onSubmit={(event) => onFormSubmit(event)}
           className="url-input u-flex-text-center"

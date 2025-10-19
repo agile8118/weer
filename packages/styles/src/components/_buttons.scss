@@ -181,6 +181,11 @@
   background: #e4e3e3;
 }
 
+.button-icon:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .button-icon:hover,
 .button-icon:focus {
   background: #dcdbdb;

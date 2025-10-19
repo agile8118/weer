@@ -8,12 +8,17 @@ import path from "path";
 import crypto from "crypto";
 import type { LinkType } from "@weer/common";
 import { DB } from "../database/index.js";
-import { IUrl, ISession } from "../database/types.js";
+import { IUrl, ISession, IUltraCode } from "../database/types.js";
 import util from "../lib/util.js";
 import keys from "../config/keys.js";
+import {
+  generateDefault,
+  generateUltra,
+  generateQRCode,
+  processCode,
+} from "../lib/links.js";
 
 const publicPath = new URL("../../public", import.meta.url).pathname;
-const MAX_ATTEMPTS = 10; // Max number of retries for generating unique IDs (QR Code and Shortened URL id)
 
 // Return the list of urls user has shortened
 const getUrls = async (req: Request, res: Response) => {
@@ -31,102 +36,42 @@ const getUrls = async (req: Request, res: Response) => {
     );
 
     data = await DB.findMany<IUrl>(
-      `SELECT id, real_url, shortened_url_id, link_type FROM urls WHERE session_id=$1 ORDER BY created_at DESC`,
+      `
+        SELECT
+          urls.id,
+          urls.real_url,
+          urls.shortened_url_id,
+          urls.link_type,
+          ultra_codes.code AS ultra_code,
+          ultra_codes.assigned_at AS assigned_at,
+          ultra_codes.expires_at AS expires_at
+        FROM urls
+        LEFT JOIN ultra_codes
+          ON urls.id = ultra_codes.url_id
+          AND urls.link_type = 'ultra'
+        WHERE urls.session_id = $1
+        ORDER BY urls.created_at DESC;
+      `,
       [session?.id]
     );
   } else {
     return res.json({ urls: [], domain: keys.domain });
   }
 
+  // console.log(data);
+
   res.json({
-    urls: data,
+    urls: DB.cleanResult(data),
     domain: keys.domain,
   });
 };
 
+/** @TODO clean this up */
 interface IRequestBody {
   url: string;
   type: "default" | "ultra" | "digits" | "custom" | "customOnUsername";
   custom?: string; // only if type is custom or customOnUsername
 }
-
-/**
- * Generates a unique "default" type shortened URL ID for the given database URL ID.
- * The default type is a 6-Character Code, only lowercase alphabets and digits, without o or l. In redirecting, o is treated as 0 and l as i.
- *
- * @param id The database URL ID to update with the generated shortened URL ID
- * @returns The generated shortened URL Code
- */
-const generateDefault = async (id: number) => {
-  let updated = false;
-  let attempts = 0;
-  let shortenedCode;
-
-  // Total combinations: 34^6  = 1,544,804,416
-  const possibleChars = "abcdefghijkmnpqrstuvwxyz0123456789"; // removed o and l to avoid confusion
-  const codeLength = 6;
-
-  // We will retry updating the record just like before with the QR code id
-  while (!updated && attempts <= 10) {
-    // Generate a 6-character code to be used as url shortened id
-    const bytes = crypto.randomBytes(codeLength);
-    shortenedCode = "";
-    for (let i = 0; i < codeLength; i++) {
-      shortenedCode += possibleChars[bytes[i] % possibleChars.length];
-    }
-
-    try {
-      await DB.update<IUrl>(
-        "urls",
-        {
-          shortened_url_id: shortenedCode,
-        },
-        `id = $2`,
-        [id]
-      );
-      updated = true; // If update is successful, the ID is unique
-      return shortenedCode;
-    } catch (error: any) {
-      console.log("======");
-      // The official PostgreSQL error code for unique violations
-      if (error.code === "23505") {
-        // If there's a duplicate key error, generate a new ID and retry
-        updated = false;
-        attempts++;
-      } else {
-        throw error;
-      }
-    }
-  }
-
-  // Max attempts reached
-  if (!updated) {
-    throw new Error(
-      `Could not generate a unique shortened URL ID after ${MAX_ATTEMPTS} attempts`
-    );
-  }
-};
-
-/**
- * Generates a unique "ultra" type shortened URL ID for the given database URL ID.
- * The ultra type is a 1 or 2 character code, only lowercase alphabets and digits.
- * Examples: a, b, z, 0, 5, az, 1z, z1, zl
- *
- * @param id The database URL ID to update with the generated shortened URL ID
- * @returns The generated shortened URL Code
- */
-const generateUltra = async (id: number) => {
-  const result = await DB.query(`
-      SELECT code FROM ultra_codes
-      WHERE url_id IS NULL OR expires_at < NOW()
-      ORDER BY length(code), code
-      LIMIT 1;
-  `);
-
-  console.log(result);
-
-  // SELECT code FROM ultra_codes WHERE expires_at > NOW() OR expires_at IS NULL LIMIT 1 SORT BY code ASC;
-};
 
 // Get the url, shorten it and save to database
 const shorten = async (
@@ -143,70 +88,24 @@ const shorten = async (
   const realUrl = req.body?.url;
 
   /* ---------------------------------------------------------------------------------- 
-          We will first generate a code for the QR code and then insert the record. 
+          We will first insert the record and then generate a code for the QR code. 
           Afterwards, we will update that record with the a requested generated code.
      -------------------------------------------------------------------------------- */
 
-  /*                                FOR QR CODE ID:
-    7 bytes (56 bits) gives 2^56 = 72,057,594,037,927,936 combination.
-    The base65url encoding safely converts binary data into a URL valid string without losing entropy.
+  const insertedUrl = await DB.insert<IUrl>("urls", {
+    real_url: realUrl,
+    user_id: userId ? userId : undefined,
+    session_id: !userId
+      ? (
+          await DB.find<ISession>(
+            "SELECT id FROM sessions WHERE session_token=$1",
+            [sessionToken]
+          )
+        )?.id
+      : undefined,
+  });
 
-    Based on the Birthday Paradox, after generating around 1 billion random codes, there is roughly a 0.999 (99.9%) probability
-    that at least one collision will occur somewhere in that entire set.
-
-    This means that out of 1 billion inserts, we should expect only 
-    a handful of duplicates (about 7 on average) due to random chance. There is a per-insert 
-    collision probability of about 7×10⁻⁹ (0.0000007%).
-
-    This is trivial though but we must still handle collisions in the database (we'll retry on unique constraint violation of Postgres).
-  */
-
-  let inserted_url: IUrl;
-
-  let QRCodeId;
-  let inserted = false;
-  let attempts = 0; // to avoid infinite loops, we will try only 10 times
-
-  // Insert into database, if there's a conflict, retry
-  while (!inserted && attempts <= MAX_ATTEMPTS) {
-    try {
-      QRCodeId = crypto.randomBytes(7).toString("base64url");
-
-      inserted_url = await DB.insert<IUrl>("urls", {
-        real_url: realUrl,
-        qr_code_id: QRCodeId,
-        user_id: userId ? userId : undefined,
-        session_id: !userId
-          ? (
-              await DB.find<ISession>(
-                "SELECT id FROM sessions WHERE session_token=$1",
-                [sessionToken]
-              )
-            )?.id
-          : undefined,
-      });
-
-      inserted = true; // If insert is successful, the ID is unique
-    } catch (error: any) {
-      if (error.code === "23505") {
-        // The official PostgreSQL error code for unique violations
-        // If there's a duplicate key error, generate a new ID and retry
-        inserted = false;
-        attempts++;
-      } else {
-        return handleError(error); // Handle other errors
-      }
-    }
-  }
-
-  // Max attempts reached
-  if (!inserted) {
-    return handleError(
-      new Error(
-        `Could not generate a unique QR code ID after ${MAX_ATTEMPTS} attempts`
-      )
-    );
-  }
+  await generateQRCode(insertedUrl!.id);
 
   /* ---------------------------------------------------------------------------------- 
           At this point we have inserted the record with a unique QR code id. 
@@ -221,7 +120,7 @@ const shorten = async (
   switch (type) {
     case "default":
       try {
-        shortenedCode = await generateDefault(inserted_url!.id);
+        shortenedCode = await generateDefault(insertedUrl!.id);
       } catch (error) {
         return handleError(error);
       }
@@ -229,7 +128,7 @@ const shorten = async (
 
     case "ultra":
       try {
-        shortenedCode = await generateUltra(inserted_url!.id);
+        shortenedCode = await generateUltra(insertedUrl!.id);
       } catch (error) {
         return handleError(error);
       }
@@ -246,28 +145,102 @@ const shorten = async (
   }
 
   return res.json({
-    URLId: inserted_url!.id,
+    URLId: insertedUrl!.id,
     realURL: realUrl,
     linkType: type,
     shortenedURL: `${keys.domain}/${shortenedCode}`,
   });
 };
 
+// Change the type of a url (e.g. from default to custom). User can do this from the customization modal
+const changeUrlType = async (
+  req: Request,
+  res: Response,
+  handleError: HandleErr
+) => {
+  const id = Number(req.vars?.id);
+  const type = req.body?.type as LinkType;
+
+  if (!id || !type) {
+    return res.status(400).json({ message: "Missing parameters" });
+  }
+
+  let newShortenedCode;
+
+  switch (type) {
+    case "default":
+      try {
+        newShortenedCode = await generateDefault(id);
+      } catch (error) {
+        return handleError(error);
+      }
+      break;
+
+    case "ultra":
+      try {
+        newShortenedCode = await generateUltra(id);
+      } catch (error) {
+        return handleError(error);
+      }
+      break;
+
+    // case "digits":
+
+    // case "custom":
+
+    // case "customOnUsername":
+
+    default:
+      return handleError({ status: 400, message: "Invalid type" });
+  }
+
+  return res.json({
+    type,
+    shortenedURL: `${keys.domain}/${newShortenedCode}`,
+  });
+};
+
 // FIX ERROR RETURN IN CPEAK SEND FILE
 // Redirect to the real url
 const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
-  if (!req.vars?.id) {
+  const code = req.vars?.id;
+
+  if (!code) {
     return handleErr(new Error("No URL ID provided"));
   }
 
-  if (!util.isValidUrlId(req.vars?.id)) {
+  console.log("Code:", code);
+
+  const processedCode = processCode(code);
+
+  if (!processedCode) {
     return res.sendFile(path.join(publicPath, "./no-url.html"), "text/html");
   }
 
-  const url = await DB.find<IUrl>(
-    `SELECT real_url, id, views FROM urls WHERE shortened_url_id=$1`,
-    [req.vars.id]
-  );
+  console.log(processedCode);
+
+  let url;
+
+  switch (processedCode.type) {
+    case "ultra":
+      url = await DB.find<IUrl>(
+        `
+        SELECT urls.real_url, urls.id, urls.views
+        FROM urls
+        JOIN ultra_codes
+          ON urls.id = ultra_codes.url_id
+        WHERE ultra_codes.code = $1
+      `,
+        [processedCode.code]
+      );
+
+      break;
+    case "default":
+      url = await DB.find<IUrl>(
+        `SELECT real_url, id, views FROM urls WHERE shortened_url_id=$1`,
+        [processedCode.code]
+      );
+  }
 
   if (!url) {
     return res.sendFile(path.join(publicPath, "./no-url.html"), "text/html");
@@ -308,7 +281,7 @@ const sendQrCode = async (
 
   const download = req.query.download === "true" ? true : false;
   const type = req.query.type === "png" ? "png" : "svg";
-  let size = Number(req.query.size); // only for png valid options only: 256, 512, 1024, 2048
+  let size = Number(req.query.size); // only for png, valid options are: 256, 512, 1024, 2048
 
   // Validate size if type is png
   if (type === "png") {
@@ -367,4 +340,11 @@ const sendQrCode = async (
   }
 };
 
-export default { getUrls, shorten, redirect, remove, sendQrCode };
+export default {
+  getUrls,
+  shorten,
+  redirect,
+  remove,
+  sendQrCode,
+  changeUrlType,
+};

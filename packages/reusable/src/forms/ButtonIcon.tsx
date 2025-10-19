@@ -11,6 +11,7 @@ interface componentProps {
   outlined?: boolean;
   loading?: boolean;
   tooltipText?: string;
+  disabledTooltipText?: string;
   type?: "submit" | "button";
   onClick?: () => void;
   onMouseLeave?: () => void;
@@ -100,7 +101,9 @@ const Button = (props: componentProps) => {
         }`}
       >
         {button}
-        <span className="tooltip__text">{props.tooltipText}</span>
+        <span className="tooltip__text">
+          {props.disabled ? props.disabledTooltipText : props.tooltipText}
+        </span>
       </div>
     );
   } else {

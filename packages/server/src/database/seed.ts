@@ -2,6 +2,34 @@ import { Pool } from "pg";
 import fs from "fs";
 import path from "path";
 import keys from "../config/keys.js";
+import { LINKS } from "../lib/links.js";
+
+// Create the database if it doesn't exist
+async function createDatabase() {
+  const adminPool = new Pool({
+    user: keys.dbUser,
+    host: keys.dbHost,
+    database: "postgres", // default DB
+    password: keys.dbPassword,
+    port: keys.dbPort,
+  });
+
+  const result = await adminPool.query(
+    `
+    SELECT 1 FROM pg_database WHERE datname = $1
+  `,
+    [keys.dbDatabase]
+  );
+
+  if (result.rowCount === 0) {
+    await adminPool.query(`CREATE DATABASE ${keys.dbDatabase};`);
+    console.log(`[postgres] created database: ${keys.dbDatabase}`);
+  }
+
+  await adminPool.end();
+}
+
+await createDatabase();
 
 const pool = new Pool({
   user: keys.dbUser as string,
@@ -10,6 +38,16 @@ const pool = new Pool({
   password: keys.dbPassword as string,
   port: keys.dbPort as number,
 });
+
+// Test the database connection
+try {
+  const client = await pool.connect();
+  console.log(`[postgres] connected to database: ${keys.dbDatabase}`);
+  client.release();
+} catch (err) {
+  console.error("[postgres] database connection failed:", err);
+  process.exit(1);
+}
 
 const databasePath = new URL("./", import.meta.url).pathname;
 
@@ -41,8 +79,8 @@ const databasePath = new URL("./", import.meta.url).pathname;
     console.log("[postgres] ultra_codes table was dropped.");
     await pool.query("DROP TABLE IF EXISTS urls");
     console.log("[postgres] urls table was dropped.");
-    await pool.query("DROP TYPE IF EXISTS link_type");
-    console.log("[postgres] link_type type was dropped.");
+    await pool.query("DROP TYPE IF EXISTS link_type_enum");
+    console.log("[postgres] link_type_enum type was dropped.");
     await pool.query("DROP TABLE IF EXISTS users");
     console.log("[postgres] users table was dropped.");
     await pool.query("DROP TABLE IF EXISTS sessions");
@@ -71,7 +109,7 @@ const databasePath = new URL("./", import.meta.url).pathname;
   //     POPULATING ULTRA CODES TABLE
   // ----------------------------------
   console.log("\nAdding ultra codes...");
-  const letters = "0123456789abcdefghijkmnpqrstuvwxyz"; // no o or l to avoid confusion
+  const letters = LINKS.ultra.characters;
 
   // Insert all 1-character codes
   await pool.query(
@@ -89,7 +127,7 @@ const databasePath = new URL("./", import.meta.url).pathname;
     INSERT INTO ultra_codes (code)
     SELECT substr($1, g1, 1) || substr($1, g2, 1)
     FROM generate_series(1, length($1)) AS g1,
-        generate_series(1, length($1)) AS g2;
+         generate_series(1, length($1)) AS g2;
   `,
     [letters]
   );

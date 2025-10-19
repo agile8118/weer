@@ -1,4 +1,6 @@
-export type TTables = "users" | "urls";
+import type { LinkType } from "@weer/common";
+
+export type TTables = "users" | "urls" | "ultra_codes" | "sessions";
 
 export interface IUser {
   id: string;
@@ -22,9 +24,18 @@ export interface IUrl {
   user_id?: number;
   session_id?: number;
   is_on_username: boolean;
+  link_type: LinkType;
   views: number;
   updated_at: Date;
   created_at: Date;
+}
+
+export interface IUltraCode {
+  id: number;
+  code: string;
+  url_id?: number;
+  expires_at?: Date;
+  assigned_at: Date;
 }
 
 export interface ISession {

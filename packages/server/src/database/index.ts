@@ -20,6 +20,23 @@ export const pool = new pkg.Pool({
   port: keys.dbPort,
 });
 
+// Clean null values from the result
+const cleanResult = (data: any) => {
+  if (Array.isArray(data)) {
+    return data.map((row) =>
+      Object.fromEntries(Object.entries(row).filter(([_, v]) => v !== null))
+    );
+  }
+
+  if (data && typeof data === "object") {
+    return Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== null)
+    );
+  }
+
+  return data;
+};
+
 // Fetch from the database, returns only one object or null
 const find = <T>(query: string, values: any[] = []): Promise<T | null> => {
   return new Promise((resolve, reject) => {
@@ -170,4 +187,12 @@ const query = (query: string, values: any[] = []) => {
   });
 };
 
-export const DB = { find, findMany, insert, update, delete: del, query };
+export const DB = {
+  find,
+  findMany,
+  insert,
+  update,
+  delete: del,
+  query,
+  cleanResult,
+};

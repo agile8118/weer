@@ -3,7 +3,8 @@ export interface Util {
 }
 
 function isValidUrlId(id: string | number): boolean {
-  return id.toString().length === 6;
+  /** @TODO make sure all code types are validated */
+  return true;
 }
 
 const util: Util = {

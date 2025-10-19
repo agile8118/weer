@@ -6,6 +6,9 @@ import { useAuth } from "../../AuthContext";
 import { useModal } from "../../ModalContext";
 import dom from "../../lib/dom";
 
+import lib from "../../lib";
+import axios from "axios";
+
 interface LinkCustomizationProps {
   open: boolean;
   onClose: () => void;
@@ -17,11 +20,29 @@ interface LinkCustomizationProps {
 
 const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
   const { isSignedIn, username } = useAuth();
-  const { openModal } = useModal();
+  const { openModal, closeModal } = useModal();
 
-  console.log("Current Type:", props.type);
+  const [ultraLoading, setUltraLoading] = useState<boolean>(false);
 
-  const onUltraSelect = () => {};
+  const onUltraSelect = async () => {
+    try {
+      setUltraLoading(true);
+      await axios.patch(`/url/${props.urlId}/type`, {
+        type: "ultra",
+      });
+      dom.message(
+        `Your link is now ${lib.simplifyUrl(
+          props.shortenedUrl
+        )} and is valid for 30 minutes.`,
+        "success"
+      );
+    } catch (error: any) {
+      lib.handleErr(error);
+    } finally {
+      closeModal();
+      setUltraLoading(false);
+    }
+  };
 
   return (
     <Modal
@@ -50,11 +71,11 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
 
           <div className="customization-option__body">
             <div className="customization-option__description">
-              This code contains only lowercase letters and numbers from 1 to 9.
-              Don't worry about your audience typing uppercase or lowercase,
-              we'll handle that for you. Great if you just want a shorten link,
-              don't want to worry about your link expiring, selecting anything
-              and even creating an account!
+              This code contains only lowercase letters and numbers. Don't worry
+              about your audience typing uppercase or lowercase, we'll handle
+              that for you. Great if you just want a shorten link, don't want to
+              worry about your link expiring, selecting anything and even
+              creating an account!
             </div>
 
             <div className="u-text-center">
@@ -252,6 +273,7 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
                 outlined={true}
                 rounded={true}
                 onClick={onUltraSelect}
+                loading={ultraLoading}
               >
                 Select
               </Button>
