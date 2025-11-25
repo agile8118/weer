@@ -15,6 +15,10 @@
     margin-bottom: 0;
   }
 
+  &__real {
+    flex-basis: 35%;
+  }
+
   @media only screen and (max-width: 700px) {
     width: 90%;
   }

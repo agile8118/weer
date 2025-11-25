@@ -39,6 +39,7 @@ export const GlobalModalRenderer = ({
           urlId={modal.props?.urlId}
           url={modal.props?.realUrl}
           shortenedUrl={modal.props?.shortenedUrl}
+          onChangeType={modal.props?.onChangeType}
           type={modal.props?.type}
         />
       );

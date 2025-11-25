@@ -1,13 +1,16 @@
 import React, { FC, useState, useEffect } from "react";
 import { ButtonIcon } from "@weer/reusable";
 import { useModal } from "../ModalContext";
+import { useUrl } from "../UrlContext";
 import type { LinkType } from "@weer/common";
+import dom from "../lib/dom";
 import lib from "../lib";
 
 interface LinkShow {
   urlId?: string | null;
   realUrl: string;
-  shortenedUrl: string;
+  shortenedUrlCode: string;
+  domain: string;
   type: LinkType;
   expiresAt?: string | null;
   onList: boolean;
@@ -18,15 +21,19 @@ export default (({
   urlId = null,
   realUrl,
   expiresAt,
-  shortenedUrl,
+  shortenedUrlCode,
+  domain,
   onList,
   type,
   onDelete,
 }: LinkShow) => {
   const [copyTooltipText, setCopyTooltipText] = useState<string>("Copy");
   const { openModal } = useModal();
+  const { changeType } = useUrl();
 
   const [timeLeft, setTimeLeft] = useState("");
+
+  let shortenedUrl = `${domain}/${shortenedUrlCode}`;
 
   useEffect(() => {
     if (type === "ultra") {
@@ -76,7 +83,7 @@ export default (({
     <div className={linkClassName}>
       <div className="link__real">
         <div className="tooltip tooltip-top">
-          {lib.cutString(realUrl, 35)}
+          {lib.cutString(realUrl, 29)}
           <div className="tooltip__text">{realUrl}</div>
         </div>
       </div>
@@ -158,6 +165,20 @@ export default (({
                 realUrl,
                 shortenedUrl,
                 type,
+                onChangeType: (
+                  newType: LinkType,
+                  newExpiresAt?: string,
+                  newCode?: string
+                ) => {
+                  changeType(urlId, newType, newExpiresAt, newCode);
+
+                  dom.message(
+                    `Your link is now ${lib.simplifyUrl(
+                      domain + "/" + newCode
+                    )} and is valid for 30 minutes.`,
+                    "success"
+                  );
+                },
               });
             }}
             onMouseLeave={() => {}}

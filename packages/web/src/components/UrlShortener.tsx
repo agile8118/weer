@@ -1,42 +1,25 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { Button, Input } from "@weer/reusable";
 import type { LinkType } from "@weer/common";
+import { useUrl } from "../UrlContext";
 import LinkShow from "./LinkShow";
 import lib from "../lib";
+import { IUrl } from "../types";
 
-interface UrlShortenerProps {
-  onRef: (ref: any | undefined) => void;
-  onNewUrl: () => void;
-}
+interface UrlShortenerProps {}
 
 const UrlShortener: FC<UrlShortenerProps> = (props) => {
-  const [url, setUrl] = useState<string>("");
-  const [urlId, setUrlId] = useState<string>("");
-  const [realUrl, setRealUrl] = useState<string>("");
-  const [linkType, setLinkType] = useState<LinkType | null>(null);
-  const [shortenedUrl, setShortenedUrl] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const { createUrl, justCreatedUrlId, urls, domain } = useUrl();
 
+  const [url, setUrl] = useState<string>(""); // input url
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false); // for URL shorten form button
 
-  useEffect(() => {
-    props.onRef({ onDeleteUrl });
-    return () => {
-      props.onRef(undefined);
-    };
-  }, [urlId]);
-
-  // Check to see if a deleted url is shown in this component
-  function onDeleteUrl(id: string) {
-    if (urlId === id) {
-      // remove the url from the dom
-      setRealUrl("");
-      setShortenedUrl("");
-      setLinkType(null);
-      setUrlId("");
-    }
-  }
+  const createdUrlObject = useMemo(() => {
+    if (!justCreatedUrlId || !urls) return null;
+    return urls.find((u: IUrl) => u.id === justCreatedUrlId);
+  }, [urls, justCreatedUrlId]);
 
   async function onFormSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -49,21 +32,12 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
 
     if (lib.validURL(newUrl)) {
       try {
-        const { data } = await axios.post("/url", {
-          url: newUrl,
-          type: "default",
-        });
+        await createUrl(newUrl);
 
         // Hide the error
         hideError();
 
         setUrl("");
-        setRealUrl(data.realURL);
-        setUrlId(data.URLId);
-        setLinkType(data.linkType);
-        setShortenedUrl(data.shortenedURL);
-
-        props.onNewUrl();
       } catch (e: any) {
         // Show relevant errors to user on server errors
         if (e.response && e.response.status === 400) {
@@ -86,8 +60,6 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
   }
 
   function showError(msg: string) {
-    setRealUrl("");
-    setShortenedUrl("");
     setErrorMessage(msg);
   }
 
@@ -127,12 +99,16 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
         </form>
       </div>
 
-      <LinkShow
-        urlId={urlId}
-        realUrl={realUrl}
-        shortenedUrl={shortenedUrl}
-        type={linkType}
-      />
+      {createdUrlObject && (
+        <LinkShow
+          urlId={createdUrlObject.id}
+          realUrl={createdUrlObject.real_url}
+          shortenedUrlCode={createdUrlObject.code}
+          domain={domain}
+          expiresAt={createdUrlObject.expires_at}
+          type={createdUrlObject.link_type}
+        />
+      )}
 
       <p className="a-1">
         By clicking Shorten, you agree to our <a href="#">Privacy Policy</a> and{" "}

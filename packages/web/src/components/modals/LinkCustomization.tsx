@@ -13,12 +13,18 @@ interface LinkCustomizationProps {
   open: boolean;
   onClose: () => void;
   urlId: string | null;
+  onChangeType: (
+    newType: LinkType,
+    newExpiresAt?: string,
+    newCode?: string
+  ) => void;
   url: string; // real URL
   shortenedUrl: string; // the current shortened code
   type: LinkType;
 }
 
 const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
+  console.log(props);
   const { isSignedIn, username } = useAuth();
   const { openModal, closeModal } = useModal();
 
@@ -27,15 +33,11 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
   const onUltraSelect = async () => {
     try {
       setUltraLoading(true);
-      await axios.patch(`/url/${props.urlId}/type`, {
+      const { data }: any = await axios.patch(`/url/${props.urlId}/type`, {
         type: "ultra",
       });
-      dom.message(
-        `Your link is now ${lib.simplifyUrl(
-          props.shortenedUrl
-        )} and is valid for 30 minutes.`,
-        "success"
-      );
+
+      props.onChangeType("ultra", data.expiresAt, data.code);
     } catch (error: any) {
       lib.handleErr(error);
     } finally {

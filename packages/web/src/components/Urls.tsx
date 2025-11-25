@@ -4,47 +4,18 @@ import { Loading } from "@weer/reusable";
 import type { LinkType } from "@weer/common";
 import { useAuth } from "../AuthContext";
 import { useModal } from "../ModalContext";
+import { useUrl } from "../UrlContext";
+import type { IUrl } from "../types";
 
 import LinkShow from "./LinkShow";
 
-interface Url {
-  id: string;
-  real_url: string;
-  shortened_url_id: string;
-  link_type: LinkType;
-}
-
-interface UrlsProps {
-  onRef: (ref: any | undefined) => void;
-  onDeleteUrl: (id: string) => void;
-}
+interface UrlsProps {}
 
 const Urls: FC<UrlsProps> = (props) => {
   const { openModal } = useModal();
-
-  const [loading, setLoading] = useState<boolean>(true); // for url loading
-  const [urls, setUrls] = useState<Url[] | null>(null);
-  const [domain, setDomain] = useState<string | null>(null);
-
   const { isSignedIn, username } = useAuth();
 
-  useEffect(() => {
-    props.onRef({ fetchUrls });
-    fetchUrls();
-
-    return () => {
-      props.onRef(undefined);
-    };
-  }, []);
-
-  async function fetchUrls() {
-    setLoading(true);
-    const { data } = await axios.get("/url");
-
-    setUrls(data.urls);
-    setDomain(data.domain);
-    setLoading(false);
-  }
+  const { urls, domain, loading, fetchUrls, deleteUrl } = useUrl();
 
   const renderUrls = () => {
     if (loading) {
@@ -58,18 +29,6 @@ const Urls: FC<UrlsProps> = (props) => {
     // User has urls
     if (urls.length > 0) {
       return urls.map((url) => {
-        let shortenedUrl;
-        switch (url.link_type) {
-          case "default":
-            shortenedUrl = `${domain}/${url.shortened_url_id}`;
-            break;
-          case "ultra":
-            shortenedUrl = `${domain}/${url.ultra_code}`;
-            break;
-          default:
-            shortenedUrl = `${domain}/${url.shortened_url_id}`;
-        }
-
         return (
           <LinkShow
             key={url.id}
@@ -78,17 +37,10 @@ const Urls: FC<UrlsProps> = (props) => {
             type={url.link_type}
             expiresAt={url.expires_at}
             onList={true}
-            shortenedUrl={shortenedUrl}
+            shortenedUrlCode={url.code}
+            domain={domain}
             onDelete={() => {
-              const newUrls =
-                urls?.filter((u) => {
-                  if (u.id === url.id) {
-                    return false;
-                  }
-                  return true;
-                }) || [];
-              setUrls(newUrls);
-              props.onDeleteUrl(url.id);
+              deleteUrl(url.id);
             }}
           />
         );

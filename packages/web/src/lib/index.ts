@@ -8,6 +8,7 @@ function validURL(str: string): boolean {
 
 // Handle errors from axios requests
 function handleErr(error: any) {
+  console.error(error);
   if (error.response && error.response.data && error.response.data.error) {
     dom.message(error.response.data.error, "error");
   } else {

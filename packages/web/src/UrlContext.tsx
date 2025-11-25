@@ -1,0 +1,135 @@
+/** All the shortened URLs are handled in this context */
+
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import axios from "axios";
+import lib from "./lib";
+
+import type { IUrl } from "./types";
+import type { LinkType } from "@weer/common";
+
+interface UrlContextValue {
+  urls: IUrl[];
+  justCreatedUrlId?: string; // ID of the URL that was just created
+  domain: string | null;
+  loading: boolean;
+  fetchUrls: () => Promise<void>;
+  createUrl: (url: string) => Promise<void>;
+  changeType: (
+    id: string,
+    newType: LinkType,
+    newExpiresAt?: Date,
+    newCode?: string
+  ) => void;
+  addUrl: (url: IUrl) => void;
+  deleteUrl: (id: string) => void;
+}
+
+const UrlContext = createContext<UrlContextValue | null>(null);
+
+export const UrlProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [urls, setUrls] = useState<IUrl[]>([]);
+  const [domain, setDomain] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true); // for fetching URLs
+  const [justCreatedUrlId, setJustCreatedUrlId] = useState<string | null>(null);
+
+  // Centralized fetch function
+  const fetchUrls = async () => {
+    setLoading(true);
+    try {
+      const { data } = await axios.get("/url");
+      setUrls(data.urls as IUrl[]);
+      setDomain(data.domain);
+    } catch (error) {
+      lib.handleErr(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // When user shortens a new URL
+  const createUrl = async (realUrl: string) => {
+    const { data } = await axios.post("/url", {
+      url: realUrl,
+      type: "default",
+    });
+
+    const newUrlObj: IUrl = {
+      id: data.URLId,
+      real_url: data.realURL,
+      code: data.code,
+      link_type: data.linkType,
+    } as any;
+
+    setUrls((prevUrls) => [newUrlObj, ...prevUrls]);
+    setJustCreatedUrlId(newUrlObj.id); // Mark as just created
+  };
+
+  useEffect(() => {
+    fetchUrls();
+  }, []);
+
+  const addUrl = (newUrl: IUrl) => {
+    setUrls((prevUrls) => [...prevUrls, newUrl]);
+  };
+
+  const deleteUrl = (id: string) => {
+    // Check if justCreatedUrlId is this, set it to null so that the URL is removed
+    // from the URlShortener component if it was just created there
+    if (justCreatedUrlId === id) {
+      setJustCreatedUrlId(undefined);
+    }
+
+    setUrls((prevUrls) => prevUrls.filter((url) => url.id !== id));
+  };
+
+  // Change a URL type and possibly other fields
+  const changeType = (
+    id: string,
+    newType: LinkType,
+    newExpiresAt?: string,
+    newCode?: string
+  ) => {
+    setUrls((prevUrls) =>
+      prevUrls.map((url) =>
+        url.id === id
+          ? {
+              ...url,
+              link_type: newType,
+              expires_at: newExpiresAt || url.expires_at,
+              code: newCode || url.code,
+            }
+          : url
+      )
+    );
+  };
+
+  const contextValue = {
+    urls,
+    fetchUrls,
+    loading,
+    domain,
+    createUrl,
+    addUrl,
+    deleteUrl,
+    changeType,
+    justCreatedUrlId,
+  };
+
+  return (
+    <UrlContext.Provider value={contextValue}>{children}</UrlContext.Provider>
+  );
+};
+
+export const useUrl = () => {
+  const ctx = useContext(UrlContext);
+  if (!ctx) throw new Error("useUrl must be used inside UrlProvider");
+  return ctx;
+};

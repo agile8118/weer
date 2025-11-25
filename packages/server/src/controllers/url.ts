@@ -5,7 +5,6 @@ import type {
 } from "cpeak";
 import QRCode from "qrcode";
 import path from "path";
-import crypto from "crypto";
 import type { LinkType } from "@weer/common";
 import { DB } from "../database/index.js";
 import { IUrl, ISession, IUltraCode } from "../database/types.js";
@@ -22,44 +21,50 @@ const publicPath = new URL("../../public", import.meta.url).pathname;
 
 // Return the list of urls user has shortened
 const getUrls = async (req: Request, res: Response) => {
+  let whereClause = "";
+  let queryParams: (number | undefined)[] = []; // will be either user id or session id
   let data;
 
   if (req.user) {
-    data = await DB.findMany<IUrl>(
-      `SELECT id, real_url, shortened_url_id, link_type FROM urls WHERE user_id=$1 ORDER BY created_at DESC`,
-      [req.user.id]
-    );
+    whereClause = "urls.user_id = $1";
+    queryParams = [req.user.id];
   } else if (req.session?.session_token) {
     const session = await DB.find<ISession>(
       "SELECT id FROM sessions WHERE session_token=$1",
       [req.session.session_token]
     );
 
-    data = await DB.findMany<IUrl>(
-      `
-        SELECT
-          urls.id,
-          urls.real_url,
-          urls.shortened_url_id,
-          urls.link_type,
-          ultra_codes.code AS ultra_code,
-          ultra_codes.assigned_at AS assigned_at,
-          ultra_codes.expires_at AS expires_at
-        FROM urls
-        LEFT JOIN ultra_codes
-          ON urls.id = ultra_codes.url_id
-          AND urls.link_type = 'ultra'
-        WHERE urls.session_id = $1
-        ORDER BY urls.created_at DESC;
-      `,
-      [session?.id]
-    );
+    if (!session?.id) {
+      return res.json({ urls: [], domain: keys.domain });
+    }
+
+    whereClause = "urls.session_id = $1";
+    queryParams = [session.id];
   } else {
+    // No user and no session token
     return res.json({ urls: [], domain: keys.domain });
   }
 
-  // console.log(data);
+  data = await DB.findMany<IUrl>(
+    `
+    SELECT
+      urls.id,
+      urls.real_url,
+      COALESCE(ultra_codes.code, urls.shortened_url_id) AS code,
+      urls.link_type,
+      ultra_codes.assigned_at AS assigned_at,
+      ultra_codes.expires_at AS expires_at
+    FROM urls
+    LEFT JOIN ultra_codes
+      ON urls.id = ultra_codes.url_id
+      AND urls.link_type = 'ultra'
+    WHERE ${whereClause}
+    ORDER BY urls.created_at DESC;
+  `,
+    queryParams
+  );
 
+  // 4. Return the result
   res.json({
     urls: DB.cleanResult(data),
     domain: keys.domain,
@@ -148,7 +153,7 @@ const shorten = async (
     URLId: insertedUrl!.id,
     realURL: realUrl,
     linkType: type,
-    shortenedURL: `${keys.domain}/${shortenedCode}`,
+    code: shortenedCode,
   });
 };
 
@@ -166,6 +171,7 @@ const changeUrlType = async (
   }
 
   let newShortenedCode;
+  let expiresAt;
 
   switch (type) {
     case "default":
@@ -178,7 +184,9 @@ const changeUrlType = async (
 
     case "ultra":
       try {
-        newShortenedCode = await generateUltra(id);
+        const obj = await generateUltra(id);
+        expiresAt = obj.expiresAt;
+        newShortenedCode = obj.code;
       } catch (error) {
         return handleError(error);
       }
@@ -196,7 +204,8 @@ const changeUrlType = async (
 
   return res.json({
     type,
-    shortenedURL: `${keys.domain}/${newShortenedCode}`,
+    expiresAt: type === "ultra" ? expiresAt : null,
+    code: newShortenedCode,
   });
 };
 

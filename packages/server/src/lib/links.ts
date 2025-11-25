@@ -236,6 +236,7 @@ export const generateUltra = async (id: number) => {
    * to this url id.
    * We do this atomically to avoid race conditions when many people are hitting this route.
    */
+  // @todo change the 3 minutes to 30 minutes
   try {
     const result = await DB.query(
       `
@@ -250,7 +251,7 @@ export const generateUltra = async (id: number) => {
           LIMIT 1
           FOR UPDATE SKIP LOCKED
         )
-        RETURNING url_id, code;
+        RETURNING url_id, code, expires_at;
       `,
       [id]
     );
@@ -266,7 +267,7 @@ export const generateUltra = async (id: number) => {
       [result[0].url_id]
     );
 
-    return result[0].code;
+    return { code: result[0].code, expiresAt: result[0].expires_at };
   } catch (error: any) {
     if (error.code === "23505") {
       // If there's a duplicate key error
