@@ -11,7 +11,7 @@ import { IUrl, ISession, IUltraCode } from "../database/types.js";
 import util from "../lib/util.js";
 import keys from "../config/keys.js";
 import {
-  generateDefault,
+  generateClassic,
   generateUltra,
   generateQRCode,
   processCode,
@@ -74,7 +74,7 @@ const getUrls = async (req: Request, res: Response) => {
 /** @TODO clean this up */
 interface IRequestBody {
   url: string;
-  type: "default" | "ultra" | "digits" | "custom" | "customOnUsername";
+  type: LinkType;
   custom?: string; // only if type is custom or customOnUsername
 }
 
@@ -123,9 +123,9 @@ const shorten = async (
   let shortenedCode;
 
   switch (type) {
-    case "default":
+    case "classic":
       try {
-        shortenedCode = await generateDefault(insertedUrl!.id);
+        shortenedCode = await generateClassic(insertedUrl!.id);
       } catch (error) {
         return handleError(error);
       }
@@ -157,7 +157,7 @@ const shorten = async (
   });
 };
 
-// Change the type of a url (e.g. from default to custom). User can do this from the customization modal
+// Change the type of a url (e.g. from classic to custom). User can do this from the customization modal
 const changeUrlType = async (
   req: Request,
   res: Response,
@@ -174,9 +174,9 @@ const changeUrlType = async (
   let expiresAt;
 
   switch (type) {
-    case "default":
+    case "classic":
       try {
-        newShortenedCode = await generateDefault(id);
+        newShortenedCode = await generateClassic(id);
       } catch (error) {
         return handleError(error);
       }
@@ -244,7 +244,7 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
       );
 
       break;
-    case "default":
+    case "classic":
       url = await DB.find<IUrl>(
         `SELECT real_url, id, views FROM urls WHERE shortened_url_id=$1`,
         [processedCode.code]

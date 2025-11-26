@@ -12,9 +12,10 @@ import { LinkType } from "@weer/common";
 
 const MAX_ATTEMPTS = 10; // Max number of retries for generating unique IDs (QR Code and Shortened URL id)
 
-export const LINKS = {
-  default: {
-    name: "default",
+/** @TODO maybe send this data to client for the customization model to show the data dynamically */
+export const LINKS: Record<LinkType, any> = {
+  classic: {
+    name: "classic",
     description: "A randomly generated 6-character code.",
 
     // Total combinations: 34^6  = 1,544,804,416 (around 1.5 billion combinations)
@@ -39,6 +40,7 @@ export const LINKS = {
       minutes</strong> and after someone else will claim it.
     `,
 
+    // Total combinations: 34^1 + 34^2 = 1,190 combinations
     characters: "0123456789abcdefghijkmnpqrstuvwxyz", // no o or l to avoid confusion
     maxLength: 2,
     minLength: 1,
@@ -56,6 +58,30 @@ export const LINKS = {
     },
     validFor: "30 minutes",
   },
+  digit: {
+    name: "Short Numeric Code (3-5 Digits)",
+    example: "Example: weer.pro/5322",
+    description: `Great if you quickly want to share a link with others during a presentation! Keep in mind that your link will be valid for only 2 hours and after someone else might claim it.`,
+
+    // Total combinations: 10^3 + 10^4 + 10^5 = 111,000 combinations
+    characters: "0123456789", // no o or l to avoid confusion
+    maxLength: 5,
+    minLength: 3,
+
+    requiresAuth: false,
+    conversions: {
+      /**
+       * Digit codes do not use any letters, but in case user enters them, we will try convert them
+       * to digits for better user experience.
+       */
+
+      // This means convert the 'key' property to the 'value' property when redirecting (e.g. O -> 0)
+      o: "0",
+    },
+    validFor: "2 hours",
+  },
+  custom: {},
+  affix: {},
 };
 
 /**
@@ -73,10 +99,10 @@ export const processCode = (
     let cleanedCode = cleanUltraCode(code);
     if (!validateUltraCode(cleanedCode)) return null;
     return { type: "ultra", code: cleanedCode };
-  } else if (isDefaultCode(code)) {
-    let cleanedCode = cleanDefaultCode(code);
-    if (!validateDefaultCode(cleanedCode)) return null;
-    return { type: "default", code: cleanedCode };
+  } else if (isClassicCode(code)) {
+    let cleanedCode = cleanClassicCode(code);
+    if (!validateClassicCode(cleanedCode)) return null;
+    return { type: "classic", code: cleanedCode };
   }
   return null;
 };
@@ -116,25 +142,25 @@ const validateUltraCode = (code: string): boolean => {
   return true;
 };
 
-// Check if a shortened URL code is a default code
-const isDefaultCode = (code: string): boolean => {
+// Check if a shortened URL code is a classic code
+const isClassicCode = (code: string): boolean => {
   return code.length === 6;
 };
 
-// Clean default code (e.g. make lowercase)
-const cleanDefaultCode = (code: string): string => {
+// Clean classic code (e.g. make lowercase)
+const cleanClassicCode = (code: string): string => {
   let cleanedCode = code.toLowerCase();
 
   // Replace characters based on conversions
-  for (const [key, value] of Object.entries(LINKS.default.conversions)) {
+  for (const [key, value] of Object.entries(LINKS.classic.conversions)) {
     cleanedCode = cleanedCode.replace(new RegExp(key, "g"), value);
   }
 
   return cleanedCode;
 };
 
-// Validate default code after running isDefaultCode and cleanDefaultCode
-const validateDefaultCode = (code: string): boolean => {
+// Validate classic code after running isClassicCode and cleanClassicCode
+const validateClassicCode = (code: string): boolean => {
   // Check length & that it only contains alphabets and digits
   if (!/^[a-z0-9]+$/.test(code)) {
     return false;
@@ -144,19 +170,19 @@ const validateDefaultCode = (code: string): boolean => {
 };
 
 /**
- * Generates a unique "default" type shortened URL ID for the given database URL ID.
- * The default type is a 6-Character Code, only lowercase alphabets and digits, without o or l. In redirecting, o is treated as 0 and l as i.
+ * Generates a unique "classic" type shortened URL ID for the given database URL ID.
+ * The classic type is a 6-Character Code, only lowercase alphabets and digits, without o or l. In redirecting, o is treated as 0 and l as i.
  *
  * @param id The database URL ID to update with the generated shortened URL ID
  * @returns The generated shortened URL Code
  */
-export const generateDefault = async (id: number) => {
+export const generateClassic = async (id: number) => {
   let updated = false;
   let attempts = 0;
   let shortenedCode;
 
-  const possibleChars = LINKS.default.characters;
-  const codeLength = LINKS.default.maxLength; // For now max and min are the same
+  const possibleChars = LINKS.classic.characters;
+  const codeLength = LINKS.classic.maxLength; // For now max and min are the same
 
   // We will retry updating the record just like before with the QR code id
   while (!updated && attempts <= MAX_ATTEMPTS) {
@@ -172,7 +198,7 @@ export const generateDefault = async (id: number) => {
         "urls",
         {
           shortened_url_id: shortenedCode,
-          link_type: "default",
+          link_type: "classic",
         },
         `id = $3`,
         [id]
@@ -243,7 +269,7 @@ export const generateUltra = async (id: number) => {
         UPDATE ultra_codes
         SET url_id = $1,
             assigned_at = NOW(),
-            expires_at = NOW() + INTERVAL '3 minutes'
+            expires_at = NOW() + INTERVAL '30 minutes'
         WHERE id = (
           SELECT id FROM ultra_codes
           WHERE url_id IS NULL

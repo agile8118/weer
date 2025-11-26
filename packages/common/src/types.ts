@@ -1,7 +1,7 @@
-// These should match the link_type ENUM in the database
+// These should match the link_type ENUM in the database (packages/server/src/database/tables/urls.sql)
 export type LinkType =
-  | "default"
+  | "classic"
   | "custom"
-  | "custom_on_username"
+  | "affix" // custom on username
   | "ultra"
   | "digit";

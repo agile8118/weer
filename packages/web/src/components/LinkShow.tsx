@@ -55,7 +55,7 @@ export default (({
       const timer = setInterval(update, 1000);
       return () => clearInterval(timer);
     }
-  }, [type]);
+  }, [type, shortenedUrlCode, expiresAt, realUrl]);
 
   // Decide whether to show the link component or not
   let linkClassName = realUrl ? "link" : "link display-none";

@@ -1,11 +1,12 @@
+-- Change packages/common/src/types.ts as well if modifying this enum
 CREATE TYPE link_type_enum AS ENUM (
-  'default',
+  'classic',
 
   -- if a user has chosen a custom code but not on their username [like weer.pro/whatever] 
   'custom',
 
-  -- If a user has chosen a custom code to be on their username [like weer.pro/joe/whatever] this will be true
-  'custom_on_username', 
+  -- If a user has chosen a custom code to be on their username [like weer.pro/joe/whatever]
+  'affix', 
 
   -- If a logged in user has selected the ultra code option (1-2 characters, expires in 30 minutes)
   'ultra',
@@ -25,7 +26,7 @@ CREATE TABLE IF NOT EXISTS urls (
   user_id INT,
   session_id INT,
 
-  link_type link_type_enum NOT NULL DEFAULT 'default',
+  link_type link_type_enum NOT NULL DEFAULT 'classic',
 
   -- Esp. needed for non-logged in users to prevent spamming and impose rate limits
   ip_address INET,
@@ -51,10 +52,10 @@ CREATE TABLE IF NOT EXISTS urls (
 -- Ensure a record cannot have the same shortened_url_id more than once if it's not on a username
 CREATE UNIQUE INDEX unique_global_url_code
   ON urls (shortened_url_id)
-  WHERE link_type IN ('default'::link_type_enum, 'custom'::link_type_enum);
+  WHERE link_type IN ('classic'::link_type_enum, 'custom'::link_type_enum);
 
 
 -- Ensure a user cannot have the same shortened_url_id more than once if it's on their username
 CREATE UNIQUE INDEX unique_per_user_custom_code
   ON urls (user_id, shortened_url_id)
-  WHERE link_type = 'custom_on_username'::link_type_enum;
+  WHERE link_type = 'affix'::link_type_enum;

@@ -58,7 +58,7 @@ export const UrlProvider: React.FC<{ children: React.ReactNode }> = ({
   const createUrl = async (realUrl: string) => {
     const { data } = await axios.post("/url", {
       url: realUrl,
-      type: "default",
+      type: "classic",
     });
 
     const newUrlObj: IUrl = {
