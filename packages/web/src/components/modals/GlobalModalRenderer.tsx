@@ -1,3 +1,7 @@
+/**
+ * To see the implementation of the modal props, see where the modal is opened e.g. openModal("customizeLink", { onChangeType: ..., ... })
+ */
+
 import React from "react";
 
 import LinkCustomizationModal from "./LinkCustomization";

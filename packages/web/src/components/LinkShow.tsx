@@ -36,7 +36,10 @@ export default (({
   let shortenedUrl = `${domain}/${shortenedUrlCode}`;
 
   useEffect(() => {
-    if (type === "ultra") {
+    if (type === "ultra" || type === "digit") {
+      console.log("timeLeft");
+      console.log(expiresAt);
+      console.log(timeLeft);
       if (!expiresAt) return setTimeLeft("expired");
       const expiresAtDate = new Date(expiresAt || "");
 
@@ -50,6 +53,8 @@ export default (({
           setTimeLeft(`${m}m ${s}s`);
         }
       };
+
+      console.log("setting interval");
 
       update();
       const timer = setInterval(update, 1000);
@@ -172,10 +177,13 @@ export default (({
                 ) => {
                   changeType(urlId, newType, newExpiresAt, newCode);
 
+                  const validFor =
+                    new Date(newExpiresAt || "").getTime() - Date.now();
+
                   dom.message(
                     `Your link is now ${lib.simplifyUrl(
                       domain + "/" + newCode
-                    )} and is valid for 30 minutes.`,
+                    )} and is valid for ${lib.formatDuration(validFor)}.`,
                     "success"
                   );
                 },
@@ -188,7 +196,7 @@ export default (({
         {deleteButton}
       </div>
 
-      {type === "ultra" && (
+      {["ultra", "digit"].includes(type) && (
         <div
           className={`link__message link__message--${
             timeLeft === "expired" ? "red" : "green"

@@ -7,12 +7,13 @@ import QRCode from "qrcode";
 import path from "path";
 import type { LinkType } from "@weer/common";
 import { DB } from "../database/index.js";
-import { IUrl, ISession, IUltraCode } from "../database/types.js";
+import { IUrl, ISession, IUltraCode, IDigitCode } from "../database/types.js";
 import util from "../lib/util.js";
 import keys from "../config/keys.js";
 import {
   generateClassic,
   generateUltra,
+  generateDigit,
   generateQRCode,
   processCode,
 } from "../lib/links.js";
@@ -50,14 +51,17 @@ const getUrls = async (req: Request, res: Response) => {
     SELECT
       urls.id,
       urls.real_url,
-      COALESCE(ultra_codes.code, urls.shortened_url_id) AS code,
       urls.link_type,
-      ultra_codes.assigned_at AS assigned_at,
-      ultra_codes.expires_at AS expires_at
+      COALESCE(ultra_codes.code, urls.shortened_url_id, digit_codes.code) AS code,
+      COALESCE(ultra_codes.assigned_at, digit_codes.assigned_at) AS assigned_at,
+      COALESCE(ultra_codes.expires_at, digit_codes.expires_at) AS expires_at
     FROM urls
     LEFT JOIN ultra_codes
       ON urls.id = ultra_codes.url_id
       AND urls.link_type = 'ultra'
+    LEFT JOIN digit_codes
+      ON urls.id = digit_codes.url_id
+      AND urls.link_type = 'digit'
     WHERE ${whereClause}
     ORDER BY urls.created_at DESC;
   `,
@@ -164,16 +168,62 @@ const changeUrlType = async (
   handleError: HandleErr
 ) => {
   const id = Number(req.vars?.id);
-  const type = req.body?.type as LinkType;
+  const newType = req.body?.type as LinkType;
 
-  if (!id || !type) {
+  if (!id || !newType) {
     return res.status(400).json({ message: "Missing parameters" });
   }
+
+  // First find the current url type and release the current code
+  const currentLink = await DB.find<IUrl>(
+    "SELECT link_type FROM urls WHERE id=$1",
+    [id]
+  );
+
+  const currentType = currentLink?.link_type;
+
+  switch (currentType) {
+    case "classic":
+      // set shortened_url_id to null
+      await DB.update<IUrl>(
+        "urls",
+        {
+          shortened_url_id: undefined,
+        },
+        `id = $2`,
+        [id]
+      );
+      break;
+    case "ultra":
+      // set the ultra code as unassigned
+      await DB.update<IUltraCode>(
+        "ultra_codes",
+        {
+          assigned_at: undefined,
+          expires_at: undefined,
+          url_id: undefined,
+        },
+        `url_id = $4`,
+        [id]
+      );
+      break;
+    case "digit":
+      // Remove the digit code from database
+      await DB.delete<IDigitCode>("digit_codes", `url_id = $1`, [id]);
+      break;
+    // case "custom":
+    // case "affix":
+
+    default:
+      return handleError({ status: 400, message: "Invalid current type" });
+  }
+
+  console.log("Current type:", currentType);
 
   let newShortenedCode;
   let expiresAt;
 
-  switch (type) {
+  switch (newType) {
     case "classic":
       try {
         newShortenedCode = await generateClassic(id);
@@ -192,19 +242,28 @@ const changeUrlType = async (
       }
       break;
 
-    // case "digits":
+    case "digit":
+      try {
+        const obj = await generateDigit(id);
+        expiresAt = obj.expiresAt;
+        newShortenedCode = obj.code;
+      } catch (error) {
+        return handleError(error);
+      }
+      break;
 
     // case "custom":
-
-    // case "customOnUsername":
+    // case "affix":
 
     default:
       return handleError({ status: 400, message: "Invalid type" });
   }
 
+  const typesWithExpiresAt = ["ultra", "digit"];
+
   return res.json({
-    type,
-    expiresAt: type === "ultra" ? expiresAt : null,
+    newType,
+    expiresAt: typesWithExpiresAt.includes(newType) ? expiresAt : null,
     code: newShortenedCode,
   });
 };
@@ -249,6 +308,19 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
         `SELECT real_url, id, views FROM urls WHERE shortened_url_id=$1`,
         [processedCode.code]
       );
+      break;
+    case "digit":
+      url = await DB.find<IUrl>(
+        `
+        SELECT urls.real_url, urls.id, urls.views
+        FROM urls
+        JOIN digit_codes
+          ON urls.id = digit_codes.url_id
+        WHERE digit_codes.code = $1
+      `,
+        [processedCode.code]
+      );
+      break;
   }
 
   if (!url) {

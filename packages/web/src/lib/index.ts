@@ -30,11 +30,31 @@ function simplifyUrl(url: string): string {
   return url.replace(/^(?:https?:\/\/)?(?:www\.)?/, "");
 }
 
+// Convert date to minutes or hours or days
+function formatDuration(milliseconds: number): string {
+  let durationText = "";
+  if (milliseconds < 1000 * 60) {
+    durationText = "less than a minute";
+  } else if (milliseconds < 1000 * 60 * 60) {
+    const minutes = Math.round(milliseconds / (1000 * 60));
+    durationText = `${minutes} minute${minutes > 1 ? "s" : ""}`;
+  } else if (milliseconds < 1000 * 60 * 60 * 24) {
+    const hours = Math.round(milliseconds / (1000 * 60 * 60));
+    durationText = `${hours} hour${hours > 1 ? "s" : ""}`;
+  } else {
+    const days = Math.round(milliseconds / (1000 * 60 * 60 * 24));
+    durationText = `${days} day${days > 1 ? "s" : ""}`;
+  }
+
+  return durationText;
+}
+
 interface Lib {
   validURL: (str: string) => boolean;
   simplifyUrl: (url: string) => string;
   cutString: (string: string, maxLength: number) => string;
   handleErr: (error: any) => void;
+  formatDuration: (milliseconds: number) => string;
 }
 
 const lib: Lib = {
@@ -42,6 +62,7 @@ const lib: Lib = {
   handleErr,
   cutString,
   simplifyUrl,
+  formatDuration,
 };
 
 export default lib;

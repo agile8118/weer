@@ -29,6 +29,7 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
   const { openModal, closeModal } = useModal();
 
   const [ultraLoading, setUltraLoading] = useState<boolean>(false);
+  const [digitLoading, setDigitLoading] = useState<boolean>(false);
 
   const onUltraSelect = async () => {
     try {
@@ -43,6 +44,23 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
     } finally {
       closeModal();
       setUltraLoading(false);
+    }
+  };
+
+  const onDigitSelect = async () => {
+    console.log("Digit select clicked");
+    try {
+      setDigitLoading(true);
+      const { data }: any = await axios.patch(`/url/${props.urlId}/type`, {
+        type: "digit",
+      });
+
+      props.onChangeType("digit", data.expiresAt, data.code);
+    } catch (error: any) {
+      lib.handleErr(error);
+    } finally {
+      closeModal();
+      setDigitLoading(false);
     }
   };
 
@@ -118,7 +136,13 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
             </div>
 
             <div className="u-flex-text-right">
-              <Button color="blue" outlined={true} rounded={true}>
+              <Button
+                color="blue"
+                outlined={true}
+                rounded={true}
+                onClick={onDigitSelect}
+                loading={digitLoading}
+              >
                 Select
               </Button>
             </div>

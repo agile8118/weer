@@ -6,13 +6,14 @@
  */
 
 import { DB } from "../database/index.js";
-import { IUrl, ISession, IUltraCode } from "../database/types.js";
+import { IUrl, ISession, IUltraCode, IDigitCode } from "../database/types.js";
 import crypto from "crypto";
 import { LinkType } from "@weer/common";
 
 const MAX_ATTEMPTS = 10; // Max number of retries for generating unique IDs (QR Code and Shortened URL id)
 
 /** @TODO maybe send this data to client for the customization model to show the data dynamically */
+// This should be our single source of truth for link types and their properties
 export const LINKS: Record<LinkType, any> = {
   classic: {
     name: "classic",
@@ -56,7 +57,7 @@ export const LINKS: Record<LinkType, any> = {
       o: "0",
       l: "i",
     },
-    validFor: "30 minutes",
+    validFor: 30 * 60 * 1000, // 30 minutes in milliseconds
   },
   digit: {
     name: "Short Numeric Code (3-5 Digits)",
@@ -78,7 +79,7 @@ export const LINKS: Record<LinkType, any> = {
       // This means convert the 'key' property to the 'value' property when redirecting (e.g. O -> 0)
       o: "0",
     },
-    validFor: "2 hours",
+    validFor: 2 * 60 * 60 * 1000, // 2 hours in milliseconds
   },
   custom: {},
   affix: {},
@@ -103,6 +104,10 @@ export const processCode = (
     let cleanedCode = cleanClassicCode(code);
     if (!validateClassicCode(cleanedCode)) return null;
     return { type: "classic", code: cleanedCode };
+  } else if (isDigitCode(code)) {
+    let cleanedCode = cleanDigitCode(code);
+    if (!validateDigitCode(cleanedCode)) return null;
+    return { type: "digit", code: cleanedCode };
   }
   return null;
 };
@@ -126,7 +131,7 @@ const cleanUltraCode = (code: string): string => {
 
   // Replace characters based on conversions
   for (const [key, value] of Object.entries(LINKS.ultra.conversions)) {
-    cleanedCode = cleanedCode.replace(new RegExp(key, "g"), value);
+    cleanedCode = cleanedCode.replace(new RegExp(key, "g"), String(value));
   }
 
   return cleanedCode;
@@ -134,7 +139,7 @@ const cleanUltraCode = (code: string): string => {
 
 // Validate ultra code after running isUltraCode and cleanUltraCode
 const validateUltraCode = (code: string): boolean => {
-  // Check length & that it only contains alphabets and digits
+  // Check that it only contains alphabets and digits
   if (!/^[a-z0-9]+$/.test(code)) {
     return false;
   }
@@ -153,7 +158,7 @@ const cleanClassicCode = (code: string): string => {
 
   // Replace characters based on conversions
   for (const [key, value] of Object.entries(LINKS.classic.conversions)) {
-    cleanedCode = cleanedCode.replace(new RegExp(key, "g"), value);
+    cleanedCode = cleanedCode.replace(new RegExp(key, "g"), String(value));
   }
 
   return cleanedCode;
@@ -163,6 +168,39 @@ const cleanClassicCode = (code: string): string => {
 const validateClassicCode = (code: string): boolean => {
   // Check length & that it only contains alphabets and digits
   if (!/^[a-z0-9]+$/.test(code)) {
+    return false;
+  }
+
+  return true;
+};
+
+const isDigitCode = (code: string): boolean => {
+  // Check length
+  if (
+    code.length > LINKS.digit.maxLength ||
+    code.length < LINKS.digit.minLength
+  ) {
+    return false;
+  }
+
+  return true;
+};
+
+const cleanDigitCode = (code: string): string => {
+  let cleanedCode = code.toLowerCase();
+
+  // Replace characters based on conversions
+  for (const [key, value] of Object.entries(LINKS.classic.conversions)) {
+    cleanedCode = cleanedCode.replace(new RegExp(key, "g"), String(value));
+  }
+
+  return cleanedCode;
+};
+
+// Validate digit code after running isDigitCode and cleanDigitCode
+const validateDigitCode = (code: string): boolean => {
+  // Check that it only contains digits and letter o
+  if (!/^[0-9o]+$/.test(code)) {
     return false;
   }
 
@@ -231,7 +269,7 @@ export const generateClassic = async (id: number) => {
  * Examples: a, b, z, 0, 5, az, 1z, z1, zl
  *
  * @param id The database URL ID to update with the generated shortened URL ID
- * @returns The generated shortened URL Code
+ * @returns The generated shortened URL Code and its expiration date in an object in a promise
  */
 export const generateUltra = async (id: number) => {
   /**
@@ -262,14 +300,13 @@ export const generateUltra = async (id: number) => {
    * to this url id.
    * We do this atomically to avoid race conditions when many people are hitting this route.
    */
-  // @todo change the 3 minutes to 30 minutes
   try {
     const result = await DB.query(
       `
         UPDATE ultra_codes
         SET url_id = $1,
             assigned_at = NOW(),
-            expires_at = NOW() + INTERVAL '30 minutes'
+            expires_at = NOW() + ($2 * INTERVAL '1 millisecond')
         WHERE id = (
           SELECT id FROM ultra_codes
           WHERE url_id IS NULL
@@ -279,17 +316,16 @@ export const generateUltra = async (id: number) => {
         )
         RETURNING url_id, code, expires_at;
       `,
-      [id]
+      [id, LINKS.ultra.validFor]
     );
 
-    // Update the URL record to set its shortened_url_id and link_type
+    // Update the URL record to set its link_type
     await DB.update<IUrl>(
       "urls",
       {
-        shortened_url_id: undefined,
         link_type: "ultra",
       },
-      `id = $3`,
+      `id = $2`,
       [result[0].url_id]
     );
 
@@ -305,6 +341,160 @@ export const generateUltra = async (id: number) => {
 
     throw error;
   }
+};
+
+/**
+ * Generates a random unique "digit" type shortened URL ID for the given database URL ID.
+ * The digit type consists of only digits, with a length between 3 to 5 digits.
+ *
+ * @param id The database URL ID to update with the generated shortened URL ID (code)
+ * @returns The generated shortened URL Code
+ */
+export const generateDigit = async (id: number) => {
+  const findAndUpdateExpiredDigitCode = async (codeLength: number) => {
+    /** X in the code below refers the codeLength (either 3, 4, or 5) */
+
+    const foundedXDigitExpiredCode = await DB.query(
+      `SELECT id, code FROM digit_codes WHERE expires_at > NOW() AND code_length = $1 ORDER BY RANDOM() LIMIT 1;`,
+      [codeLength]
+    );
+  };
+
+  const generateAndInsertDigitCode = async (codeLength: number) => {
+    /** X in the code below refers the codeLength (either 3, 4, or 5) */
+
+    // Check entropy level for X digit codes
+    const countXDigits = await DB.query(
+      `SELECT COUNT(*) FROM digit_codes WHERE code_length = $1;`,
+      [codeLength]
+    );
+    const usedXDigits = parseInt(countXDigits[0].count, 10);
+    const totalXDigits = 10 ** codeLength; // 10^X
+    if (usedXDigits / totalXDigits < 1 - ENTROPY_LEVEL) {
+      // Now we can generate a new random 3 digit code
+      let updated = false;
+      let attempts = 0;
+      let newCode;
+
+      const possibleChars = LINKS.digit.characters;
+
+      // We will retry updating the record just like before with the QR code id
+      while (!updated && attempts <= MAX_ATTEMPTS) {
+        // Generate a 3-digit code to be used as url shortened id
+        const bytes = crypto.randomBytes(codeLength);
+        newCode = "";
+        for (let i = 0; i < codeLength; i++) {
+          newCode += possibleChars[bytes[i] % possibleChars.length];
+        }
+
+        const expiresAt = new Date(Date.now() + LINKS.digit.validFor);
+
+        try {
+          await DB.insert<IDigitCode>("digit_codes", {
+            url_id: id,
+            code: newCode,
+            code_length: codeLength,
+            expires_at: expiresAt,
+            assigned_at: new Date(),
+          });
+
+          // Update the URL record to set its link_type
+          await DB.update<IUrl>(
+            "urls",
+            {
+              link_type: "digit",
+            },
+            `id = $2`,
+            [id]
+          );
+
+          updated = true; // If insert is successful, the ID is unique
+          return { code: newCode, expiresAt, url_id: id };
+        } catch (error: any) {
+          console.log(error);
+          // The official PostgreSQL error code for unique violations
+          if (error.code === "23505") {
+            // If there's a duplicate key error, generate a new ID and retry
+            updated = false;
+            attempts++;
+          } else {
+            throw error;
+          }
+        }
+      }
+
+      // Max attempts reached
+      if (!updated) {
+        throw new Error(
+          `Could not generate a unique digit code after ${MAX_ATTEMPTS} attempts`
+        );
+      }
+    } else {
+      return false;
+    }
+  };
+
+  const ENTROPY_LEVEL = 0.3; // at least 30% of codes should be available to try generating new codes of that length
+
+  // For each code, we will only try to generate and insert a new record into the digit_codes table if we have at least 30%
+  // of the codes available for that length.
+  // For example, for 3 digit codes, there are 1000 combinations (000 to 999).
+  // We will only try to generate and insert a new 3 digit code if there are at least 300 codes available (i.e. less than 700 used).
+  // This is to avoid too many collisions and retries when the table is almost full for that length.
+
+  // For creating a new digit code:
+  // select * from digit_codes where expires_at > now() order by code LIMIT 1;
+  // if nothing returned, and select count(*) from digit_codes where code_length = 3 satisfy ENTROPY_LEVEL, then we can create a new code.
+  // if nothing returned, and select count(*) from digit_codes where code_length = 3 does not satisfy ENTROPY_LEVEL, then we move on to next length.
+
+  // ------ 1. Trying 3 digit codes  ------
+  // we will try to insert a 3 digit code if available
+
+  const threeDigitResult = await generateAndInsertDigitCode(3);
+  if (threeDigitResult) {
+    return threeDigitResult;
+  } else {
+    throw new Error(
+      "No unique digit code is available now, please try again later."
+    );
+  }
+
+  // const foundedThreeDigitExpiredCode = await findAndUpdateExpiredDigitCode(3);
+
+  // if (foundedThreeDigitExpiredCode) {
+  //   console.log(foundedThreeDigitExpiredCode);
+  //   return foundedThreeDigitExpiredCode;
+  // } else {
+  //   const threeDigitResult = await generateAndInsertDigitCode(3);
+  //   if (threeDigitResult) {
+  //     return threeDigitResult;
+  //   } else {
+  //     // Move on to 4 digit codes
+  //     const foundedFourDigitExpiredCode = await findAndUpdateExpiredDigitCode(
+  //       4
+  //     );
+
+  //     const fourDigitResult = await generateAndInsertDigitCode(4);
+  //     if (fourDigitResult) {
+  //       return fourDigitResult;
+  //     } else {
+  //       // Move on to 5 digit codes
+  //       const fiveDigitResult = await generateAndInsertDigitCode(5);
+  //       if (fiveDigitResult) {
+  //         return fiveDigitResult;
+  //       } else {
+  //         throw new Error(
+  //           "No unique digit code is available now, please try again later."
+  //         );
+  //       }
+  //     }
+  //   }
+  // }
+
+  // ------ 2. Trying 4 digit codes  ------
+  // If most of the 3 digits codes are taken (we don't want to have many unsuccessful inserts in
+  // the database), then we'll do 4 digits
+  // ------ 3. Trying 5 digit codes  ------
 };
 
 /**
