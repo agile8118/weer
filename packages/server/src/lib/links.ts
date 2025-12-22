@@ -351,15 +351,6 @@ export const generateUltra = async (id: number) => {
  * @returns The generated shortened URL Code
  */
 export const generateDigit = async (id: number) => {
-  const findAndUpdateExpiredDigitCode = async (codeLength: number) => {
-    /** X in the code below refers the codeLength (either 3, 4, or 5) */
-
-    const foundedXDigitExpiredCode = await DB.query(
-      `SELECT id, code FROM digit_codes WHERE expires_at > NOW() AND code_length = $1 ORDER BY RANDOM() LIMIT 1;`,
-      [codeLength]
-    );
-  };
-
   const generateAndInsertDigitCode = async (codeLength: number) => {
     /** X in the code below refers the codeLength (either 3, 4, or 5) */
 
@@ -411,7 +402,6 @@ export const generateDigit = async (id: number) => {
           updated = true; // If insert is successful, the ID is unique
           return { code: newCode, expiresAt, url_id: id };
         } catch (error: any) {
-          console.log(error);
           // The official PostgreSQL error code for unique violations
           if (error.code === "23505") {
             // If there's a duplicate key error, generate a new ID and retry
@@ -425,11 +415,11 @@ export const generateDigit = async (id: number) => {
 
       // Max attempts reached
       if (!updated) {
-        throw new Error(
-          `Could not generate a unique digit code after ${MAX_ATTEMPTS} attempts`
-        );
+        // Instead of throwing error here, we can return false to try next code length
+        return false;
       }
     } else {
+      // Entropy level not sufficient to try generating new codes of this length
       return false;
     }
   };
@@ -443,58 +433,32 @@ export const generateDigit = async (id: number) => {
   // This is to avoid too many collisions and retries when the table is almost full for that length.
 
   // For creating a new digit code:
-  // select * from digit_codes where expires_at > now() order by code LIMIT 1;
-  // if nothing returned, and select count(*) from digit_codes where code_length = 3 satisfy ENTROPY_LEVEL, then we can create a new code.
-  // if nothing returned, and select count(*) from digit_codes where code_length = 3 does not satisfy ENTROPY_LEVEL, then we move on to next length.
+  // if select count(*) from digit_codes where code_length = 3 satisfies ENTROPY_LEVEL, then we attempt to create a new code.
+  // else if select count(*) from digit_codes where code_length = 3 does not satisfy ENTROPY_LEVEL, then we move on to the next length.
 
-  // ------ 1. Trying 3 digit codes  ------
-  // we will try to insert a 3 digit code if available
-
+  // ------ 1. Trying 3 digit codes first  ------
   const threeDigitResult = await generateAndInsertDigitCode(3);
   if (threeDigitResult) {
     return threeDigitResult;
   } else {
-    throw new Error(
-      "No unique digit code is available now, please try again later."
-    );
+    // ------ 2. Trying 4 digit codes next  ------
+    const fourDigitResult = await generateAndInsertDigitCode(4);
+    if (fourDigitResult) {
+      return fourDigitResult;
+    } else {
+      // ------ 3. Trying 5 digit codes finally  ------
+      const fiveDigitResult = await generateAndInsertDigitCode(5);
+      if (fiveDigitResult) {
+        return fiveDigitResult;
+      } else {
+        throw {
+          message:
+            "No unique digit code is available now, please try again later.",
+          status: 503,
+        };
+      }
+    }
   }
-
-  // const foundedThreeDigitExpiredCode = await findAndUpdateExpiredDigitCode(3);
-
-  // if (foundedThreeDigitExpiredCode) {
-  //   console.log(foundedThreeDigitExpiredCode);
-  //   return foundedThreeDigitExpiredCode;
-  // } else {
-  //   const threeDigitResult = await generateAndInsertDigitCode(3);
-  //   if (threeDigitResult) {
-  //     return threeDigitResult;
-  //   } else {
-  //     // Move on to 4 digit codes
-  //     const foundedFourDigitExpiredCode = await findAndUpdateExpiredDigitCode(
-  //       4
-  //     );
-
-  //     const fourDigitResult = await generateAndInsertDigitCode(4);
-  //     if (fourDigitResult) {
-  //       return fourDigitResult;
-  //     } else {
-  //       // Move on to 5 digit codes
-  //       const fiveDigitResult = await generateAndInsertDigitCode(5);
-  //       if (fiveDigitResult) {
-  //         return fiveDigitResult;
-  //       } else {
-  //         throw new Error(
-  //           "No unique digit code is available now, please try again later."
-  //         );
-  //       }
-  //     }
-  //   }
-  // }
-
-  // ------ 2. Trying 4 digit codes  ------
-  // If most of the 3 digits codes are taken (we don't want to have many unsuccessful inserts in
-  // the database), then we'll do 4 digits
-  // ------ 3. Trying 5 digit codes  ------
 };
 
 /**

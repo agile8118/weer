@@ -125,29 +125,46 @@ const shorten = async (
   const custom = req.body?.custom;
 
   let shortenedCode;
+  let expiresAt;
 
   switch (type) {
     case "classic":
       try {
         shortenedCode = await generateClassic(insertedUrl!.id);
       } catch (error) {
+        // Delete the inserted URL record if we could not generate a code
+        await DB.delete<IUrl>("urls", `id=$1`, [insertedUrl!.id]);
+
         return handleError(error);
       }
       break;
-
     case "ultra":
       try {
-        shortenedCode = await generateUltra(insertedUrl!.id);
+        const obj = await generateUltra(insertedUrl!.id);
+        expiresAt = obj.expiresAt;
+        shortenedCode = obj.code;
       } catch (error) {
+        // Delete the inserted URL record if we could not generate a code
+        await DB.delete<IUrl>("urls", `id=$1`, [insertedUrl!.id]);
+
+        return handleError(error);
+      }
+      break;
+    case "digit":
+      try {
+        const obj = await generateDigit(insertedUrl!.id);
+        expiresAt = obj.expiresAt;
+        shortenedCode = obj.code;
+      } catch (error) {
+        // Delete the inserted URL record if we could not generate a code
+        await DB.delete<IUrl>("urls", `id=$1`, [insertedUrl!.id]);
+
         return handleError(error);
       }
       break;
 
-    // case "digits":
-
     // case "custom":
-
-    // case "customOnUsername":
+    // case "affix":
 
     default:
       return handleError({ status: 400, message: "Invalid type" });
@@ -158,6 +175,7 @@ const shorten = async (
     realURL: realUrl,
     linkType: type,
     code: shortenedCode,
+    expiresAt: expiresAt || null,
   });
 };
 

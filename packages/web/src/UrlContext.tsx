@@ -56,20 +56,36 @@ export const UrlProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // When user shortens a new URL
   const createUrl = async (realUrl: string) => {
-    const { data } = await axios.post("/url", {
-      url: realUrl,
-      type: "classic",
-    });
+    const submitRequest = async (type: "digit" | "classic") => {
+      const { data } = await axios.post("/url", { url: realUrl, type });
 
-    const newUrlObj: IUrl = {
-      id: data.URLId,
-      real_url: data.realURL,
-      code: data.code,
-      link_type: data.linkType,
-    } as any;
+      const newUrlObj: IUrl = {
+        id: data.URLId,
+        real_url: data.realURL,
+        code: data.code,
+        link_type: data.linkType,
+        expires_at: data.expiresAt || null,
+      };
 
-    setUrls((prevUrls) => [newUrlObj, ...prevUrls]);
-    setJustCreatedUrlId(newUrlObj.id); // Mark as just created
+      setUrls((prev) => [newUrlObj, ...prev]);
+      setJustCreatedUrlId(newUrlObj.id);
+    };
+
+    try {
+      // Attempt 1: Try the 'digit' type
+      await submitRequest("digit");
+    } catch (error) {
+      // Attempt 2: Fallback to 'classic' if digits are exhausted (503)
+      if (axios.isAxiosError(error) && error.response?.status === 503) {
+        try {
+          await submitRequest("classic");
+        } catch (error) {
+          lib.handleErr(error);
+        }
+      } else {
+        lib.handleErr(error);
+      }
+    }
   };
 
   useEffect(() => {
