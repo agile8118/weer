@@ -89,12 +89,12 @@ const databasePath = new URL("./", import.meta.url).pathname;
     console.log("[postgres] urls table was dropped.");
     await pool.query("DROP TYPE IF EXISTS link_type_enum");
     console.log("[postgres] link_type_enum type was dropped.");
+    await pool.query("DROP TABLE IF EXISTS usernames");
+    console.log("[postgres] usernames table was dropped.");
     await pool.query("DROP TABLE IF EXISTS users");
     console.log("[postgres] users table was dropped.");
     await pool.query("DROP TABLE IF EXISTS sessions");
     console.log("[postgres] sessions table was dropped.");
-    await pool.query("DROP TABLE IF EXISTS usernames");
-    console.log("[postgres] usernames table was dropped.");
 
     // Execute the sql file to create our tables
     console.log("\nCreating the tables...");

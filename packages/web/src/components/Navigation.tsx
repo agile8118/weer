@@ -51,13 +51,18 @@ const Navigation: FC = () => {
                 </button>
               </div>
               <div
+                data-role="dropdown"
                 className={
                   "nav-dropdown__content" +
                   (!username ? " nav-dropdown__content--wide" : "")
                 }
                 id="user-dropdown-md"
               >
-                <a href="#" onClick={() => openModal("username")}>
+                <a
+                  href="#"
+                  onClick={() => openModal("username")}
+                  data-role="dropdown"
+                >
                   <i className="fa-solid fa-user"></i>{" "}
                   {username ? username : "Choose a username"}
                 </a>

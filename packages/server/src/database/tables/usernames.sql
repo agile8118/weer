@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS usernames (
   active BOOLEAN, -- only one active per user_id
 
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-  expires_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  expires_at TIMESTAMPTZ DEFAULT NULL,
   CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   UNIQUE (username)
 );

@@ -46,7 +46,8 @@ const checkAuthStatus = async (req: Request, res: Response) => {
 
   if (req.user) {
     const user = await DB.find<IUser>(
-      `SELECT email, username FROM users WHERE id=${req.user.id}`
+      `SELECT users.email AS email, usernames.username AS username FROM users LEFT JOIN usernames ON users.id = usernames.user_id AND usernames.active = true WHERE users.id = $1`,
+      [req.user.id]
     );
 
     if (user && user.email) {

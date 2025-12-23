@@ -19,7 +19,7 @@ const Username: FC<UsernameProps> = (props) => {
       header={username ? "Your Username" : "Choose a Username"}
       type="narrow"
     >
-      <div className="auth">
+      <div className="">
         <form action="">
           <div className="form-group">
             <Input label="Username" type="text" id="affix-name" required />
