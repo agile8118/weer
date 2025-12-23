@@ -20,6 +20,16 @@ export const pool = new pkg.Pool({
   port: keys.dbPort,
 });
 
+pool.query("SELECT NOW()", (err, res) => {
+  if (err) {
+    console.error("Database connection failed.");
+    console.error("Error details:\n", err);
+    process.exit(1);
+  } else {
+    console.log("Database connected successfully to " + keys.dbDatabase);
+  }
+});
+
 // Clean null values from the result
 const cleanResult = (data: any) => {
   if (Array.isArray(data)) {

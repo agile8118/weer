@@ -19,7 +19,7 @@
     "@weer/common": "1.0.0",
     "compression": "^1.7.4",
     "cookie-session": "^2.1.1",
-    "cpeak": "^2.3.0",
+    "cpeak": "^2.4.1",
     "express-session": "^1.18.2",
     "helmet": "^8.1.0",
     "passport": "0.4.0",
