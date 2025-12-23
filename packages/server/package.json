@@ -8,9 +8,9 @@
     "seed": "tsx ./src/database/seed.ts",
     "test": "tsx ../../node_modules/mocha/bin/_mocha --extension ts \"__tests__/**/*.test.ts\" --timeout 10000",
     "dev": "tsx watch ./src/index.ts",
+    "janitor": "tsx ./src/janitor.ts",
     "build": "rm -rf ./dist && tsc -p .",
-    "start": "node ./dist/index.js",
-    "janitor": "node ./dist/janitor.js"
+    "start": "node ./dist/index.js"
   },
   "author": "",
   "license": "ISC",

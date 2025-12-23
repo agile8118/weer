@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useState, useMemo } from "react";
 
 import { ConfirmModal, Loading, Modal, Button, Input } from "@weer/reusable";
 import type { LinkType } from "@weer/common";
@@ -19,16 +19,18 @@ interface LinkCustomizationProps {
     newCode?: string
   ) => void;
   url: string; // real URL
-  shortenedUrl: string; // the current shortened code
+  shortenedUrl: string; // the current shortened code (full URL)
+  shortenedUrlCode: string; // the current shortened code only
   type: LinkType;
+  expired: boolean;
 }
 
 const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
-  console.log(props);
   const { isSignedIn, username } = useAuth();
   const { openModal, closeModal } = useModal();
 
   const [ultraLoading, setUltraLoading] = useState<boolean>(false);
+  const [classicLoading, setClassicLoading] = useState<boolean>(false);
   const [digitLoading, setDigitLoading] = useState<boolean>(false);
 
   const onUltraSelect = async () => {
@@ -44,6 +46,22 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
     } finally {
       closeModal();
       setUltraLoading(false);
+    }
+  };
+
+  const onClassicSelect = async () => {
+    try {
+      setClassicLoading(true);
+      const { data }: any = await axios.patch(`/url/${props.urlId}/type`, {
+        type: "classic",
+      });
+
+      props.onChangeType("classic", null, data.code);
+    } catch (error: any) {
+      lib.handleErr(error);
+    } finally {
+      closeModal();
+      setClassicLoading(false);
     }
   };
 
@@ -64,69 +82,187 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
     }
   };
 
-  return (
-    <Modal
-      header="Customize Your URL"
-      open={props.open}
-      onClose={() => {
-        props.onClose();
-      }}
-    >
-      <div className="customization">
-        <div className="customization-option customization-option--selected">
+  const LoginReminder = () => {
+    if (isSignedIn) return null;
+    return (
+      <>
+        If you{" "}
+        <button
+          className="button-text button-text-blue"
+          onClick={() => openModal("login")}
+        >
+          login
+        </button>
+        , your shortened link will never expire!
+      </>
+    );
+  };
+
+  const options = [
+    {
+      name: "ultra",
+      disabled: !isSignedIn,
+      render: (isSelected: boolean) => (
+        <div
+          key="ultra"
+          className={`customization-option ${
+            isSelected
+              ? "customization-option--selected"
+              : `${!isSignedIn && "customization-option--disabled"}`
+          }`}
+        >
+          <div className="customization-option__header">
+            <div>
+              <h3>Ultra Short Code (1–2 Characters)</h3>
+              <div className="customization-option__example">
+                {isSelected ? "Your Current URL: " : "Examples: "}
+                <span>
+                  {isSelected
+                    ? `weer.pro/${props.shortenedUrlCode}`
+                    : "weer.pro/6 or weer.pro/1a"}
+                </span>
+              </div>
+            </div>
+            <div className="customization-option__validity">
+              Valid for 30 minutes
+            </div>
+          </div>
+          <div className="customization-option__body">
+            <div className="customization-option__description">
+              Our magical shortest possible option, perfect for saying it out
+              loud. Imagine you’re on a call, just say “Go to weer.pro/d, it’s
+              my demo link,” and that's it. Keep in mind that your link will be{" "}
+              <strong>public</strong> and valid for{" "}
+              <strong>only 30 minutes</strong> and after someone else will claim
+              it.
+            </div>
+            {!isSignedIn && (
+              <div className="u-text-center">
+                <div className="customization-option__message">
+                  You must first{" "}
+                  <button
+                    className="button-text button-text--white"
+                    onClick={() => openModal("login")}
+                  >
+                    login
+                  </button>{" "}
+                  to select this option.
+                </div>
+              </div>
+            )}
+
+            {/* No regeneration button for ultra links */}
+
+            {!isSelected && isSignedIn && (
+              <div className="u-flex-text-right">
+                <Button
+                  color="blue"
+                  outlined={true}
+                  rounded={true}
+                  onClick={onUltraSelect}
+                  loading={ultraLoading}
+                >
+                  Select
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      name: "classic",
+      render: (isSelected: boolean) => (
+        <div
+          key="classic"
+          className={`customization-option ${
+            isSelected ? "customization-option--selected" : ""
+          }`}
+        >
           <div className="customization-option__header">
             <div>
               <h3>6-Character Code</h3>
-
               <div className="customization-option__example">
-                Your Current URL: <span>weer.pro/f3hc42</span>
+                {isSelected ? "Your Current URL: " : "Example: "}
+                <span>
+                  weer.pro/{isSelected ? props.shortenedUrlCode : "f3hc42"}
+                </span>
               </div>
             </div>
-
             <div className="customization-option__validity">
-              {/* If user is not signed in, it should be "Valid up to a year after last view" */}
-              Valid permanently
+              {isSignedIn
+                ? "Valid permanently"
+                : "Valid for 1 year after last view"}
             </div>
           </div>
-
           <div className="customization-option__body">
             <div className="customization-option__description">
               This code contains only lowercase letters and numbers. Don't worry
               about your audience typing uppercase or lowercase, we'll handle
               that for you. Great if you just want a shorten link, don't want to
               worry about your link expiring, selecting anything and even
-              creating an account!
+              creating an account! <br />
+              {LoginReminder()}
             </div>
-
-            <div className="u-text-center">
-              <div className="customization-option__message">
-                Currently selected
+            {isSelected && (
+              <div className="customization-option__regenerate">
+                <Button
+                  size="small"
+                  color="blue"
+                  outlined={false}
+                  rounded={true}
+                  onClick={onClassicSelect}
+                  loading={classicLoading}
+                >
+                  Regenerate Code
+                </Button>
               </div>
-            </div>
+            )}
 
-            {/* <div className="u-flex-text-right">
-              <Button color="blue" outlined={true} rounded={true}>
-                Select
-              </Button>
-            </div> */}
+            {!isSelected && (
+              <div className="u-flex-text-right">
+                <Button
+                  color="blue"
+                  outlined={true}
+                  rounded={true}
+                  onClick={onClassicSelect}
+                  loading={classicLoading}
+                >
+                  Select
+                </Button>
+              </div>
+            )}
           </div>
         </div>
-
-        <div className="customization-option">
+      ),
+    },
+    {
+      name: "digit",
+      render: (isSelected: boolean) => (
+        <div
+          key="digit"
+          className={`customization-option ${
+            isSelected ? "customization-option--selected" : ""
+          }`}
+        >
           <div className="customization-option__header">
             <div>
               <h3>Short Numeric Code (3-5 Digits)</h3>
-
               <div className="customization-option__example">
-                Example: <span>weer.pro/5322</span>
+                {isSelected ? "Your Current URL: " : "Example: "}
+                {props.expired ? (
+                  "Expired"
+                ) : (
+                  <span>
+                    weer.pro/{isSelected ? props.shortenedUrlCode : "5322"}
+                  </span>
+                )}
               </div>
             </div>
-
             <div className="customization-option__validity">
               Valid for 2 hours
             </div>
           </div>
-
           <div className="customization-option__body">
             <div className="customization-option__description">
               Great if you quickly want to share a link with others during a
@@ -135,25 +271,50 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
               it.
             </div>
 
-            <div className="u-flex-text-right">
-              <Button
-                color="blue"
-                outlined={true}
-                rounded={true}
-                onClick={onDigitSelect}
-                loading={digitLoading}
-              >
-                Select
-              </Button>
-            </div>
+            {!isSelected && (
+              <div className="u-flex-text-right">
+                <Button
+                  color="blue"
+                  outlined={true}
+                  rounded={true}
+                  onClick={onDigitSelect}
+                  loading={digitLoading}
+                >
+                  Select
+                </Button>
+              </div>
+            )}
+
+            {isSelected && (
+              <div className="customization-option__regenerate">
+                <Button
+                  color="blue"
+                  size="small"
+                  outlined={false}
+                  rounded={true}
+                  onClick={onDigitSelect}
+                  loading={digitLoading}
+                >
+                  Regenerate Code
+                </Button>
+              </div>
+            )}
           </div>
         </div>
-
-        <div className="customization-option">
+      ),
+    },
+    {
+      name: "affix",
+      render: (isSelected: boolean) => (
+        <div
+          key="affix"
+          className={`customization-option ${
+            isSelected ? "customization-option--selected" : ""
+          }`}
+        >
           <div className="customization-option__header">
-            <div className="">
+            <div>
               <h3>Choose Your Own with Username</h3>
-
               <div className="customization-option__example">
                 Example:{" "}
                 <span>{`weer.pro/${
@@ -161,12 +322,10 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
                 }/anything-really`}</span>
               </div>
             </div>
-
             <div className="customization-option__validity">
               Valid permanently
             </div>
           </div>
-
           <div className="customization-option__body">
             <div className="customization-option__description">
               Great if you want a more personalized link on top of your
@@ -180,44 +339,57 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
                 <li>You have not selected that before.</li>
               </ul>
             </div>
-
-            <div className="customization-option__action">
-              <div className="form-group">
-                <Input
-                  type="text"
-                  id="custom-username-url-input"
-                  label="Custom Code"
-                />
-                <strong className="customization-option__preview">
-                  weer.pro/{username ? username : "your-username"}/
-                </strong>
+            {isSelected ? (
+              <div className="u-text-center">
+                <div className="customization-option__message">
+                  Currently selected
+                </div>
               </div>
-
-              <div className="u-flex-text-right">
-                <Button color="blue" outlined={true} rounded={true}>
-                  Select
-                </Button>
+            ) : (
+              <div className="customization-option__action">
+                <div className="form-group">
+                  <Input
+                    type="text"
+                    id="custom-username-url-input"
+                    label="Custom Code"
+                  />
+                  <strong className="customization-option__preview">
+                    weer.pro/{username ? username : "your-username"}/
+                  </strong>
+                </div>
+                <div className="u-flex-text-right">
+                  <Button color="blue" outlined={true} rounded={true}>
+                    Select
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
-
-        <div className="customization-option">
+      ),
+    },
+    {
+      name: "custom",
+      render: (isSelected: boolean) => (
+        <div
+          key="custom"
+          className={`customization-option ${
+            isSelected ? "customization-option--selected" : ""
+          }`}
+        >
           <div className="customization-option__header">
-            <div className="">
+            <div>
               <h3>Choose Your Own</h3>
-
               <div className="customization-option__example">
-                Example: <span>{`weer.pro/think-of-something123`}</span>
+                Example: <span>weer.pro/think-of-something123</span>
               </div>
             </div>
-
             <div className="customization-option__validity">
-              Valid permanently
-              {/* If not logged in, valid for a month after last view. */}
+              {isSignedIn
+                ? "Valid permanently"
+                : "Valid for a month after last view"}
             </div>
           </div>
-
           <div className="customization-option__body">
             <div className="customization-option__description">
               Great if you want to personalize your link. Type your desired
@@ -231,81 +403,82 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
                 <li>No other user has selected that before.</li>
                 <li>Must be at least 7 characters long.</li>
               </ul>
+              {LoginReminder()}
             </div>
-
-            <div className="customization-option__action">
-              <div className="form-group">
-                <Input
-                  type="text"
-                  id="custom-username-url-input"
-                  label="Custom Code"
-                />
-                <strong className="customization-option__preview">
-                  weer.pro/
-                </strong>
+            {isSelected ? (
+              <div className="u-text-center">
+                <div className="customization-option__message">
+                  Currently selected
+                </div>
               </div>
-
-              <div className="u-flex-text-right">
-                <Button color="blue" outlined={true} rounded={true}>
-                  Select
-                </Button>
+            ) : (
+              <div className="customization-option__action">
+                <div className="form-group">
+                  <Input
+                    type="text"
+                    id="custom-url-input"
+                    label="Custom Code"
+                  />
+                  <strong className="customization-option__preview">
+                    weer.pro/
+                  </strong>
+                </div>
+                <div className="u-flex-text-right">
+                  <Button color="blue" outlined={true} rounded={true}>
+                    Select
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
+      ),
+    },
+  ];
 
-        {/* customization-option--disabled */}
-        <div className="customization-option ">
-          <div className="customization-option__header">
-            <div>
-              <h3>Ultra Short Code (1–2 Characters)</h3>
+  // Sort options. Selected type goes to top, disabled go to the bottom
+  const { selectedOption, otherOptions } = useMemo(() => {
+    // the selected option
+    const selected = options.find((opt) => opt.name === props.type);
 
-              <div className="customization-option__example">
-                Examples: <span>weer.pro/6 or weer.pro/1a</span>
-              </div>
-            </div>
+    const others = options
+      .filter((opt) => opt.name !== props.type)
+      .sort((a, b) => {
+        // Disabled options go to the bottom
+        if (a.disabled && !b.disabled) return 1;
+        if (!a.disabled && b.disabled) return -1;
+        return 0;
+      });
 
-            <div className="customization-option__validity">
-              Valid for 30 minutes
-            </div>
-          </div>
+    return { selectedOption: selected, otherOptions: others };
+  }, [
+    props.type,
+    props.shortenedUrlCode,
+    ultraLoading,
+    digitLoading,
+    username,
+    isSignedIn,
+  ]);
 
-          <div className="customization-option__body">
-            <div className="customization-option__description">
-              Our magical shortest possible option, perfect for saying it out
-              loud. Imagine you’re on a call, just say “Go to weer.pro/d, it’s
-              my demo link,” and that's it. Keep in mind that your link will be{" "}
-              <strong>public</strong> and valid for{" "}
-              <strong>only 30 minutes</strong> and after someone else will claim
-              it.
-            </div>
+  return (
+    <Modal
+      header="Customize Your Shortened URL"
+      open={props.open}
+      onClose={() => {
+        props.onClose();
+      }}
+    >
+      <div className="customization">
+        <h2 className="customization__header">Currently Selected:</h2>
 
-            {/* <div className="u-text-center">
-              <div className="customization-option__message">
-                You must first{" "}
-                <button
-                  className="button-text button-text--white"
-                  onClick={() => openModal("login")}
-                >
-                  login
-                </button>{" "}
-                to select this option.
-              </div>
-            </div> */}
+        {selectedOption.render(true)}
 
-            <div className="u-flex-text-right">
-              <Button
-                color="blue"
-                outlined={true}
-                rounded={true}
-                onClick={onUltraSelect}
-                loading={ultraLoading}
-              >
-                Select
-              </Button>
-            </div>
-          </div>
-        </div>
+        {otherOptions.length > 0 && (
+          <>
+            <h2 className="customization__header">Select a new link type:</h2>
+            {otherOptions.map((option) => option.render(false))}
+          </>
+        )}
       </div>
     </Modal>
   );

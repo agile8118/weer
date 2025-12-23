@@ -169,6 +169,8 @@ export default (({
                 urlId,
                 realUrl,
                 shortenedUrl,
+                shortenedUrlCode,
+                expired: timeLeft === "expired",
                 type,
                 onChangeType: (
                   newType: LinkType,
@@ -183,7 +185,11 @@ export default (({
                   dom.message(
                     `Your link is now ${lib.simplifyUrl(
                       domain + "/" + newCode
-                    )} and is valid for ${lib.formatDuration(validFor)}.`,
+                    )} ${
+                      validFor
+                        ? `and is valid for ${lib.formatDuration(validFor)}.`
+                        : ``
+                    }`,
                     "success"
                   );
                 },

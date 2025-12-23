@@ -192,6 +192,8 @@ const changeUrlType = async (
     return res.status(400).json({ message: "Missing parameters" });
   }
 
+  // ------- 1. Clean up the old code ------- //
+
   // First find the current url type and release the current code
   const currentLink = await DB.find<IUrl>(
     "SELECT link_type FROM urls WHERE id=$1",
@@ -200,43 +202,38 @@ const changeUrlType = async (
 
   const currentType = currentLink?.link_type;
 
-  switch (currentType) {
-    case "classic":
-      // set shortened_url_id to null
-      await DB.update<IUrl>(
-        "urls",
-        {
-          shortened_url_id: undefined,
-        },
-        `id = $2`,
-        [id]
-      );
-      break;
-    case "ultra":
-      // set the ultra code as unassigned
-      await DB.update<IUltraCode>(
-        "ultra_codes",
-        {
-          assigned_at: undefined,
-          expires_at: undefined,
-          url_id: undefined,
-        },
-        `url_id = $4`,
-        [id]
-      );
-      break;
-    case "digit":
-      // Remove the digit code from database
-      await DB.delete<IDigitCode>("digit_codes", `url_id = $1`, [id]);
-      break;
-    // case "custom":
-    // case "affix":
-
-    default:
-      return handleError({ status: 400, message: "Invalid current type" });
+  if (currentType === "ultra") {
+    // set the old ultra code as unassigned
+    await DB.update<IUltraCode>(
+      "ultra_codes",
+      {
+        assigned_at: undefined,
+        expires_at: undefined,
+        url_id: undefined,
+      },
+      `url_id = $4`,
+      [id]
+    );
   }
 
-  console.log("Current type:", currentType);
+  if (currentType === "digit") {
+    // remove the old digit code from database
+    await DB.delete<IDigitCode>("digit_codes", `url_id = $1`, [id]);
+  }
+
+  if (currentType === "classic" && newType !== "classic") {
+    // set shortened_url_id to null
+    await DB.update<IUrl>(
+      "urls",
+      {
+        shortened_url_id: undefined,
+      },
+      `id = $2`,
+      [id]
+    );
+  }
+
+  // ------- 2. Generate new code ------- //
 
   let newShortenedCode;
   let expiresAt;
