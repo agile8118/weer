@@ -2,6 +2,7 @@ import React, { FC } from "react";
 
 import { Modal, Input, Button } from "@weer/reusable";
 import { useAuth } from "../../AuthContext";
+import dom from "../../lib/dom";
 
 interface LoginProps {
   open: boolean;
@@ -29,7 +30,15 @@ const Login: FC<LoginProps> = (props) => {
           </div>
 
           <div className="form-group u-flex-text-right">
-            <Button type="submit" color="blue" outlined={true} block={true}>
+            <Button
+              type="submit"
+              color="blue"
+              outlined={true}
+              block={true}
+              onClick={() => {
+                dom.message("Feature coming soon.", "default");
+              }}
+            >
               Log In
             </Button>
           </div>
@@ -46,11 +55,25 @@ const Login: FC<LoginProps> = (props) => {
         </div>
 
         <div className="auth__footer">
-          <button className="button-text">Forgot your password?</button>
+          <button
+            className="button-text"
+            onClick={() => {
+              dom.message("Feature coming soon.", "default");
+            }}
+          >
+            Forgot your password?
+          </button>
 
           <div className="auth__other">
             New to Weer?{" "}
-            <button className="button-text">Create an account</button>
+            <button
+              className="button-text"
+              onClick={() => {
+                dom.message("Feature coming soon.", "default");
+              }}
+            >
+              Create an account
+            </button>
           </div>
         </div>
       </div>

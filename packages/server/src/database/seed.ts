@@ -69,6 +69,9 @@ const databasePath = new URL("./", import.meta.url).pathname;
   const digitCodesTableSQL: string = fs
     .readFileSync(path.join(databasePath, "./tables/digit_codes.sql"))
     .toString();
+  const usernamesTableSQL: string = fs
+    .readFileSync(path.join(databasePath, "./tables/usernames.sql"))
+    .toString();
 
   // Grab the triggers sql file
   const triggersSQL: string = fs
@@ -90,6 +93,8 @@ const databasePath = new URL("./", import.meta.url).pathname;
     console.log("[postgres] users table was dropped.");
     await pool.query("DROP TABLE IF EXISTS sessions");
     console.log("[postgres] sessions table was dropped.");
+    await pool.query("DROP TABLE IF EXISTS usernames");
+    console.log("[postgres] usernames table was dropped.");
 
     // Execute the sql file to create our tables
     console.log("\nCreating the tables...");
@@ -103,6 +108,8 @@ const databasePath = new URL("./", import.meta.url).pathname;
     console.log("[postgres] ultra_codes table was created successfully.");
     await pool.query(digitCodesTableSQL);
     console.log("[postgres] digit_codes table was created successfully.");
+    await pool.query(usernamesTableSQL);
+    console.log("[postgres] usernames table was created successfully.");
 
     // Execute the sql file to fire up our triggers
     console.log("\nSetting up the triggers...");

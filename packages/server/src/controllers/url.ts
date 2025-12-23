@@ -139,6 +139,8 @@ const shorten = async (
       }
       break;
     case "ultra":
+      if (!req.user)
+        return handleError({ status: 401, message: "Unauthorized" });
       try {
         const obj = await generateUltra(insertedUrl!.id);
         expiresAt = obj.expiresAt;
@@ -248,6 +250,8 @@ const changeUrlType = async (
       break;
 
     case "ultra":
+      if (!req.user)
+        return handleError({ status: 401, message: "Unauthorized" });
       try {
         const obj = await generateUltra(id);
         expiresAt = obj.expiresAt;

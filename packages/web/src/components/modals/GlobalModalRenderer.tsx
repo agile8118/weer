@@ -8,6 +8,7 @@ import LinkCustomizationModal from "./LinkCustomization";
 import LinkConfirmDeleteModal from "./LinkConfirmDelete";
 import LoginModal from "./Login";
 import QRCodeModal from "./QRCode";
+import Username from "./Username";
 
 interface GlobalModalRendererProps {
   modal: { type: string | null; props?: Record<string, any> };
@@ -34,6 +35,9 @@ export const GlobalModalRenderer = ({
 
     case "login":
       return <LoginModal open onClose={closeModal} />;
+
+    case "username":
+      return <Username open onClose={closeModal} />;
 
     case "customizeLink":
       return (

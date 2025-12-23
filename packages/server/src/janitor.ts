@@ -21,3 +21,5 @@ setInterval(() => {
 
 // Initial cleanup on startup
 cleanUpExpiredDigitCode();
+
+/** @todo handle expired usernames, run once per day */

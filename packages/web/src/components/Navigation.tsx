@@ -2,6 +2,7 @@ import React, { FC, useState } from "react";
 import { Modal, Input, Button } from "@weer/reusable";
 import { useAuth } from "../AuthContext";
 import { useModal } from "../ModalContext";
+import dom from "../lib/dom";
 
 const Navigation: FC = () => {
   const { isSignedIn, email, username, loading } = useAuth();
@@ -56,11 +57,16 @@ const Navigation: FC = () => {
                 }
                 id="user-dropdown-md"
               >
-                <a href="#">
+                <a href="#" onClick={() => openModal("username")}>
                   <i className="fa-solid fa-user"></i>{" "}
                   {username ? username : "Choose a username"}
                 </a>
-                <a href="#">
+                <a
+                  href="#"
+                  onClick={() => {
+                    dom.message("Feature coming soon.", "default");
+                  }}
+                >
                   <i className="fa fa-key"></i>Account
                 </a>
                 <a href="/logout">

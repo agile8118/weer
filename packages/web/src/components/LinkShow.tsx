@@ -37,9 +37,6 @@ export default (({
 
   useEffect(() => {
     if (type === "ultra" || type === "digit") {
-      console.log("timeLeft");
-      console.log(expiresAt);
-      console.log(timeLeft);
       if (!expiresAt) return setTimeLeft("expired");
       const expiresAtDate = new Date(expiresAt || "");
 
@@ -53,8 +50,6 @@ export default (({
           setTimeLeft(`${m}m ${s}s`);
         }
       };
-
-      console.log("setting interval");
 
       update();
       const timer = setInterval(update, 1000);
@@ -132,7 +127,9 @@ export default (({
             color="default"
             icon="fa-solid fa-chart-simple"
             tooltipText="View Stats"
-            onClick={() => {}}
+            onClick={() => {
+              dom.message("Feature coming soon.", "default");
+            }}
             onMouseLeave={() => {}}
           />
         </div>
@@ -154,7 +151,9 @@ export default (({
             color="default"
             icon="fa-solid fa-pen-to-square"
             tooltipText="Edit Link"
-            onClick={() => {}}
+            onClick={() => {
+              dom.message("Feature coming soon.", "default");
+            }}
             onMouseLeave={() => {}}
           />
         </div>

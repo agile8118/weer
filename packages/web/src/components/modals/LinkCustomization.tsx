@@ -29,6 +29,8 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
   const { isSignedIn, username } = useAuth();
   const { openModal, closeModal } = useModal();
 
+  const [affixCode, setAffixCode] = useState<string>("");
+  const [customCode, setCustomCode] = useState<string>("");
   const [ultraLoading, setUltraLoading] = useState<boolean>(false);
   const [classicLoading, setClassicLoading] = useState<boolean>(false);
   const [digitLoading, setDigitLoading] = useState<boolean>(false);
@@ -116,11 +118,15 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
               <h3>Ultra Short Code (1–2 Characters)</h3>
               <div className="customization-option__example">
                 {isSelected ? "Your Current URL: " : "Examples: "}
-                <span>
-                  {isSelected
-                    ? `weer.pro/${props.shortenedUrlCode}`
-                    : "weer.pro/6 or weer.pro/1a"}
-                </span>
+                {props.expired ? (
+                  "Expired"
+                ) : (
+                  <span>
+                    {isSelected
+                      ? `weer.pro/${props.shortenedUrlCode}`
+                      : "weer.pro/6 or weer.pro/1a"}
+                  </span>
+                )}
               </div>
             </div>
             <div className="customization-option__validity">
@@ -151,7 +157,22 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
               </div>
             )}
 
-            {/* No regeneration button for ultra links */}
+            {/* No regeneration button if ultra link is currently active */}
+
+            {props.expired && isSignedIn && (
+              <div className="customization-option__regenerate">
+                <Button
+                  color="blue"
+                  size="small"
+                  outlined={false}
+                  rounded={true}
+                  onClick={onUltraSelect}
+                  loading={ultraLoading}
+                >
+                  Regenerate Code
+                </Button>
+              </div>
+            )}
 
             {!isSelected && isSignedIn && (
               <div className="u-flex-text-right">
@@ -305,11 +326,14 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
     },
     {
       name: "affix",
+      disabled: !username,
       render: (isSelected: boolean) => (
         <div
           key="affix"
           className={`customization-option ${
-            isSelected ? "customization-option--selected" : ""
+            isSelected
+              ? "customization-option--selected"
+              : `${!username && "customization-option--disabled"}`
           }`}
         >
           <div className="customization-option__header">
@@ -349,18 +373,45 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
               <div className="customization-option__action">
                 <div className="form-group">
                   <Input
+                    value={affixCode}
+                    onChange={(value) => {
+                      setAffixCode(value);
+                    }}
                     type="text"
-                    id="custom-username-url-input"
+                    disabled={!username}
+                    id="affix-url-input"
                     label="Custom Code"
                   />
                   <strong className="customization-option__preview">
-                    weer.pro/{username ? username : "your-username"}/
+                    weer.pro/{username ? username : "your-username"}/{affixCode}
                   </strong>
                 </div>
-                <div className="u-flex-text-right">
-                  <Button color="blue" outlined={true} rounded={true}>
-                    Select
-                  </Button>
+                {!!username && (
+                  <div className="u-flex-text-right">
+                    <Button
+                      color="blue"
+                      outlined={true}
+                      rounded={true}
+                      disabled={!username}
+                    >
+                      Select
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!username && (
+              <div className="u-text-center">
+                <div className="customization-option__message">
+                  You must first{" "}
+                  <button
+                    className="button-text button-text--white"
+                    onClick={() => openModal("username")}
+                  >
+                    choose a username
+                  </button>{" "}
+                  to select this option.
                 </div>
               </div>
             )}
@@ -415,12 +466,16 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
               <div className="customization-option__action">
                 <div className="form-group">
                   <Input
+                    value={customCode}
+                    onChange={(value) => {
+                      setCustomCode(value);
+                    }}
                     type="text"
                     id="custom-url-input"
                     label="Custom Code"
                   />
                   <strong className="customization-option__preview">
-                    weer.pro/
+                    weer.pro/{customCode}
                   </strong>
                 </div>
                 <div className="u-flex-text-right">
@@ -458,6 +513,8 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
     digitLoading,
     username,
     isSignedIn,
+    affixCode,
+    customCode,
   ]);
 
   return (

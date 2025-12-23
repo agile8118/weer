@@ -111,8 +111,15 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
       )}
 
       <p className="a-1">
-        By clicking Shorten, you agree to our <a href="#">Privacy Policy</a> and{" "}
-        <a href="#">Terms of Use</a>.
+        By clicking Shorten, you agree to our{" "}
+        <a className="button-text button-text-blue" href="#">
+          Privacy Policy
+        </a>{" "}
+        and{" "}
+        <a className="button-text button-text-blue" href="#">
+          Terms of Use
+        </a>
+        .
       </p>
     </section>
   );
