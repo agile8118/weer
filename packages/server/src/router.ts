@@ -8,6 +8,7 @@ import type {
 import passport from "passport";
 import middlewares from "./middlewares.js";
 import Auth from "./controllers/auth.js";
+import User from "./controllers/user.js";
 import Url from "./controllers/url.js";
 
 // ------------------------------------------------ //
@@ -35,6 +36,16 @@ export default (app: Cpeak) => {
 
   // Check to see if a user is logged in or not. Return user data if logged in
   app.route("get", "/auth/status", Auth.checkAuthStatus);
+
+  // ------------------------------------------------ //
+  // ************ USER & ACCOUNT ROUTES ************* //
+  // ------------------------------------------------ //
+
+  app.route(
+    "get",
+    "/user/username-availability/:username",
+    User.checkUsernameAvailability
+  );
 
   // ------------------------------------------------ //
   // ************ URL ROUTES ************* //

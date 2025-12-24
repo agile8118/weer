@@ -1,4 +1,5 @@
-import React, { FC } from "react";
+import React, { FC, useRef } from "react";
+import axios from "axios";
 
 import { Modal, Input, Button } from "@weer/reusable";
 import { useAuth } from "../../AuthContext";
@@ -13,6 +14,38 @@ const Username: FC<UsernameProps> = (props) => {
   const { isSignedIn, username } = useAuth();
 
   const [usernameInput, setUsernameInput] = React.useState(username || "");
+  const [inputLoading, setInputLoading] = React.useState(false);
+  const [inputSuccess, setInputSuccess] = React.useState<string | null>(null);
+  const [inputError, setInputError] = React.useState<string | null>(null);
+
+  // We want to delay sending a request to server to check username availability by 800ms
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const checkUsernameAvailability = async (value: string) => {
+    if (!value || value === username) {
+      setInputSuccess(null);
+      setInputError(null);
+      return;
+    }
+
+    setInputLoading(true);
+    setInputError(null);
+    setInputSuccess(null);
+
+    try {
+      const { data } = await axios.get(`/user/username-availability/${value}`);
+
+      if (data.available) {
+        setInputSuccess(`${value} is available.`);
+      } else {
+        setInputError(`${value} is already taken.`);
+      }
+    } catch (error) {
+      setInputError("Failed to check availability.");
+    } finally {
+      setInputLoading(false);
+    }
+  };
 
   return (
     <Modal
@@ -25,8 +58,18 @@ const Username: FC<UsernameProps> = (props) => {
         <form action="">
           <div className="form-group">
             <Input
-              success="joe320 is available"
-              loading={true}
+              success={inputSuccess}
+              error={inputError}
+              onChange={(value) => {
+                setUsernameInput(value);
+
+                if (timer.current) clearTimeout(timer.current);
+
+                timer.current = setTimeout(() => {
+                  checkUsernameAvailability(value);
+                }, 800);
+              }}
+              loading={inputLoading}
               loadingText="Checking availability"
               label="Username"
               type="text"
@@ -41,6 +84,7 @@ const Username: FC<UsernameProps> = (props) => {
               type="submit"
               color="blue"
               outlined={true}
+              disabled={inputSuccess && inputSuccess.length > 0 ? false : true}
               block={true}
               onClick={() => {}}
             >
