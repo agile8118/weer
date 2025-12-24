@@ -44,7 +44,15 @@ export default (app: Cpeak) => {
   app.route(
     "get",
     "/user/username-availability/:username",
+    middlewares.requireAuth,
     User.checkUsernameAvailability
+  );
+
+  app.route(
+    "patch",
+    "/user/username",
+    middlewares.requireAuth,
+    User.updateUsername
   );
 
   // ------------------------------------------------ //

@@ -45,16 +45,35 @@ const checkAuthStatus = async (req: Request, res: Response) => {
   };
 
   if (req.user) {
-    const user = await DB.find<IUser>(
-      `SELECT users.email AS email, usernames.username AS username FROM users LEFT JOIN usernames ON users.id = usernames.user_id AND usernames.active = true WHERE users.id = $1`,
+    interface UserWithUsernames {
+      email: string;
+      usernames: { value: string; expires_at: Date | null; active: boolean }[];
+    }
+
+    const user = await DB.find<UserWithUsernames>(
+      `SELECT 
+        users.email, 
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'value', usernames.username, 
+            'expires_at', usernames.expires_at,
+            'active', usernames.active
+          )
+        ) AS usernames
+      FROM users
+      LEFT JOIN usernames ON users.id = usernames.user_id 
+      WHERE users.id = $1
+      GROUP BY users.id`,
       [req.user.id]
     );
+
+    console.log(user);
 
     if (user && user.email) {
       return res.json({
         isSignedIn: true,
         email: user.email,
-        username: user.username,
+        usernames: user.usernames,
       });
     } else {
       // Something went wrong, log the user out

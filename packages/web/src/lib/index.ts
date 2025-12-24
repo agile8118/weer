@@ -31,7 +31,20 @@ function simplifyUrl(url: string): string {
 }
 
 // Convert date to minutes or hours or days
-function formatDuration(milliseconds: number): string {
+function formatDuration(time: number | Date): string {
+  let milliseconds: number;
+
+  if (typeof time === "number") {
+    milliseconds = time;
+  } else if (typeof time === "object") {
+    // convert date object to milliseconds
+    milliseconds = time.getTime() - new Date().getTime();
+  } else {
+    throw new Error(
+      "formatDuration accepts only number (milliseconds) or Date types"
+    );
+  }
+
   let durationText = "";
   if (milliseconds < 1000 * 60) {
     durationText = "less than a minute";

@@ -68,7 +68,6 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
   };
 
   const onDigitSelect = async () => {
-    console.log("Digit select clicked");
     try {
       setDigitLoading(true);
       const { data }: any = await axios.patch(`/url/${props.urlId}/type`, {
