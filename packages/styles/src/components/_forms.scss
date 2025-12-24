@@ -182,9 +182,10 @@
   }
 }
 
-.input-error {
+.input-error,
+.input-success,
+.input-loading {
   font-size: 1.4rem;
-  color: $color-red;
   display: flex;
   align-items: center;
   line-height: 1;
@@ -194,4 +195,23 @@
   i {
     margin-right: 0.3rem;
   }
+}
+.input-loading {
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+
+  &__text {
+    margin-right: 0.5rem;
+  }
+}
+
+.input-error {
+  color: $color-red;
+}
+
+.input-success {
+  color: $color-green;
 }

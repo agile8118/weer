@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import InlineLoading from "../InlineLoading";
 
 interface Props {
   value?: string;
@@ -9,12 +10,14 @@ interface Props {
   autoFocus?: boolean;
   autoComplete?: string;
   error?: string;
+  success?: string;
+  loading?: boolean;
+  loadingText?: string;
   onChange?: (s: string) => void;
   onBlur?: (s: string) => void;
   requiredWithError?: boolean;
   label?: string;
   type?: string;
-  success?: boolean;
   disabled?: boolean;
   help?: string;
   placeholder?: string;
@@ -44,8 +47,10 @@ const Input = (props: Props) => {
   }
 
   if (props.rounded) className += " form-text--rounded";
-  if (props.success && !props.disabled) className += " form-text--success";
-  if (props.error && !props.disabled) className += " form-text--error";
+  if (props.success && !props.disabled && !props.loading)
+    className += " form-text--success";
+  if (props.error && !props.disabled && !props.loading)
+    className += " form-text--error";
   if (props.disabled) className += " form-text--disabled";
 
   if (props.requiredWithError && !value) {
@@ -134,10 +139,30 @@ const Input = (props: Props) => {
       </div>
 
       <div className="form-text__footer">
-        {props.error && !props.disabled && (
+        {props.error && !props.disabled && !props.loading && (
           <span className="input-error">
             <i className="fa-solid fa-circle-exclamation"></i>
             {props.error}
+          </span>
+        )}
+
+        {props.success && !props.disabled && !props.loading && (
+          <span className="input-success">
+            <i className="fa-solid fa-circle-check"></i>
+            {props.success}
+          </span>
+        )}
+
+        {props.loading && !props.disabled && props.loadingText && (
+          <span className="input-loading">
+            <span className="input-loading__text">{props.loadingText}</span>
+            <InlineLoading color="dark" />
+          </span>
+        )}
+
+        {props.loading && !props.disabled && !props.loadingText && (
+          <span className="input-loading">
+            <InlineLoading color="dark" />
           </span>
         )}
 

@@ -12,6 +12,8 @@ interface UsernameProps {
 const Username: FC<UsernameProps> = (props) => {
   const { isSignedIn, username } = useAuth();
 
+  const [usernameInput, setUsernameInput] = React.useState(username || "");
+
   return (
     <Modal
       open={props.open}
@@ -22,7 +24,16 @@ const Username: FC<UsernameProps> = (props) => {
       <div className="">
         <form action="">
           <div className="form-group">
-            <Input label="Username" type="text" id="affix-name" required />
+            <Input
+              success="joe320 is available"
+              loading={true}
+              loadingText="Checking availability"
+              label="Username"
+              type="text"
+              id="affix-name"
+              required
+              value={usernameInput}
+            />
           </div>
 
           <div className="form-group u-flex-text-right">
