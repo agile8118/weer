@@ -223,7 +223,10 @@ const changeUrlType = async (
     await DB.delete<IDigitCode>("digit_codes", `url_id = $1`, [id]);
   }
 
-  if (currentType === "classic" && newType !== "classic") {
+  if (
+    (currentType === "classic" && newType !== "classic") ||
+    (currentType === "affix" && newType !== "affix")
+  ) {
     // set shortened_url_id to null
     await DB.update<IUrl>(
       "urls",
@@ -239,6 +242,8 @@ const changeUrlType = async (
 
   let newShortenedCode;
   let expiresAt;
+
+  console.log(newType);
 
   switch (newType) {
     case "classic":
@@ -271,8 +276,36 @@ const changeUrlType = async (
       }
       break;
 
+    case "affix":
+      if (!req.user)
+        return handleError({ status: 401, message: "Unauthorized" });
+      try {
+        const affixCode = req.body?.code;
+        /** @todo validate the affixCode */
+
+        const available = await isAffixAvailable(affixCode);
+        if (!available) {
+          return handleError({ status: 400, message: "Code is not available" });
+        }
+
+        // Update the url record with the affix code
+        await DB.update<IUrl>(
+          "urls",
+          {
+            shortened_url_id: affixCode,
+            link_type: "affix",
+          },
+          `id = $3`,
+          [id]
+        );
+
+        newShortenedCode = affixCode;
+      } catch (e) {
+        return handleError(e);
+      }
+      break;
+
     // case "custom":
-    // case "affix":
 
     default:
       return handleError({ status: 400, message: "Invalid type" });
@@ -296,15 +329,11 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
     return handleErr(new Error("No URL ID provided"));
   }
 
-  console.log("Code:", code);
-
-  const processedCode = processCode(code);
+  const processedCode = processCode(code, req.vars?.username);
 
   if (!processedCode) {
     return res.sendFile(path.join(publicPath, "./no-url.html"), "text/html");
   }
-
-  console.log(processedCode);
 
   let url;
 
@@ -339,6 +368,31 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
       `,
         [processedCode.code]
       );
+      break;
+    case "affix":
+      const username = req.vars?.username;
+
+      if (!username) {
+        return res.sendFile(
+          path.join(publicPath, "./no-url.html"),
+          "text/html"
+        );
+      }
+
+      url = await DB.find<IUrl>(
+        `
+        SELECT urls.real_url, urls.id, urls.views
+        FROM urls
+        JOIN users
+          ON urls.user_id = users.id
+        JOIN usernames
+          ON users.id = usernames.user_id
+        WHERE urls.shortened_url_id = $1
+          AND usernames.username = $2
+      `,
+        [processedCode.code, username]
+      );
+
       break;
   }
 
@@ -440,6 +494,29 @@ const sendQrCode = async (
   }
 };
 
+const isAffixAvailable = async (code: string) => {
+  const existingCode = await DB.find<IUrl>(
+    "SELECT id FROM urls WHERE shortened_url_id=$1 AND link_type='affix'",
+    [code]
+  );
+
+  return existingCode ? false : true;
+};
+
+// Check to see if an affix code is available
+const checkAffixAvailability = async (req: Request, res: Response) => {
+  const code = req.vars?.code;
+
+  if (!code) {
+    return res.status(400).json({ message: "No code provided" });
+  }
+
+  // Check if user has already used this code, that's the only check required
+
+  const available = await isAffixAvailable(code);
+  res.json({ available });
+};
+
 export default {
   getUrls,
   shorten,
@@ -447,4 +524,5 @@ export default {
   remove,
   sendQrCode,
   changeUrlType,
+  checkAffixAvailability,
 };

@@ -90,8 +90,14 @@ export const LINKS: Record<LinkType, any> = {
  * @returns object with type and cleaned code, or null if invalid
  */
 export const processCode = (
-  code: string
+  code: string,
+  username?: string
 ): { type: LinkType; code: string } | null => {
+  if (username && code.length > 0) {
+    // Affix type
+    return { type: "affix", code };
+  }
+
   // We first check type, then clean up, then validate
   if (isUltraCode(code)) {
     let cleanedCode = cleanUltraCode(code);

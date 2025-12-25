@@ -113,8 +113,8 @@ const Input = (props: Props) => {
             placeholder={props.placeholder}
             onChange={(event: any) => {
               const newVal = event.target.value;
-              setValue(newVal);
               props.onChange?.(newVal);
+              // setValue(newVal);
             }}
             onBlur={(event: any) => {
               let value = event.target.value;

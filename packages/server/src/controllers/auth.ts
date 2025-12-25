@@ -61,15 +61,13 @@ const checkAuthStatus = async (req: Request, res: Response) => {
             'active', usernames.active
           )
           ORDER BY usernames.expires_at ASC NULLS LAST
-        ) FILTER (WHERE usernames.username IS NOT NULL), '[]') AS usernames
+        ) FILTER (WHERE usernames.username IS NOT NULL OR usernames.expires_at > NOW()), '[]') AS usernames
       FROM users
       LEFT JOIN usernames ON users.id = usernames.user_id 
       WHERE users.id = $1
       GROUP BY users.id`,
       [req.user.id]
     );
-
-    console.log(user);
 
     if (user && user.email) {
       return res.json({

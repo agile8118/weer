@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState, useMemo } from "react";
+import React, { FC, useEffect, useState, useMemo, useRef } from "react";
 
 import { ConfirmModal, Loading, Modal, Button, Input } from "@weer/reusable";
 import type { LinkType } from "@weer/common";
@@ -29,11 +29,37 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
   const { isSignedIn, username } = useAuth();
   const { openModal, closeModal } = useModal();
 
-  const [affixCode, setAffixCode] = useState<string>("");
-  const [customCode, setCustomCode] = useState<string>("");
   const [ultraLoading, setUltraLoading] = useState<boolean>(false);
   const [classicLoading, setClassicLoading] = useState<boolean>(false);
   const [digitLoading, setDigitLoading] = useState<boolean>(false);
+
+  // Affix code states
+  const [affixCode, setAffixCode] = useState<string>(
+    props.type === "affix" ? props.shortenedUrlCode : ""
+  );
+  const [affixLoading, setAffixLoading] = useState<boolean>(false); // for the select button
+  const [affixInputLoading, setAffixInputLoading] = useState<boolean>(false); // for the input field
+  const [affixInputError, setAffixInputError] = useState<string>("");
+  const [affixInputSuccess, setAffixInputSuccess] = useState<string>("");
+
+  // Custom code states
+  const [customCode, setCustomCode] = useState<string>("");
+
+  // We want to delay sending a request to server to check url availability by 800ms
+  const affixTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const customTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timers on unmount
+  React.useEffect(() => {
+    return () => {
+      if (affixTimer.current) {
+        clearTimeout(affixTimer.current);
+      }
+      if (customTimer.current) {
+        clearTimeout(customTimer.current);
+      }
+    };
+  }, []);
 
   const onUltraSelect = async () => {
     try {
@@ -99,6 +125,79 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
     );
   };
 
+  const isAffixAvailable = async (code: string) => {
+    setAffixInputLoading(true);
+    setAffixInputError("");
+    setAffixInputSuccess("");
+
+    try {
+      const { data }: any = await axios.get(`/url/affix-availability/${code}`);
+
+      if (data.available) {
+        setAffixInputSuccess(`${code} is available.`);
+      } else {
+        setAffixInputError(`${code} is already taken.`);
+      }
+    } catch (error: any) {
+      setAffixInputError("An error occurred while checking availability.");
+    } finally {
+      setAffixInputLoading(false);
+    }
+  };
+
+  const onAffixInputChange = async (value: string) => {
+    // We want to allow only a-z, A-Z, 0-9, -, _ characters. If other characters are used, we remove them
+    // and it's just like they have not typed them
+
+    setAffixInputSuccess("");
+
+    // convert spaces to hyphens
+    value = value.replace(/\s+/g, "-");
+
+    const regex = /[^a-zA-Z0-9-_]/g;
+    if (regex.test(value)) {
+      // invalid characters found
+      const sanitizedValue = value.replace(regex, "");
+
+      dom.message(
+        "Only letters (a-z), numbers (0-9), hyphens (-) and underscores (_) are allowed.",
+        "error"
+      );
+      setAffixCode(sanitizedValue);
+
+      return;
+    }
+
+    setAffixCode(value);
+
+    // Now checking availability
+    if (affixTimer.current) clearTimeout(affixTimer.current);
+
+    affixTimer.current = setTimeout(() => {
+      if (value.length === 0) return;
+      if (props.type === "affix" && value === props.shortenedUrlCode) return;
+      isAffixAvailable(value);
+    }, 800);
+  };
+
+  // Sends a request to server to create the affix link type
+  const onAffixSelect = async () => {
+    try {
+      setAffixLoading(true);
+      const { data }: any = await axios.patch(`/url/${props.urlId}/type`, {
+        type: "affix",
+        code: affixCode,
+      });
+
+      props.onChangeType("affix", null, affixCode);
+    } catch (error: any) {
+      lib.handleErr(error);
+    } finally {
+      closeModal();
+      setAffixLoading(false);
+    }
+  };
+
   const options = [
     {
       name: "ultra",
@@ -158,7 +257,7 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
 
             {/* No regeneration button if ultra link is currently active */}
 
-            {props.expired && isSignedIn && (
+            {props.expired && isSignedIn && isSelected && (
               <div className="customization-option__regenerate">
                 <Button
                   color="blue"
@@ -339,10 +438,10 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
             <div>
               <h3>Choose Your Own with Username</h3>
               <div className="customization-option__example">
-                Example:{" "}
-                <span>{`weer.pro/${
-                  username ? username : "your-username"
-                }/anything-really`}</span>
+                {isSelected ? "Your Current URL: " : "Example: "}
+                <span>{`weer.pro/${username ? username : "your-username"}/${
+                  isSelected ? affixCode : "anything-really"
+                }`}</span>
               </div>
             </div>
             <div className="customization-option__validity">
@@ -356,49 +455,47 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
               whatever you want for as long as you abide by these limits:
               <ul>
                 <li>
-                  You final link should be understandable by browsers (so a
-                  valid URL).
+                  Use only valid characters (letters, numbers, hyphens,
+                  underscores).
                 </li>
                 <li>You have not selected that before.</li>
               </ul>
             </div>
-            {isSelected ? (
-              <div className="u-text-center">
-                <div className="customization-option__message">
-                  Currently selected
-                </div>
+
+            <div className="customization-option__action">
+              <div className="form-group">
+                <Input
+                  value={affixCode}
+                  onChange={(value) => {
+                    onAffixInputChange(value);
+                  }}
+                  type="text"
+                  disabled={!username}
+                  loading={affixInputLoading}
+                  error={affixInputError}
+                  success={affixInputSuccess}
+                  id="affix-url-input"
+                  label="Custom Code"
+                />
+                <strong className="customization-option__preview">
+                  weer.pro/{username ? username : "your-username"}/{affixCode}
+                </strong>
               </div>
-            ) : (
-              <div className="customization-option__action">
-                <div className="form-group">
-                  <Input
-                    value={affixCode}
-                    onChange={(value) => {
-                      setAffixCode(value);
-                    }}
-                    type="text"
-                    disabled={!username}
-                    id="affix-url-input"
-                    label="Custom Code"
-                  />
-                  <strong className="customization-option__preview">
-                    weer.pro/{username ? username : "your-username"}/{affixCode}
-                  </strong>
+              {!!username && (
+                <div className="u-flex-text-right">
+                  <Button
+                    color="blue"
+                    outlined={isSelected ? false : true}
+                    rounded={true}
+                    onClick={onAffixSelect}
+                    loading={affixLoading}
+                    disabled={!username || !affixInputSuccess}
+                  >
+                    {isSelected ? "Update" : "Select"}
+                  </Button>
                 </div>
-                {!!username && (
-                  <div className="u-flex-text-right">
-                    <Button
-                      color="blue"
-                      outlined={true}
-                      rounded={true}
-                      disabled={!username}
-                    >
-                      Select
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+            </div>
 
             {!username && (
               <div className="u-text-center">
@@ -447,8 +544,8 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
               whatever you want for as long as you abide by these limits:
               <ul>
                 <li>
-                  You final link should be understandable by browsers (so a
-                  valid URL).
+                  Use only valid characters (letters, numbers, hyphens,
+                  underscores).
                 </li>
                 <li>No other user has selected that before.</li>
                 <li>Must be at least 7 characters long.</li>
@@ -491,30 +588,15 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
   ];
 
   // Sort options. Selected type goes to top, disabled go to the bottom
-  const { selectedOption, otherOptions } = useMemo(() => {
-    // the selected option
-    const selected = options.find((opt) => opt.name === props.type);
-
-    const others = options
-      .filter((opt) => opt.name !== props.type)
-      .sort((a, b) => {
-        // Disabled options go to the bottom
-        if (a.disabled && !b.disabled) return 1;
-        if (!a.disabled && b.disabled) return -1;
-        return 0;
-      });
-
-    return { selectedOption: selected, otherOptions: others };
-  }, [
-    props.type,
-    props.shortenedUrlCode,
-    ultraLoading,
-    digitLoading,
-    username,
-    isSignedIn,
-    affixCode,
-    customCode,
-  ]);
+  const selectedOption = options.find((opt) => opt.name === props.type); // the selected option
+  const otherOptions = options
+    .filter((opt) => opt.name !== props.type)
+    .sort((a, b) => {
+      // Disabled options go to the bottom
+      if (a.disabled && !b.disabled) return 1;
+      if (!a.disabled && b.disabled) return -1;
+      return 0;
+    });
 
   return (
     <Modal

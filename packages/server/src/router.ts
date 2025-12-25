@@ -75,8 +75,14 @@ export default (app: Cpeak) => {
   // Return the list of urls user has shortened
   app.route("get", "/url", Url.getUrls);
 
+  // Check to see if a custom affix code is available
+  app.route("get", "/url/affix-availability/:code", Url.checkAffixAvailability);
+
   // Redirect to the real url
   app.route("get", "/:id", Url.redirect);
+
+  // Redirect to the real url (for affix type only)
+  app.route("get", "/:username/:id", Url.redirect);
 
   // Send a QR code image for a link
   app.route("get", "/qr/:id", middlewares.checkUrlOwnership, Url.sendQrCode);

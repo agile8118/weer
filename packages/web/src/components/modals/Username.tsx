@@ -40,6 +40,9 @@ const Username: FC<UsernameProps> = (props) => {
     string | null
   >(null);
 
+  // We want to delay sending a request to server to check username availability by 800ms
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // When the username from auth context changes, update the input field
   React.useEffect(() => {
     if (username) {
@@ -55,9 +58,6 @@ const Username: FC<UsernameProps> = (props) => {
       }
     };
   }, []);
-
-  // We want to delay sending a request to server to check username availability by 800ms
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sends a request to server to check if the username is available
   const checkUsernameAvailability = async (value: string) => {

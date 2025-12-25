@@ -1,6 +1,7 @@
 import React, { FC, useState, useEffect } from "react";
 import { ButtonIcon } from "@weer/reusable";
 import { useModal } from "../ModalContext";
+import { useAuth } from "../AuthContext";
 import { useUrl } from "../UrlContext";
 import type { LinkType } from "@weer/common";
 import dom from "../lib/dom";
@@ -29,11 +30,16 @@ export default (({
 }: LinkShow) => {
   const [copyTooltipText, setCopyTooltipText] = useState<string>("Copy");
   const { openModal } = useModal();
+  const { username } = useAuth();
   const { changeType } = useUrl();
 
   const [timeLeft, setTimeLeft] = useState("");
 
   let shortenedUrl = `${domain}/${shortenedUrlCode}`;
+
+  if (type === "affix" && username) {
+    shortenedUrl = `${domain}/${username}/${shortenedUrlCode}`;
+  }
 
   useEffect(() => {
     if (type === "ultra" || type === "digit") {
@@ -180,6 +186,16 @@ export default (({
 
                   const validFor =
                     new Date(newExpiresAt || "").getTime() - Date.now();
+
+                  if (newType === "affix" && username && newCode) {
+                    dom.message(
+                      `Your link is now ${lib.simplifyUrl(
+                        domain + "/" + username + "/" + newCode
+                      )}`,
+                      "success"
+                    );
+                    return;
+                  }
 
                   dom.message(
                     `Your link is now ${lib.simplifyUrl(
