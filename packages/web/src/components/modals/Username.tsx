@@ -13,16 +13,27 @@ interface UsernameProps {
 }
 
 const Username: FC<UsernameProps> = (props) => {
-  const { isSignedIn, username, updateUsername, inactiveUsernames } = useAuth();
+  const {
+    isSignedIn,
+    username,
+    updateUsername,
+    inactiveUsernames,
+    refreshAuth,
+  } = useAuth();
   const { openModal, closeModal } = useModal();
 
   const [usernameInput, setUsernameInput] = React.useState(username || "");
   const [inputLoading, setInputLoading] = React.useState(false);
   const [inputSuccess, setInputSuccess] = React.useState<string | null>(null);
   const [inputError, setInputError] = React.useState<string | null>(null);
+  const [usernameInactiveWarning, setUsernameInactiveWarning] =
+    React.useState(false);
 
   const [usernameUpdateLoading, setUsernameUpdateLoading] =
     React.useState(false);
+  const [oldestInactiveUsername, setOldestInactiveUsername] = React.useState<
+    string | null
+  >(null);
 
   // We want to delay sending a request to server to check username availability by 800ms
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -54,15 +65,33 @@ const Username: FC<UsernameProps> = (props) => {
     }
   };
 
-  // Sends a request to server to update the username
+  // When user clicks on update username button
   const onUpdateUsername = async () => {
-    setUsernameUpdateLoading(true);
-
     if (!usernameInput || usernameInput === username) return;
 
+    // If the user already has 3 inactive usernames, warn the user before proceeding
+    if (inactiveUsernames.length >= 3) {
+      // Find the oldest inactive username
+      const oldest = inactiveUsernames.reduce((oldestUname, currentUname) => {
+        return currentUname.expiresAt < oldestUname.expiresAt
+          ? currentUname
+          : oldestUname;
+      }, inactiveUsernames[0]);
+
+      setOldestInactiveUsername(oldest.username);
+      setUsernameInactiveWarning(true);
+    } else {
+      await proceedUsernameUpdate();
+    }
+  };
+
+  // Sends a request to server to update the username
+  const proceedUsernameUpdate = async () => {
+    setUsernameUpdateLoading(true);
     try {
       await updateUsername(usernameInput);
 
+      await refreshAuth();
       dom.message(`Your username is now ${usernameInput}.`, "success");
       closeModal();
     } catch (error: any) {
@@ -77,7 +106,21 @@ const Username: FC<UsernameProps> = (props) => {
 
     return (
       <div className="username-inactive-list">
-        <div className="username-inactive-list__header">Old Usernames:</div>
+        <div className="username-inactive-list__header">
+          Your Old Usernames
+          <div className="tooltip tooltip-top">
+            <i className="fa-regular fa-circle-question"></i>
+            <div className="tooltip__text">
+              We keep a record of up to 3 of your last usernames for a limited
+              time. Your custom links on your username will continue to work
+              with all these while they are active, and also they cannot be
+              taken by other users until they expire.
+              <br />
+              You can switch back to any of these before they expire and reset
+              the timer.
+            </div>
+          </div>
+        </div>
         <ul className="username-inactive-list__list">
           {inactiveUsernames.map((uname) => (
             <li key={uname.username} className="username-inactive-list__item">
@@ -110,46 +153,85 @@ const Username: FC<UsernameProps> = (props) => {
       type="narrow"
     >
       <div className="">
-        <form action="">
-          <div className="form-group">
-            <Input
-              success={inputSuccess}
-              error={inputError}
-              onChange={(value) => {
-                setUsernameInput(value);
-
-                if (timer.current) clearTimeout(timer.current);
-
-                timer.current = setTimeout(() => {
-                  checkUsernameAvailability(value);
-                }, 800);
-              }}
-              loading={inputLoading}
-              loadingText="Checking availability"
-              label="Username"
-              type="text"
-              id="affix-name"
-              required
-              value={usernameInput}
-            />
+        {usernameInactiveWarning && (
+          <div className="username-warning">
+            Warning! You already have 3 inactive usernames. Proceeding will
+            delete the oldest inactive username which is{" "}
+            <strong>{oldestInactiveUsername}</strong>. After proceeding, your
+            links like <strong>weer.pro/{oldestInactiveUsername}/...</strong>{" "}
+            will stop working, and the username will be available for other to
+            take immediately. <br />
+            Are you sure you want to continue?
+            <div className="username-warning__actions">
+              <Button
+                color="blue"
+                outlined={true}
+                size="small"
+                block={true}
+                onClick={() => {
+                  setUsernameInactiveWarning(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                color="red"
+                size="small"
+                block={true}
+                onClick={async () => {
+                  setUsernameInactiveWarning(false);
+                  await proceedUsernameUpdate();
+                }}
+              >
+                Proceed
+              </Button>
+            </div>
           </div>
+        )}
 
-          <div className="form-group u-flex-text-right">
-            <Button
-              type="submit"
-              color="blue"
-              outlined={true}
-              loading={usernameUpdateLoading}
-              disabled={inputSuccess && inputSuccess.length > 0 ? false : true}
-              block={true}
-              onClick={onUpdateUsername}
-            >
-              {username ? "Update" : "Confirm"}
-            </Button>
-          </div>
-        </form>
+        {!usernameInactiveWarning && (
+          <form action="">
+            <div className="form-group">
+              <Input
+                success={inputSuccess}
+                error={inputError}
+                onChange={(value) => {
+                  setUsernameInput(value);
 
-        {/* <div className="auth-or">Old Usernames:</div> */}
+                  if (timer.current) clearTimeout(timer.current);
+
+                  timer.current = setTimeout(() => {
+                    checkUsernameAvailability(value);
+                  }, 800);
+                }}
+                loading={inputLoading}
+                loadingText="Checking availability"
+                label="Username"
+                type="text"
+                id="affix-name"
+                required
+                value={usernameInput}
+              />
+            </div>
+
+            <div className="form-group u-flex-text-right">
+              <Button
+                type="submit"
+                color="blue"
+                outlined={true}
+                loading={usernameUpdateLoading}
+                disabled={
+                  inputSuccess && inputSuccess.length > 0 ? false : true
+                }
+                block={true}
+                onClick={onUpdateUsername}
+              >
+                {username ? "Update" : "Confirm"}
+              </Button>
+            </div>
+          </form>
+        )}
+
         {renderInactiveUsernames()}
       </div>
     </Modal>

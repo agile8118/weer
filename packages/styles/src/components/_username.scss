@@ -1,1 +1,53 @@
-// For the username modal
+.username-inactive-list__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 1.2rem;
+  border: 1px solid #eee;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+}
+
+.username-inactive-list__header {
+  display: flex;
+  align-items: center;
+  font-size: 1.7rem;
+  font-weight: 400;
+  margin-top: 0.5rem;
+
+  .tooltip__text {
+    width: 30rem;
+  }
+}
+
+.username-inactive-list__item {
+}
+
+.username-inactive-list__name {
+  font-weight: 600;
+}
+
+.username-inactive-list__expires {
+  display: block;
+  font-size: 1.3rem;
+  color: #888;
+}
+
+$color-warning-bg: #fff7ed;
+$color-warning-border: #fdba74;
+$color-warning-text: #9a3412;
+
+.username-warning {
+  color: $color-warning-text;
+  background-color: $color-warning-bg;
+  border: 1px solid $color-warning-border;
+  padding: 1.25rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+
+  &__actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+}

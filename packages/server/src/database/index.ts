@@ -22,11 +22,11 @@ export const pool = new pkg.Pool({
 
 pool.query("SELECT NOW()", (err, res) => {
   if (err) {
-    console.error("Database connection failed.");
+    console.error("[postgres] connection failed.");
     console.error("Error details:\n", err);
     process.exit(1);
   } else {
-    console.log("Database connected successfully to " + keys.dbDatabase);
+    console.log("[postgres] connected successfully to " + keys.dbDatabase);
   }
 });
 

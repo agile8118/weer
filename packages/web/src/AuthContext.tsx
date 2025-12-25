@@ -49,20 +49,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsSignedIn(data.isSignedIn);
     setEmail(data.email);
 
-    // Find the active username and set it
-    const activeUsernameObj = data.usernames.find(
-      (uname: UsernameEntry) => uname.active
-    );
-    setUsername(activeUsernameObj ? activeUsernameObj.value : "");
+    if (data.isSignedIn) {
+      // Find the active username and set it
+      const activeUsernameObj = data.usernames.find(
+        (uname: UsernameEntry) => uname.active
+      );
+      setUsername(activeUsernameObj ? activeUsernameObj.value : "");
 
-    // Set inactive usernames
-    const inactiveUsernames = data.usernames
-      .filter((uname: UsernameEntry) => !uname.active)
-      .map((uname: UsernameEntry) => ({
-        username: uname.value,
-        expiresAt: new Date(uname.expires_at),
-      }));
-    setInactiveUsernames(inactiveUsernames);
+      // Set inactive usernames
+      const inactiveUsernames = data.usernames.length
+        ? data.usernames
+            .filter((uname: UsernameEntry) => !uname.active)
+            .map((uname: UsernameEntry) => ({
+              username: uname.value,
+              expiresAt: new Date(uname.expires_at),
+            }))
+        : [];
+      setInactiveUsernames(inactiveUsernames);
+    }
 
     setLoading(false);
   }, []);

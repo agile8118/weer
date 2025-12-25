@@ -53,13 +53,14 @@ const checkAuthStatus = async (req: Request, res: Response) => {
     const user = await DB.find<UserWithUsernames>(
       `SELECT 
         users.email, 
+        COALESCE(
         JSON_AGG(
           JSON_BUILD_OBJECT(
             'value', usernames.username, 
             'expires_at', usernames.expires_at,
             'active', usernames.active
           )
-        ) AS usernames
+        ) FILTER (WHERE usernames.username IS NOT NULL), '[]') AS usernames
       FROM users
       LEFT JOIN usernames ON users.id = usernames.user_id 
       WHERE users.id = $1
