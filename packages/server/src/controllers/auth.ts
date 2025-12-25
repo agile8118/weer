@@ -68,8 +68,6 @@ const checkAuthStatus = async (req: Request, res: Response) => {
       [req.user.id]
     );
 
-    console.log(user);
-
     if (user && user.email) {
       return res.json({
         isSignedIn: true,

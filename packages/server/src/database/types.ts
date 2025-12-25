@@ -21,6 +21,15 @@ export interface IUser {
   created_at: Date;
 }
 
+export interface IUsername {
+  id: number;
+  user_id: string;
+  username: string;
+  active: boolean;
+  expires_at?: Date;
+  created_at: Date;
+}
+
 export interface IUrl {
   id: number;
   real_url: string;

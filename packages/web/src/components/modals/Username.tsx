@@ -99,6 +99,7 @@ const Username: FC<UsernameProps> = (props) => {
     }
 
     setUsernameUpdateLoading(false);
+    setUsernameInactiveWarning(false);
   };
 
   const renderInactiveUsernames = () => {
@@ -178,8 +179,8 @@ const Username: FC<UsernameProps> = (props) => {
                 color="red"
                 size="small"
                 block={true}
+                loading={usernameUpdateLoading}
                 onClick={async () => {
-                  setUsernameInactiveWarning(false);
                   await proceedUsernameUpdate();
                 }}
               >

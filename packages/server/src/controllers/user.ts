@@ -2,7 +2,7 @@ import type { CpeakRequest as Request, CpeakResponse as Response } from "cpeak";
 import crypto from "crypto";
 
 import { DB } from "../database/index.js";
-import { IUser, ISession } from "../database/types.js";
+import { IUser, ISession, IUsername } from "../database/types.js";
 
 const isUsernameAvailable = async (username: string): Promise<boolean> => {
   // We use EXISTS to optimize the query since we only care about existence
@@ -49,27 +49,36 @@ const updateUsername = async (req: Request, res: Response) => {
     return res.status(409).json({ error: "Username is already taken" });
   }
 
-  // Get the user's current active username
-  const currentUsernameRecord = await DB.find<IUser>(
-    `SELECT username FROM usernames WHERE user_id = $1 AND active = true`,
+  // Get all user's usernames
+  const usernameRecords = await DB.findMany<IUsername>(
+    `SELECT username, expires_at, active FROM usernames WHERE user_id = $1`,
     [userId]
   );
 
-  const oldUsername = currentUsernameRecord
-    ? currentUsernameRecord.username
-    : null;
+  // Find the user's active username
+  const oldUsername = usernameRecords?.find((r) => r.active)?.username || null;
 
-  /*
-  // We only keep 3 inactive usernames per user. If the user already has 3 inactive usernames, delete 
+  // We only keep 3 inactive usernames per user. If the user already has 3 inactive usernames, delete
   // the one that is set to expire the soonest
-  const inactiveUsernames = await DB.find<IUser>(
-    `SELECT username FROM usernames WHERE user_id = $1 AND active = false ORDER BY expires_at ASC`,
-    [userId]
-  );
 
-  // if (inactiveUsernames.length >= 3) {
-  // }
-  */
+  const inactiveUsernames = usernameRecords
+    ? usernameRecords.filter((r) => !r.active)
+    : [];
+
+  if (inactiveUsernames.length >= 3) {
+    // Find the oldest inactive username
+    const oldest = inactiveUsernames.reduce((oldestUname, currentUname) => {
+      return currentUname.expires_at! < oldestUname.expires_at!
+        ? currentUname
+        : oldestUname;
+    }, inactiveUsernames[0]);
+
+    // Delete the oldest inactive username
+    await DB.query(
+      `DELETE FROM usernames WHERE user_id = $1 AND username = $2`,
+      [userId, oldest.username]
+    );
+  }
 
   // Deactivate the existing username for the user and set expires_at one month from now
   await DB.query(
