@@ -54,6 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const activeUsernameObj = data.usernames.find(
         (uname: UsernameEntry) => uname.active
       );
+
       setUsername(activeUsernameObj ? activeUsernameObj.value : "");
 
       // Set inactive usernames

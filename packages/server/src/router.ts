@@ -55,6 +55,13 @@ export default (app: Cpeak) => {
     User.updateUsername
   );
 
+  app.route(
+    "patch",
+    "/user/username/switch",
+    middlewares.requireAuth,
+    User.switchUsername
+  );
+
   // ------------------------------------------------ //
   // ************ URL ROUTES ************* //
   // ------------------------------------------------ //

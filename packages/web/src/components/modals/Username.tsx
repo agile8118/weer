@@ -20,6 +20,7 @@ const Username: FC<UsernameProps> = (props) => {
     inactiveUsernames,
     refreshAuth,
   } = useAuth();
+
   const { openModal, closeModal } = useModal();
 
   const [usernameInput, setUsernameInput] = React.useState(username || "");
@@ -34,6 +35,26 @@ const Username: FC<UsernameProps> = (props) => {
   const [oldestInactiveUsername, setOldestInactiveUsername] = React.useState<
     string | null
   >(null);
+
+  const [switchUsernameLoading, setSwitchUsernameLoading] = React.useState<
+    string | null
+  >(null);
+
+  // When the username from auth context changes, update the input field
+  React.useEffect(() => {
+    if (username) {
+      setUsernameInput(username);
+    }
+  }, [username]);
+
+  // Cleanup timer on unmount
+  React.useEffect(() => {
+    return () => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+      }
+    };
+  }, []);
 
   // We want to delay sending a request to server to check username availability by 800ms
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -71,14 +92,8 @@ const Username: FC<UsernameProps> = (props) => {
 
     // If the user already has 3 inactive usernames, warn the user before proceeding
     if (inactiveUsernames.length >= 3) {
-      // Find the oldest inactive username
-      const oldest = inactiveUsernames.reduce((oldestUname, currentUname) => {
-        return currentUname.expiresAt < oldestUname.expiresAt
-          ? currentUname
-          : oldestUname;
-      }, inactiveUsernames[0]);
-
-      setOldestInactiveUsername(oldest.username);
+      // Based on the sorting done on postgres query, the first record is the oldest
+      setOldestInactiveUsername(inactiveUsernames[0].username);
       setUsernameInactiveWarning(true);
     } else {
       await proceedUsernameUpdate();
@@ -100,6 +115,30 @@ const Username: FC<UsernameProps> = (props) => {
 
     setUsernameUpdateLoading(false);
     setUsernameInactiveWarning(false);
+  };
+
+  // When user clicks on switch button for an inactive username
+  const onUsernameSwitch = async (uname: string) => {
+    setSwitchUsernameLoading(uname);
+
+    try {
+      await axios.patch("/user/username/switch", {
+        username: uname,
+      });
+
+      await refreshAuth();
+
+      // reset
+      setUsernameInput(uname);
+      setInputError(null);
+      setInputSuccess(null);
+
+      dom.message(`Your active username is now ${uname}.`, "success");
+    } catch (error: any) {
+      lib.handleErr(error);
+    }
+
+    setSwitchUsernameLoading(null);
   };
 
   const renderInactiveUsernames = () => {
@@ -134,8 +173,11 @@ const Username: FC<UsernameProps> = (props) => {
               <Button
                 color="red"
                 outlined={true}
+                loading={switchUsernameLoading === uname.username}
                 size="small"
-                onClick={() => {}}
+                onClick={() => {
+                  onUsernameSwitch(uname.username);
+                }}
               >
                 Switch
               </Button>

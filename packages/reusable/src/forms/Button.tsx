@@ -91,6 +91,7 @@ const Button = (props: componentProps) => {
 
   let loadingColor;
   if (props.color === "blue") loadingColor = "blue";
+  if (props.color === "red") loadingColor = "red";
   if (!props.outlined) loadingColor = "light";
 
   return (
@@ -107,7 +108,7 @@ const Button = (props: componentProps) => {
       {props.loading && (
         <Loading
           className="button__icon-right"
-          color={loadingColor as "blue" | "light"}
+          color={loadingColor as "blue" | "light" | "red"}
         />
       )}
     </button>
