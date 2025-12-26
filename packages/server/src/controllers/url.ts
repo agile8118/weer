@@ -243,8 +243,6 @@ const changeUrlType = async (
   let newShortenedCode;
   let expiresAt;
 
-  console.log(newType);
-
   switch (newType) {
     case "classic":
       try {
@@ -283,7 +281,7 @@ const changeUrlType = async (
         const affixCode = req.body?.code;
         /** @todo validate the affixCode */
 
-        const available = await isAffixAvailable(affixCode);
+        const available = await isAffixAvailable(affixCode, req.user.id);
         if (!available) {
           return handleError({ status: 400, message: "Code is not available" });
         }
@@ -304,8 +302,32 @@ const changeUrlType = async (
         return handleError(e);
       }
       break;
+    case "custom":
+      try {
+        const customCode = req.body?.code;
+        /** @todo validate the customCode */
 
-    // case "custom":
+        const available = await isCustomAvailable(customCode);
+        if (!available) {
+          return handleError({ status: 400, message: "Code is not available" });
+        }
+
+        // Update the url record with the custom code
+        await DB.update<IUrl>(
+          "urls",
+          {
+            shortened_url_id: customCode,
+            link_type: "custom",
+          },
+          `id = $3`,
+          [id]
+        );
+
+        newShortenedCode = customCode;
+      } catch (e) {
+        return handleError(e);
+      }
+      break;
 
     default:
       return handleError({ status: 400, message: "Invalid type" });
@@ -393,6 +415,12 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
         [processedCode.code, username]
       );
 
+      break;
+    case "custom":
+      url = await DB.find<IUrl>(
+        `SELECT real_url, id, views FROM urls WHERE shortened_url_id=$1`,
+        [processedCode.code]
+      );
       break;
   }
 
@@ -494,9 +522,18 @@ const sendQrCode = async (
   }
 };
 
-const isAffixAvailable = async (code: string) => {
+const isAffixAvailable = async (code: string, userId: string) => {
   const existingCode = await DB.find<IUrl>(
-    "SELECT id FROM urls WHERE shortened_url_id=$1 AND link_type='affix'",
+    "SELECT id FROM urls WHERE shortened_url_id=$1 AND link_type='affix' AND user_id = $2",
+    [code, userId]
+  );
+
+  return existingCode ? false : true;
+};
+
+const isCustomAvailable = async (code: string) => {
+  const existingCode = await DB.find<IUrl>(
+    "SELECT id FROM urls WHERE shortened_url_id=$1 AND link_type='custom'",
     [code]
   );
 
@@ -506,6 +543,7 @@ const isAffixAvailable = async (code: string) => {
 // Check to see if an affix code is available
 const checkAffixAvailability = async (req: Request, res: Response) => {
   const code = req.vars?.code;
+  const userId = req.user?.id;
 
   if (!code) {
     return res.status(400).json({ message: "No code provided" });
@@ -513,7 +551,19 @@ const checkAffixAvailability = async (req: Request, res: Response) => {
 
   // Check if user has already used this code, that's the only check required
 
-  const available = await isAffixAvailable(code);
+  const available = await isAffixAvailable(code, userId);
+  res.json({ available });
+};
+
+// Check to see if a custom  code is available
+const checkCustomAvailability = async (req: Request, res: Response) => {
+  const code = req.vars?.code;
+
+  if (!code) {
+    return res.status(400).json({ message: "No code provided" });
+  }
+
+  const available = await isCustomAvailable(code);
   res.json({ available });
 };
 
@@ -525,4 +575,5 @@ export default {
   sendQrCode,
   changeUrlType,
   checkAffixAvailability,
+  checkCustomAvailability,
 };

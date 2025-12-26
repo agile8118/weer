@@ -27,13 +27,13 @@ interface Props {
 }
 
 const Input = (props: Props) => {
-  const [value, setValue] = useState(props.value?.toString() || "");
+  // const [value, setValue] = useState(props.value?.toString() || "");
 
   const input = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setValue(props.value?.toString() ?? "");
-  }, [props.value]);
+  // useEffect(() => {
+  //   setValue(props.value?.toString() ?? "");
+  // }, [props.value]);
 
   let className = "form-text";
 
@@ -53,7 +53,7 @@ const Input = (props: Props) => {
     className += " form-text--error";
   if (props.disabled) className += " form-text--disabled";
 
-  if (props.requiredWithError && !value) {
+  if (props.requiredWithError && !props.value) {
     className += " form-text--error";
   }
 
@@ -105,21 +105,21 @@ const Input = (props: Props) => {
             className="form-text__input"
             id={props.id}
             disabled={props.disabled}
-            value={value}
+            value={props.value}
             required={props.required}
             autoFocus={props.autoFocus}
             autoComplete={props.autoComplete || ""}
             maxLength={props.maxLength}
             placeholder={props.placeholder}
             onChange={(event: any) => {
-              const newVal = event.target.value;
-              props.onChange?.(newVal);
+              // const newVal = event.target.value;
+              props.onChange?.(event.target.value);
               // setValue(newVal);
             }}
             onBlur={(event: any) => {
-              let value = event.target.value;
-              setValue(value);
-              if (props.onBlur) props.onBlur(value);
+              // let value = event.target.value;
+              // setValue(value);
+              if (props.onBlur) props.onBlur(event.target.value);
             }}
             type={props.type === "password" ? "password" : "text"}
           />
@@ -127,7 +127,7 @@ const Input = (props: Props) => {
         {!props.placeholder && (
           <label
             className={`form-text__label ${
-              value ? "form-text__label--top" : ""
+              props.value ? "form-text__label--top" : ""
             }`}
             onClick={() => {
               input.current?.focus();
@@ -168,7 +168,7 @@ const Input = (props: Props) => {
 
         {props.maxLength && (
           <span className="form-text__length-display">
-            {props.maxLength - (value?.length || 0)}
+            {props.maxLength - (props.value?.length || 0)}
           </span>
         )}
       </div>

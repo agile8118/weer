@@ -94,6 +94,7 @@ export const processCode = (
   username?: string
 ): { type: LinkType; code: string } | null => {
   if (username && code.length > 0) {
+    /** @todo clean up & validate code */
     // Affix type
     return { type: "affix", code };
   }
@@ -111,8 +112,11 @@ export const processCode = (
     let cleanedCode = cleanDigitCode(code);
     if (!validateDigitCode(cleanedCode)) return null;
     return { type: "digit", code: cleanedCode };
+  } else {
+    /** @todo clean up & validate code */
+    // Finally default to custom type
+    return { type: "custom", code };
   }
-  return null;
 };
 
 // Check if a shortened URL code is an ultra code (before cleaning up)

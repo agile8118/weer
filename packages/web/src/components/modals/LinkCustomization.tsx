@@ -43,7 +43,13 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
   const [affixInputSuccess, setAffixInputSuccess] = useState<string>("");
 
   // Custom code states
-  const [customCode, setCustomCode] = useState<string>("");
+  const [customCode, setCustomCode] = useState<string>(
+    props.type == "custom" ? props.shortenedUrlCode : ""
+  );
+  const [customLoading, setCustomLoading] = useState<boolean>(false); // for the select button
+  const [customInputLoading, setCustomInputLoading] = useState<boolean>(false); // for the input field
+  const [customInputError, setCustomInputError] = useState<string>("");
+  const [customInputSuccess, setCustomInputSuccess] = useState<string>("");
 
   // We want to delay sending a request to server to check url availability by 800ms
   const affixTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -195,6 +201,89 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
     } finally {
       closeModal();
       setAffixLoading(false);
+    }
+  };
+
+  const isCustomAvailable = async (code: string) => {
+    setCustomInputLoading(true);
+    setCustomInputError("");
+    setCustomInputSuccess("");
+
+    try {
+      const { data }: any = await axios.get(`/url/custom-availability/${code}`);
+
+      if (data.available) {
+        setCustomInputSuccess(`${code} is available.`);
+      } else {
+        setCustomInputError(`${code} is already taken.`);
+      }
+    } catch (error: any) {
+      setCustomInputError("An error occurred while checking availability.");
+    } finally {
+      setCustomInputLoading(false);
+    }
+  };
+
+  const onCustomInputChange = async (value: string) => {
+    // We want to allow only a-z, A-Z, 0-9, -, _ characters. If other characters are used, we remove them
+    // and it's just like they have not typed them
+
+    setCustomInputSuccess("");
+
+    // convert spaces to hyphens
+    value = value.replace(/\s+/g, "-");
+
+    const regex = /[^a-zA-Z0-9-_]/g;
+    if (regex.test(value)) {
+      // invalid characters found
+      const sanitizedValue = value.replace(regex, "");
+
+      dom.message(
+        "Only letters (a-z), numbers (0-9), hyphens (-) and underscores (_) are allowed.",
+        "error"
+      );
+
+      setCustomCode(sanitizedValue);
+
+      return;
+    }
+
+    setCustomCode(value);
+
+    if (value.length < 7) {
+      return setCustomInputError(
+        "Custom code must be at least 7 characters long."
+      );
+    } else {
+      setCustomInputError("");
+
+      // Now checking availability
+      if (customTimer.current) clearTimeout(customTimer.current);
+
+      customTimer.current = setTimeout(() => {
+        if (value.length === 0) return;
+        if (props.type === "custom" && value === props.shortenedUrlCode) return;
+
+        isCustomAvailable(value);
+      }, 800);
+    }
+  };
+
+  // Sends a request to server to create the custom link type
+  const onCustomSelect = async () => {
+    try {
+      setCustomLoading(true);
+      const { data }: any = await axios.patch(`/url/${props.urlId}/type`, {
+        type: "custom",
+        code: customCode,
+      });
+
+      props.onChangeType("custom", null, customCode);
+    } catch (error: any) {
+      lib.handleErr(error);
+    } finally {
+      closeModal();
+      setCustomLoading(false);
     }
   };
 
@@ -440,7 +529,7 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
               <div className="customization-option__example">
                 {isSelected ? "Your Current URL: " : "Example: "}
                 <span>{`weer.pro/${username ? username : "your-username"}/${
-                  isSelected ? affixCode : "anything-really"
+                  isSelected ? props.shortenedUrlCode : "anything-really"
                 }`}</span>
               </div>
             </div>
@@ -528,7 +617,13 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
             <div>
               <h3>Choose Your Own</h3>
               <div className="customization-option__example">
-                Example: <span>weer.pro/think-of-something123</span>
+                {isSelected ? "Your Current URL: " : "Example: "}{" "}
+                <span>
+                  weer.pro/
+                  {isSelected
+                    ? props.shortenedUrlCode
+                    : "think-of-something123"}
+                </span>
               </div>
             </div>
             <div className="customization-option__validity">
@@ -552,35 +647,38 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
               </ul>
               {LoginReminder()}
             </div>
-            {isSelected ? (
-              <div className="u-text-center">
-                <div className="customization-option__message">
-                  Currently selected
-                </div>
+
+            <div className="customization-option__action">
+              <div className="form-group">
+                <Input
+                  value={customCode}
+                  onChange={(value) => {
+                    onCustomInputChange(value);
+                  }}
+                  type="text"
+                  loading={customInputLoading}
+                  error={customInputError}
+                  success={customInputSuccess}
+                  id="custom-url-input"
+                  label="Custom Code"
+                />
+                <strong className="customization-option__preview">
+                  weer.pro/{customCode}
+                </strong>
               </div>
-            ) : (
-              <div className="customization-option__action">
-                <div className="form-group">
-                  <Input
-                    value={customCode}
-                    onChange={(value) => {
-                      setCustomCode(value);
-                    }}
-                    type="text"
-                    id="custom-url-input"
-                    label="Custom Code"
-                  />
-                  <strong className="customization-option__preview">
-                    weer.pro/{customCode}
-                  </strong>
-                </div>
-                <div className="u-flex-text-right">
-                  <Button color="blue" outlined={true} rounded={true}>
-                    Select
-                  </Button>
-                </div>
+              <div className="u-flex-text-right">
+                <Button
+                  color="blue"
+                  outlined={isSelected ? false : true}
+                  onClick={onCustomSelect}
+                  loading={customLoading}
+                  disabled={!customInputSuccess}
+                  rounded={true}
+                >
+                  {isSelected ? "Update" : "Select"}
+                </Button>
               </div>
-            )}
+            </div>
           </div>
         </div>
       ),
@@ -609,7 +707,7 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
       <div className="customization">
         <h2 className="customization__header">Currently Selected:</h2>
 
-        {selectedOption.render(true)}
+        {selectedOption?.render(true)}
 
         {otherOptions.length > 0 && (
           <>
