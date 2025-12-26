@@ -85,22 +85,14 @@ export default (app: Cpeak) => {
     Url.checkCustomAvailability
   );
 
+  // Send a QR code image for a link
+  app.route("get", "/qr/:id", middlewares.checkUrlOwnership, Url.sendQrCode);
+
   // Redirect to the real url
   app.route("get", "/:id", Url.redirect);
 
   // Redirect to the real url (for affix type only)
   app.route("get", "/:username/:id", Url.redirect);
-
-  // Send a QR code image for a link
-  app.route("get", "/qr/:id", middlewares.checkUrlOwnership, Url.sendQrCode);
-
-  // Redirect to the real url that was created with a username
-  // @TODO: make sure these count as a taken username: 'qr'
-  app.route(
-    "get",
-    "/:username/:id",
-    (req: Request, res: Response, handleError: HandleErr) => {}
-  );
 
   // Delete a url record
   app.route("delete", "/url/:id", middlewares.checkUrlOwnership, Url.remove);
