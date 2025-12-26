@@ -60,6 +60,8 @@ export default (({
       update();
       const timer = setInterval(update, 1000);
       return () => clearInterval(timer);
+    } else {
+      setTimeLeft("");
     }
   }, [type, shortenedUrlCode, expiresAt, realUrl]);
 
@@ -108,7 +110,7 @@ export default (({
       </div>
       <div className="link__actions">
         <div
-          className={`link__copy ${
+          className={`link__action link__copy ${
             timeLeft === "expired" ? "link__copy--disabled" : ""
           }`}
         >
@@ -128,7 +130,7 @@ export default (({
           />
         </div>
 
-        <div className="link__views">
+        <div className="link__action link__views">
           <ButtonIcon
             color="default"
             icon="fa-solid fa-chart-simple"
@@ -140,7 +142,7 @@ export default (({
           />
         </div>
 
-        <div className="link__qrcode">
+        <div className="link__action link__qrcode">
           <ButtonIcon
             color="default"
             icon="fa-solid fa-qrcode"
@@ -152,7 +154,7 @@ export default (({
           />
         </div>
 
-        <div className="link__edit">
+        <div className="link__action link__edit">
           <ButtonIcon
             color="default"
             icon="fa-solid fa-pen-to-square"
@@ -164,7 +166,7 @@ export default (({
           />
         </div>
 
-        <div className="link__customize">
+        <div className="link__action link__customize">
           <ButtonIcon
             color="blue"
             icon="fa-solid fa-gear"

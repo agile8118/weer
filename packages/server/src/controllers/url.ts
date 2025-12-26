@@ -225,7 +225,8 @@ const changeUrlType = async (
 
   if (
     (currentType === "classic" && newType !== "classic") ||
-    (currentType === "affix" && newType !== "affix")
+    (currentType === "affix" && newType !== "affix") ||
+    (currentType === "custom" && newType !== "custom")
   ) {
     // set shortened_url_id to null
     await DB.update<IUrl>(

@@ -24,8 +24,17 @@
   }
 
   @media only screen and (max-width: 650px) {
-    width: 80%;
     flex-direction: column;
+    padding: 2rem 2rem;
+    width: 80%;
+
+    &__shortened-link {
+      margin: 0.7rem 0 0.7rem 0 !important;
+    }
+
+    &__action {
+      margin: 0 0.7rem !important;
+    }
   }
 
   @media only screen and (max-width: 420px) {
