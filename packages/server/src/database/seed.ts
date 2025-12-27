@@ -12,6 +12,9 @@ async function createDatabase() {
     database: "postgres", // default DB
     password: keys.dbPassword,
     port: keys.dbPort,
+    ssl: {
+      rejectUnauthorized: false,
+    },
   });
 
   const result = await adminPool.query(
@@ -37,6 +40,9 @@ const pool = new Pool({
   database: keys.dbDatabase as string,
   password: keys.dbPassword as string,
   port: keys.dbPort as number,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 // Test the database connection

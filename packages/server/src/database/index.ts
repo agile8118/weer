@@ -18,6 +18,9 @@ export const pool = new pkg.Pool({
   database: keys.dbDatabase,
   password: keys.dbPassword,
   port: keys.dbPort,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 pool.query("SELECT NOW()", (err, res) => {
