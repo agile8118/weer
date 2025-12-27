@@ -20,6 +20,7 @@ interface Props {
   type?: string;
   disabled?: boolean;
   help?: string;
+  tooltipPosition?: "top" | "right" | "bottom" | "left";
   placeholder?: string;
   maxLength?: number;
   lined?: boolean;
@@ -77,7 +78,9 @@ const Input = (props: Props) => {
         <div className="form-text__input-container">
           {props.help && (
             <div className="form-text__help-tooltip">
-              <div className="tooltip tooltip-top">
+              <div
+                className={`tooltip tooltip-${props.tooltipPosition || "top"}`}
+              >
                 <i className="fa-regular fa-circle-question"></i>
                 <div className="tooltip__text">{props.help}</div>
               </div>

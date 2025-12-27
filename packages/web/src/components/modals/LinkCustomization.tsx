@@ -586,7 +586,22 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
               )}
             </div>
 
-            {!username && (
+            {!isSignedIn && (
+              <div className="u-text-center">
+                <div className="customization-option__message">
+                  You must first{" "}
+                  <button
+                    className="button-text button-text--white"
+                    onClick={() => openModal("login")}
+                  >
+                    login
+                  </button>{" "}
+                  to select this option.
+                </div>
+              </div>
+            )}
+
+            {!username && isSignedIn && (
               <div className="u-text-center">
                 <div className="customization-option__message">
                   You must first{" "}

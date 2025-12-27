@@ -84,6 +84,7 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
             value={url}
             onChange={(value) => setUrl(value)}
             error={errorMessage}
+            tooltipPosition="left"
             help="Just put your long URL in the text box below and click shorten to get a nice small URL along with a QR Code. You will be able to customize it after."
           />
 
