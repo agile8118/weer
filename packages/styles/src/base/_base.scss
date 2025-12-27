@@ -8,6 +8,7 @@
 
 html {
   font-size: 10px;
+  overflow-x: hidden;
 
   @media only screen and (max-width: 1200px) {
     font-size: 9px; //1rem = 9px
@@ -29,6 +30,7 @@ body {
   height: 100vh;
   padding-top: 5rem;
   padding-bottom: 2rem;
+  overflow-x: hidden;
 }
 
 .heading-primary {
