@@ -31,7 +31,6 @@ CREATE TABLE IF NOT EXISTS urls (
   -- Esp. needed for non-logged in users to prevent spamming and impose rate limits
   ip_address INET,
 
-  views INT DEFAULT 0, -- change this so that we have our own views table that saves ip address, user agent, referrer, timestamp etc
   updated_at TIMESTAMP DEFAULT now(),
   created_at TIMESTAMP DEFAULT now(),
   CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id),

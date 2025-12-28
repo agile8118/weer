@@ -5,7 +5,9 @@ export type TTables =
   | "urls"
   | "ultra_codes"
   | "sessions"
-  | "digit_codes";
+  | "digit_codes"
+  | "usernames"
+  | "views";
 
 export interface IUser {
   id: string;
@@ -59,6 +61,19 @@ export interface IDigitCode {
   url_id?: number;
   expires_at?: Date;
   assigned_at?: Date;
+}
+
+export interface IView {
+  id: number;
+  url_id: number;
+  user_agent: string;
+  referrer: string;
+  link_type: LinkType;
+  ip_address?: string;
+  country?: string;
+  city?: string;
+  visitor_hash: string;
+  created_at: Date;
 }
 
 export interface ISession {

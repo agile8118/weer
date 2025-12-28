@@ -4,10 +4,17 @@ import type {
   HandleErr,
 } from "cpeak";
 import QRCode from "qrcode";
+import crypto from "crypto";
 import path from "path";
 import type { LinkType } from "@weer/common";
 import { DB } from "../database/index.js";
-import { IUrl, ISession, IUltraCode, IDigitCode } from "../database/types.js";
+import {
+  IUrl,
+  ISession,
+  IUltraCode,
+  IDigitCode,
+  IView,
+} from "../database/types.js";
 import util from "../lib/util.js";
 import keys from "../config/keys.js";
 import {
@@ -343,7 +350,7 @@ const changeUrlType = async (
   });
 };
 
-// FIX ERROR RETURN IN CPEAK SEND FILE
+/** @TODO FIX ERROR RETURN IN CPEAK SEND FILE */
 // Redirect to the real url
 const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
   const code = req.vars?.id;
@@ -364,7 +371,7 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
     case "ultra":
       url = await DB.find<IUrl>(
         `
-        SELECT urls.real_url, urls.id, urls.views
+        SELECT urls.real_url, urls.id, urls.link_type
         FROM urls
         JOIN ultra_codes
           ON urls.id = ultra_codes.url_id
@@ -376,14 +383,14 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
       break;
     case "classic":
       url = await DB.find<IUrl>(
-        `SELECT real_url, id, views FROM urls WHERE shortened_url_id=$1`,
+        `SELECT real_url, id, link_type FROM urls WHERE shortened_url_id=$1`,
         [processedCode.code]
       );
       break;
     case "digit":
       url = await DB.find<IUrl>(
         `
-        SELECT urls.real_url, urls.id, urls.views
+        SELECT urls.real_url, urls.id, urls.link_type
         FROM urls
         JOIN digit_codes
           ON urls.id = digit_codes.url_id
@@ -404,7 +411,7 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
 
       url = await DB.find<IUrl>(
         `
-        SELECT urls.real_url, urls.id, urls.views
+        SELECT urls.real_url, urls.id, urls.link_type
         FROM urls
         JOIN users
           ON urls.user_id = users.id
@@ -419,7 +426,7 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
       break;
     case "custom":
       url = await DB.find<IUrl>(
-        `SELECT real_url, id, views FROM urls WHERE shortened_url_id=$1`,
+        `SELECT real_url, id, link_type FROM urls WHERE shortened_url_id=$1`,
         [processedCode.code]
       );
       break;
@@ -429,16 +436,31 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
     return res.sendFile(path.join(publicPath, "./no-url.html"), "text/html");
   }
 
-  // We have found the link
-  // increment the views number by one
-  await DB.update<IUrl>(
-    "urls",
-    {
-      views: url.views + 1,
-    },
-    `id = $2`,
-    [url.id]
-  );
+  /** Handling the views logic */
+
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  const userAgent = req.headers["user-agent"] || "";
+  const acceptLang = req.headers["accept-language"] || "";
+  const referrer = req.headers["referer"] || "";
+
+  const fingerprintSource = `${ip}::${userAgent}::${acceptLang}`;
+  const visitorHash = crypto
+    .createHash("sha256")
+    .update(fingerprintSource)
+    .digest("hex");
+
+  // Save the view with the hash
+  await DB.insert<IView>("views", {
+    url_id: url.id,
+
+    // For now, due to legal reasons, we won't save the ip address until we have a proper privacy policy in place.
+    // ip_address: ip ? ip.toString() : undefined,
+
+    user_agent: userAgent,
+    referrer: referrer,
+    link_type: url.link_type,
+    visitor_hash: visitorHash,
+  });
 
   res.redirect(url.real_url);
 };
