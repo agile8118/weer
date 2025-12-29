@@ -2,34 +2,62 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
   background: #f1efef;
   font-size: 1.6rem;
   margin: 4rem auto 0 auto;
-  border-radius: 7px;
+  border-radius: 8px;
   width: 75rem;
-  padding: 1.6rem 3rem;
+  padding: 1.8rem 3rem;
   position: relative;
 
-  &__real .tooltip .tooltip__text {
-    margin-bottom: 0;
+  &:has(.link__message) {
+    padding-bottom: 2.5rem;
+    padding-top: 2.5rem;
   }
 
   &__real {
     flex-basis: 35%;
+
+    .tooltip .tooltip__text {
+      margin-bottom: 0 !important;
+    }
+  }
+
+  &__shortened-link {
+    flex-basis: 25%;
+    justify-content: start;
+    display: flex;
+
+    .link__shortened-link--expired {
+      font-style: italic;
+    }
+  }
+
+  &__actions {
+    flex-basis: 40%;
+    display: flex;
+    justify-content: end;
+  }
+
+  &--on-list {
+    margin: 2.8rem auto 0 auto;
   }
 
   @media only screen and (max-width: 700px) {
-    width: 90%;
+    width: 100%;
   }
 
   @media only screen and (max-width: 650px) {
     flex-direction: column;
+    margin-top: 4rem;
     padding: 2rem 2rem;
     width: 80%;
 
     &__shortened-link {
       margin: 0.7rem 0 0.7rem 0 !important;
+      width: 100% !important;
+      justify-content: center;
+      text-align: center;
     }
 
     &__action {
@@ -39,62 +67,11 @@
 
   @media only screen and (max-width: 420px) {
     width: 100%;
-    // padding: 1.2rem 1.5rem;
-  }
 
-  &--on-list {
-    margin: 2.5rem auto 0 auto;
-    // padding: 1.6rem 3rem;
-
-    @media only screen and (max-width: 420px) {
-      // padding: 1.2rem 1.5rem;
+    &:has(.link__message) {
+      padding-bottom: 3rem;
     }
   }
-}
-
-// .link__code-actions {
-//   display: flex;
-//   align-content: center;
-//   justify-content: center;
-
-//   @media only screen and (max-width: 650px) {
-//     margin-top: 0.5rem;
-//   }
-
-//   @media only screen and (max-width: 340px) {
-//     display: flex;
-//     flex-direction: column;
-//     justify-content: center;
-//     align-content: center;
-
-//     a {
-//       margin-bottom: 0.5rem;
-//     }
-//   }
-
-//   a {
-//     display: flex;
-//     align-items: center;
-//     text-decoration: none;
-//     color: #234ebd;
-//   }
-
-//   a:hover {
-//     text-decoration: underline;
-//   }
-// }
-
-.link__shortened-link {
-  margin-right: auto;
-  margin-left: 2rem;
-
-  &--expired {
-    font-style: italic;
-  }
-}
-
-.link__actions {
-  display: flex;
 }
 
 .link__message {
@@ -127,6 +104,8 @@
     }
   }
 }
+
+// Buttons:
 
 .link__copy {
   margin-left: 2rem;

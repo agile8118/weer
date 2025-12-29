@@ -91,7 +91,7 @@ export default (({
     <div className={linkClassName}>
       <div className="link__real">
         <div className="tooltip tooltip-top">
-          {lib.cutString(realUrl, 29)}
+          {lib.cutString(realUrl, 28)}
           <div className="tooltip__text">{realUrl}</div>
         </div>
       </div>
