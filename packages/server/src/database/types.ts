@@ -68,7 +68,8 @@ export interface IView {
   url_id: number;
   user_agent: string;
   referrer: string;
-  link_type: LinkType;
+  link_type?: LinkType;
+  via_qr?: boolean;
   ip_address?: string;
   country?: string;
   city?: string;

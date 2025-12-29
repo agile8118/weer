@@ -50,9 +50,15 @@ async function checkUrlOwnership(
   next: Next,
   handleErr: HandleErr
 ) {
-  const urlId = req.vars?.id;
+  const urlId = Number(req.vars?.id);
+
+  if (!urlId) {
+    return handleErr({ status: 400, message: "Invalid URL ID." });
+  }
+
   const url = await DB.find<IUrl>(
-    `SELECT user_id, session_id FROM urls WHERE id=${urlId}`
+    `SELECT user_id, session_id FROM urls WHERE id=$1`,
+    [urlId]
   );
 
   if (!req.user) {

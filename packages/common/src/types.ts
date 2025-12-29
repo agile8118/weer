@@ -4,4 +4,5 @@ export type LinkType =
   | "custom"
   | "affix" // custom on username
   | "ultra"
-  | "digit";
+  | "digit"
+  | "qr";

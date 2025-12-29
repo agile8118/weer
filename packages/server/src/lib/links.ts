@@ -80,6 +80,11 @@ export const LINKS: Record<LinkType, any> = {
   },
   custom: {},
   affix: {},
+  qr: {
+    characterEncoding: "base64url", // using base64url to avoid special characters
+    length: 10, // 10 characters long when in base64url (7 bytes)
+    size: 7, // 7 bytes = 56 bits of entropy
+  },
 };
 
 /**
@@ -91,12 +96,19 @@ export const LINKS: Record<LinkType, any> = {
  */
 export const processCode = (
   code: string,
-  username?: string
+  username?: string,
+  url?: string
 ): { type: LinkType; code: string } | null => {
   if (username && code.length > 0) {
     /** @todo clean up & validate code */
     // Affix type
     return { type: "affix", code };
+  }
+
+  if (url && url.startsWith("/q/")) {
+    /** @todo clean up & validate code */
+    // QR code type
+    return { type: "qr", code };
   }
 
   // We first check type, then clean up, then validate
@@ -114,7 +126,7 @@ export const processCode = (
     return { type: "digit", code: cleanedCode };
   } else {
     /** @todo clean up & validate code */
-    // Finally default to custom type
+    // Finally, default to custom type
     return { type: "custom", code };
   }
 };
@@ -494,7 +506,9 @@ export const generateQRCode = async (id: number) => {
 
   while (!updated && attempts < MAX_ATTEMPTS) {
     attempts++;
-    QRCodeId = crypto.randomBytes(7).toString("base64url");
+    QRCodeId = crypto
+      .randomBytes(LINKS.qr.size)
+      .toString(LINKS.qr.characterEncoding); // base64url encoding
 
     try {
       await DB.update<IUrl>(

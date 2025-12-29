@@ -34,18 +34,17 @@ CREATE TABLE IF NOT EXISTS urls (
   updated_at TIMESTAMP DEFAULT now(),
   created_at TIMESTAMP DEFAULT now(),
   CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id),
-  CONSTRAINT fk_session FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE
-  SET NULL,
-    CONSTRAINT chk_owner CHECK (
-      (
-        user_id IS NOT NULL
-        AND session_id IS NULL
-      )
-      OR (
-        user_id IS NULL
-        AND session_id IS NOT NULL
-      )
+  CONSTRAINT fk_session FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE SET NULL,
+  CONSTRAINT chk_owner CHECK (
+    (
+      user_id IS NOT NULL
+      AND session_id IS NULL
     )
+    OR (
+      user_id IS NULL
+      AND session_id IS NOT NULL
+    )
+  )
 );
 
 -- Ensure a record cannot have the same shortened_url_id more than once if it's not on a username

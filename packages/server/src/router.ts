@@ -88,6 +88,9 @@ export default (app: Cpeak) => {
   // Send a QR code image for a link
   app.route("get", "/qr/:id", middlewares.checkUrlOwnership, Url.sendQrCode);
 
+  // Redirect to the real url via QR code
+  app.route("get", "/q/:id", Url.redirect);
+
   // Redirect to the real url
   app.route("get", "/:id", Url.redirect);
 

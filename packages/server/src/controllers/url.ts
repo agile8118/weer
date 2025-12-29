@@ -27,6 +27,26 @@ import {
 
 const publicPath = new URL("../../public", import.meta.url).pathname;
 
+// Helper functions to check affix code availability
+const isAffixAvailable = async (code: string, userId: string) => {
+  const existingCode = await DB.find<IUrl>(
+    "SELECT id FROM urls WHERE shortened_url_id=$1 AND link_type='affix' AND user_id = $2",
+    [code, userId]
+  );
+
+  return existingCode ? false : true;
+};
+
+// Helper function to check custom code availability
+const isCustomAvailable = async (code: string) => {
+  const existingCode = await DB.find<IUrl>(
+    "SELECT id FROM urls WHERE shortened_url_id=$1 AND link_type='custom'",
+    [code]
+  );
+
+  return existingCode ? false : true;
+};
+
 // Return the list of urls user has shortened
 const getUrls = async (req: Request, res: Response) => {
   let whereClause = "";
@@ -129,7 +149,6 @@ const shorten = async (
      -------------------------------------------------------------------------------- */
 
   const type = req.body?.type as LinkType;
-  const custom = req.body?.custom;
 
   let shortenedCode;
   let expiresAt;
@@ -171,9 +190,6 @@ const shorten = async (
         return handleError(error);
       }
       break;
-
-    // case "custom":
-    // case "affix":
 
     default:
       return handleError({ status: 400, message: "Invalid type" });
@@ -359,7 +375,7 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
     return handleErr(new Error("No URL ID provided"));
   }
 
-  const processedCode = processCode(code, req.vars?.username);
+  const processedCode = processCode(code, req.vars?.username, req.url);
 
   if (!processedCode) {
     return res.sendFile(path.join(publicPath, "./no-url.html"), "text/html");
@@ -424,6 +440,14 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
       );
 
       break;
+
+    case "qr":
+      url = await DB.find<IUrl>(
+        `SELECT real_url, id FROM urls WHERE qr_code_id=$1`,
+        [processedCode.code]
+      );
+      break;
+
     case "custom":
       url = await DB.find<IUrl>(
         `SELECT real_url, id, link_type FROM urls WHERE shortened_url_id=$1`,
@@ -458,7 +482,8 @@ const redirect = async (req: Request, res: Response, handleErr: HandleErr) => {
 
     user_agent: userAgent,
     referrer: referrer,
-    link_type: url.link_type,
+    link_type: processedCode.type !== "qr" ? url.link_type : undefined,
+    via_qr: processedCode.type === "qr" ? true : false,
     visitor_hash: visitorHash,
   });
 
@@ -504,7 +529,7 @@ const sendQrCode = async (
     return handleErr({ status: 404, message: "URL not found" });
   }
 
-  const data = `${keys.domain}/${url.qr_code_id}`;
+  const data = `${keys.domain}/q/${url.qr_code_id}`;
 
   // This header is needed to trigger a browser download
   if (download) {
@@ -543,24 +568,6 @@ const sendQrCode = async (
       return handleErr(err);
     }
   }
-};
-
-const isAffixAvailable = async (code: string, userId: string) => {
-  const existingCode = await DB.find<IUrl>(
-    "SELECT id FROM urls WHERE shortened_url_id=$1 AND link_type='affix' AND user_id = $2",
-    [code, userId]
-  );
-
-  return existingCode ? false : true;
-};
-
-const isCustomAvailable = async (code: string) => {
-  const existingCode = await DB.find<IUrl>(
-    "SELECT id FROM urls WHERE shortened_url_id=$1 AND link_type='custom'",
-    [code]
-  );
-
-  return existingCode ? false : true;
 };
 
 // Check to see if an affix code is available
