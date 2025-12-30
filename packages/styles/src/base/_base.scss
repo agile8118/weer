@@ -27,9 +27,15 @@ body {
   color: #555;
   position: relative;
   background: #f9f9f9;
-  height: 100vh;
   padding-top: 5rem;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+html,
+body {
+  height: 100%;
 }
 
 .heading-primary {
@@ -68,6 +74,7 @@ a {
 
 .section--2 {
   padding: 4rem 7rem 4.5rem 7rem;
+  margin-bottom: 8rem;
 
   @media only screen and (max-width: 770px) {
     padding: 3rem 4rem 3.5rem 4rem;
@@ -85,4 +92,5 @@ a {
   display: inline;
   color: inherit;
   text-decoration: none;
+  box-sizing: border-box;
 }

@@ -33,13 +33,12 @@ const Navigation: FC = () => {
               data-dropdown="user-dropdown-md"
             >
               <div
-                className="nav-dropdown__button"
+                className="nav-dropdown__button-opener"
                 data-role="dropdown"
                 data-dropdown="user-dropdown-md"
               >
                 <button
                   className="button-reset"
-                  href="#"
                   data-role="dropdown"
                   data-dropdown="user-dropdown-md"
                 >
@@ -58,23 +57,23 @@ const Navigation: FC = () => {
                 }
                 id="user-dropdown-md"
               >
-                <a
-                  href="#"
+                <button
+                  className="button-reset nav-dropdown-btn"
                   onClick={() => openModal("username")}
                   data-role="dropdown"
                 >
                   <i className="fa-solid fa-user"></i>{" "}
                   {username ? username : "Choose a username"}
-                </a>
-                <a
-                  href="#"
+                </button>
+                <button
+                  className="button-reset nav-dropdown-btn"
                   onClick={() => {
                     dom.message("Feature coming soon.", "default");
                   }}
                 >
                   <i className="fa fa-key"></i>Account
-                </a>
-                <a href="/logout">
+                </button>
+                <a className="nav-dropdown-btn" href="/logout">
                   <i className="fa fa-sign-out"></i> Logout
                 </a>
               </div>

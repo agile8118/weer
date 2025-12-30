@@ -27,7 +27,7 @@ const UrlShortener: FC<UrlShortenerProps> = (props) => {
     setLoading(true);
     let newUrl = url;
     if (!newUrl.match(/^[a-zA-Z]+:\/\//)) {
-      newUrl = "http://" + newUrl;
+      newUrl = "https://" + newUrl;
     }
 
     if (lib.validURL(newUrl)) {
