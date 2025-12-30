@@ -71,7 +71,7 @@
     margin-top: 1rem;
     display: flex;
     align-items: center;
-    justify-self: center;
+    justify-content: center;
   }
 
   &__header {
@@ -80,6 +80,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+
+    @media only screen and (max-width: 550px) {
+      flex-direction: column;
+      align-items: flex-start;
+    }
   }
 
   &__body {
@@ -109,6 +114,11 @@
     padding: 0rem 1.8rem;
     margin-left: 1rem;
     flex-shrink: 0;
+
+    @media only screen and (max-width: 550px) {
+      margin: 0 auto;
+      margin-top: 0.5rem;
+    }
   }
 
   &__action {

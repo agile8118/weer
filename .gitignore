@@ -8,6 +8,7 @@ ecosystem.config.js
 
 # Build files
 packages/server/public/styles.css
+packages/server/public/styles.css.map
 packages/server/public/scripts
 packages/reusable/dist
 packages/common/dist
