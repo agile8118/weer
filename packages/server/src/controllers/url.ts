@@ -184,6 +184,8 @@ const shorten = async (
         expiresAt = obj.expiresAt;
         shortenedCode = obj.code;
       } catch (error) {
+        /** @todo fall to classic if all digit codes are exhausted */
+
         // Delete the inserted URL record if we could not generate a code
         await DB.delete<IUrl>("urls", `id=$1`, [insertedUrl!.id]);
 

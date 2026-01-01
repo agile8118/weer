@@ -16,7 +16,11 @@
   }
 
   &__real {
-    flex-basis: 35%;
+    flex: 0 0 38%;
+    margin-right: 2%;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
     .tooltip .tooltip__text {
       margin-bottom: 0 !important;
@@ -24,7 +28,7 @@
   }
 
   &__shortened-link {
-    flex-basis: 25%;
+    flex-basis: 20%;
     justify-content: start;
     display: flex;
 
@@ -34,7 +38,9 @@
   }
 
   &__actions {
-    flex-basis: 40%;
+    flex-basis: 38%;
+    margin-left: 2%;
+
     display: flex;
     justify-content: end;
   }
