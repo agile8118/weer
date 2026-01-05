@@ -202,7 +202,7 @@ const Username: FC<UsernameProps> = (props) => {
             delete the oldest inactive username which is{" "}
             <strong>{oldestInactiveUsername}</strong>. After proceeding, your
             links like <strong>weer.pro/{oldestInactiveUsername}/...</strong>{" "}
-            will stop working, and the username will be available for other to
+            will stop working, and the username will be available for others to
             take immediately. <br />
             Are you sure you want to continue?
             <div className="username-warning__actions">

@@ -10,7 +10,8 @@
     "dev": "tsx watch ./src/index.ts",
     "janitor": "tsx ./src/janitor.ts",
     "build": "rm -rf ./dist && tsc -p .",
-    "start": "node ./dist/index.js"
+    "start": "node ./dist/index.js",
+    "cluster-dev": "tsx ./src/cluster.ts"
   },
   "author": "",
   "license": "ISC",

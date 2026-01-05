@@ -135,6 +135,7 @@
     transition: all 0.2s;
     line-height: 1.6;
     cursor: pointer;
+    color: inherit;
 
     &--selected {
       font-weight: 900;

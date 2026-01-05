@@ -24,6 +24,8 @@ export const pool = new pkg.Pool({
           rejectUnauthorized: false,
         }
       : false,
+  max: 10, // this means how many concurrent connections to the database this node process can have
+  idleTimeoutMillis: 10000, // close idle clients after 10 seconds
 });
 
 pool.query("SELECT NOW()", (err, res) => {
@@ -35,6 +37,17 @@ pool.query("SELECT NOW()", (err, res) => {
     console.log("[postgres] connected successfully to " + keys.dbDatabase);
   }
 });
+
+/** Uncomment for debugging connection pool stats:
+// Log database pool stats every 5 seconds for monitoring
+setInterval(() => {
+  console.log(`[Process ${process.pid}] DB Stats:`, {
+    total: pool.totalCount, // total connections existing in this pool
+    idle: pool.idleCount, // connections waiting for work
+    waiting: pool.waitingCount, // requests waiting for a connection to open up
+  });
+}, 5000);
+*/
 
 // Clean null values from the result
 const cleanResult = (data: any) => {
