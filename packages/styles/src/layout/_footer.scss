@@ -1,11 +1,11 @@
 .footer {
-  background-color: #3e3d3d;
+  background-color: #f0f0f1;
+  border-top: 1px solid #ebebec;
   padding: 1rem 8rem;
   display: flex;
   margin-top: auto;
   flex-direction: column;
   font-size: 1.4rem;
-  color: #fff;
 
   @media only screen and (max-width: 700px) {
     padding: 1rem 4rem;
@@ -13,11 +13,11 @@
 
   &__text {
     padding: 1.5rem 0rem;
-    color: #aeadad;
+    color: #7a7a7b;
   }
 
   &__bottom {
-    border-top: 2px solid #555555;
+    border-top: 1px solid #d4d2d2;
     width: 100%;
     display: flex;
     align-items: center;
@@ -27,7 +27,7 @@
 
   &__copyright {
     font-size: 1.4rem;
-    color: #efeeee;
+    color: #333;
     display: inline-block;
   }
 
@@ -38,7 +38,7 @@
 
   &__link {
     font-size: 2.5rem;
-    color: #fff;
+    color: #333;
     margin-left: 1.2rem;
     transition: all 0.2s;
     display: flex;
