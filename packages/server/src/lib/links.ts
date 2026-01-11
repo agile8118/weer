@@ -6,9 +6,14 @@
  */
 
 import { DB } from "../database/index.js";
-import { IUrl, ISession, IUltraCode, IDigitCode } from "../database/types.js";
+import type {
+  IUrl,
+  ISession,
+  IUltraCode,
+  IDigitCode,
+} from "../database/types.js";
 import crypto from "crypto";
-import { LinkType } from "@weer/common";
+import type { LinkType } from "@weer/common";
 
 const MAX_ATTEMPTS = 10; // Max number of retries for generating unique IDs (QR Code and Shortened URL id)
 

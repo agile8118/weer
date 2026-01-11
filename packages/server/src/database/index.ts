@@ -1,5 +1,5 @@
 import pkg from "pg";
-import { TTables, IUser, IUrl, ISession } from "./types.js";
+import type { TTables, IUser, IUrl, ISession } from "./types.js";
 import keys from "../config/keys.js";
 
 /**

@@ -2,7 +2,7 @@ import type { CpeakRequest as Request, CpeakResponse as Response } from "cpeak";
 import crypto from "crypto";
 
 import { DB } from "../database/index.js";
-import { IUser, ISession } from "../database/types.js";
+import type { IUser, ISession } from "../database/types.js";
 
 const login = async (req: Request, res: Response) => {
   // ---- Migrate any urls created during the session to the user account ---- //

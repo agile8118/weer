@@ -8,7 +8,7 @@ import crypto from "crypto";
 import path from "path";
 import type { LinkType } from "@weer/common";
 import { DB } from "../database/index.js";
-import {
+import type {
   IUrl,
   ISession,
   IUltraCode,

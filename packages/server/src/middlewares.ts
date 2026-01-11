@@ -6,7 +6,7 @@ import type {
   RouteMiddleware,
 } from "cpeak";
 import { DB } from "./database/index.js";
-import { IUser, IUrl, ISession } from "./database/types.js";
+import type { IUser, IUrl, ISession } from "./database/types.js";
 import keys from "./config/keys.js";
 
 interface Middlewares {

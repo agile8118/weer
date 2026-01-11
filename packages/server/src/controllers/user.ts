@@ -2,7 +2,7 @@ import type { CpeakRequest as Request, CpeakResponse as Response } from "cpeak";
 import crypto from "crypto";
 
 import { DB } from "../database/index.js";
-import { IUser, ISession, IUsername } from "../database/types.js";
+import type { IUser, ISession, IUsername } from "../database/types.js";
 
 const isUsernameAvailable = async (username: string): Promise<boolean> => {
   // We use EXISTS to optimize the query since we only care about existence

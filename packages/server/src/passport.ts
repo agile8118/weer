@@ -1,7 +1,8 @@
 import passport from "passport";
-import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import type { Profile } from "passport-google-oauth20";
 import { DB } from "./database/index.js";
-import { IUser } from "./database/types.js";
+import type { IUser } from "./database/types.js";
 import keys from "./config/keys.js";
 
 interface User {
