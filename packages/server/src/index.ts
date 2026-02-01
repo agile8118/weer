@@ -1,4 +1,4 @@
-import cpeak, { serveStatic, parseJSON, render } from "cpeak";
+import cpeak, { serveStatic, parseJSON } from "cpeak";
 import type { CpeakRequest as Request, CpeakResponse as Response } from "cpeak";
 
 import path from "path";
@@ -35,11 +35,11 @@ const publicPath = new URL("../public", import.meta.url).pathname;
 app.beforeEach(serveStatic(publicPath));
 
 // For sever side rendering
-app.beforeEach(render());
+// app.beforeEach(render());
 
 if (!keys.cookieKey || keys.cookieKey.length < 32) {
   console.log(
-    "You must set a cookie key in config/keys.ts file and it must be at least 32 characters long."
+    "You must set a cookie key in config/keys.ts file and it must be at least 32 characters long.",
   );
   process.exit(1);
 }
@@ -48,7 +48,7 @@ app.beforeEach(
   cookieSession({
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     keys: [keys.cookieKey],
-  }) as any
+  }) as any,
 );
 
 // Passport authentication
@@ -80,7 +80,7 @@ app.beforeEach((req, res, next) => {
         statusMessage +
         " -- response-time: " +
         processingTime +
-        " ms"
+        " ms",
     );
   });
   next();
@@ -127,7 +127,7 @@ const server = app.listen(port, () => {
       "\n----------------------------------\n" +
       "Server has started on port " +
       port +
-      "\n----------------------------------"
+      "\n----------------------------------",
   );
   console.log("Server is on port " + port);
 });

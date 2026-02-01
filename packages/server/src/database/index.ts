@@ -19,7 +19,7 @@ export const pool = new pkg.Pool({
   password: keys.dbPassword,
   port: keys.dbPort,
   ssl:
-    process.env.NODE_ENV === "production"
+    process.env.NODE_ENV_DB === "production"
       ? {
           rejectUnauthorized: false,
         }
@@ -53,13 +53,13 @@ setInterval(() => {
 const cleanResult = (data: any) => {
   if (Array.isArray(data)) {
     return data.map((row) =>
-      Object.fromEntries(Object.entries(row).filter(([_, v]) => v !== null))
+      Object.fromEntries(Object.entries(row).filter(([_, v]) => v !== null)),
     );
   }
 
   if (data && typeof data === "object") {
     return Object.fromEntries(
-      Object.entries(data).filter(([_, v]) => v !== null)
+      Object.entries(data).filter(([_, v]) => v !== null),
     );
   }
 
@@ -138,7 +138,7 @@ const update = <T>(
   table: TTables,
   data: Partial<T>,
   where: string,
-  valuesForWhere: any[] = []
+  valuesForWhere: any[] = [],
 ) => {
   return new Promise(function (resolve: (result: any) => void, reject) {
     let _columnsWithValueSpecifiers = "";
@@ -168,7 +168,7 @@ const update = <T>(
         const number = parseInt(sign.replace("$", ""));
         if (number + 1 !== _values.length + 1) {
           throw new Error(
-            `The where condition has a value specifier ${sign} which is out of range. \nThe final query looks like this which is invalid: ${query}`
+            `The where condition has a value specifier ${sign} which is out of range. \nThe final query looks like this which is invalid: ${query}`,
           );
         }
       });
@@ -198,7 +198,7 @@ const del = <T>(table: TTables, where: string, values: any[] = []) => {
           if (!res.rows || !res.rows.length) return resolve(null);
           resolve(res.rows as any);
         }
-      }
+      },
     );
   });
 };

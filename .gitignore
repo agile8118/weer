@@ -1,10 +1,11 @@
+dev.ts
+ecosystem.config.js
+
 node_modules
 .DS_Store
-dev.ts
 .env
 deploy.sh
 logs
-ecosystem.config.js
 
 # Build files
 packages/server/public/styles.css

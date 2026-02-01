@@ -13,7 +13,7 @@ async function createDatabase() {
     password: keys.dbPassword,
     port: keys.dbPort,
     ssl:
-      process.env.NODE_ENV === "production"
+      process.env.NODE_ENV_DB === "production"
         ? {
             rejectUnauthorized: false,
           }
@@ -24,7 +24,7 @@ async function createDatabase() {
     `
     SELECT 1 FROM pg_database WHERE datname = $1
   `,
-    [keys.dbDatabase]
+    [keys.dbDatabase],
   );
 
   if (result.rowCount === 0) {
@@ -44,7 +44,7 @@ const pool = new Pool({
   password: keys.dbPassword as string,
   port: keys.dbPort as number,
   ssl:
-    process.env.NODE_ENV === "production"
+    process.env.NODE_ENV_DB === "production"
       ? {
           rejectUnauthorized: false,
         }
@@ -151,7 +151,7 @@ const databasePath = new URL("./", import.meta.url).pathname;
     SELECT substr($1, g, 1)
     FROM generate_series(1, length($1)) AS g;
   `,
-    [letters]
+    [letters],
   );
 
   // Insert all 2-character codes
@@ -162,7 +162,7 @@ const databasePath = new URL("./", import.meta.url).pathname;
     FROM generate_series(1, length($1)) AS g1,
          generate_series(1, length($1)) AS g2;
   `,
-    [letters]
+    [letters],
   );
 
   console.log(
@@ -170,7 +170,7 @@ const databasePath = new URL("./", import.meta.url).pathname;
       (await pool.query("SELECT COUNT(*) FROM ultra_codes")).rows[0].count
     } records (${letters.length} one-character & ${
       letters.length * letters.length
-    } two-character ultra codes) were added to the database.`
+    } two-character ultra codes) were added to the database.`,
   );
 })();
 

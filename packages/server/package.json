@@ -8,6 +8,7 @@
     "seed": "tsx ./src/database/seed.ts",
     "test": "tsx ../../node_modules/mocha/bin/_mocha --extension ts \"__tests__/**/*.test.ts\" --timeout 10000",
     "dev": "tsx watch ./src/index.ts",
+    "dev-inspect": "tsx --inspect ./src/index.ts",
     "janitor": "tsx ./src/janitor.ts",
     "build": "rm -rf ./dist && tsc -p .",
     "start": "node ./dist/index.js",
