@@ -183,13 +183,16 @@ const shorten = async (
         const obj = await generateDigit(insertedUrl!.id);
         expiresAt = obj.expiresAt;
         shortenedCode = obj.code;
-      } catch (error) {
-        /** @todo fall to classic if all digit codes are exhausted */
+      } catch (error: any) {
+        if (error?.status === 503) {
+          // All digit codes exhausted — fall back to classic
+          shortenedCode = await generateClassic(insertedUrl!.id);
+        } else {
+          // Delete the inserted URL record if we could not generate a code
+          await DB.delete<IUrl>("urls", `id=$1`, [insertedUrl!.id]);
 
-        // Delete the inserted URL record if we could not generate a code
-        await DB.delete<IUrl>("urls", `id=$1`, [insertedUrl!.id]);
-
-        return handleError(error);
+          return handleError(error);
+        }
       }
       break;
 

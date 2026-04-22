@@ -19,7 +19,7 @@ export const pool = new pkg.Pool({
   password: keys.dbPassword,
   port: keys.dbPort,
   ssl:
-    process.env.NODE_ENV_DB === "production"
+    process.env.NODE_ENV === "production"
       ? {
           rejectUnauthorized: false,
         }
