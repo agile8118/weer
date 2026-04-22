@@ -2,7 +2,7 @@ import { Pool } from "pg";
 import fs from "fs";
 import path from "path";
 import keys from "../config/keys.js";
-import { LINKS } from "../lib/links.js";
+import { LINKS } from "../lib/link-definitions.js";
 
 // Create the database if it doesn't exist
 async function createDatabase() {
