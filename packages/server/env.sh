@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script loads environment variables either from a local .env file (for development) 
 # or from AWS SSM (for production), and then executes the given command.

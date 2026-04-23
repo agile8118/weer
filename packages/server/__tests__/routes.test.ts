@@ -1,13 +1,18 @@
 import assert from "node:assert/strict";
+import http from "http";
 import request from "supertest";
 import { after, before, describe, it } from "mocha";
-import { server } from "../src/index";
+import app from "../src/app";
 import { pool } from "../src/database";
 
 describe("URL Endpoints", () => {
   let agent: ReturnType<typeof request.agent>;
+  let server: http.Server;
 
   before(async () => {
+    await new Promise<void>((resolve) => {
+      server = app.listen(0, resolve);
+    });
     agent = request.agent(server);
     // Establish a session cookie for unauthenticated requests
     await agent.get("/auth/status");
