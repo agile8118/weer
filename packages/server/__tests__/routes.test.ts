@@ -1,23 +1,44 @@
 import assert from "node:assert/strict";
 import request from "supertest";
-import { after, describe, it } from "mocha";
+import { after, before, describe, it } from "mocha";
 import { server } from "../src/index";
 import { pool } from "../src/database";
 
 describe("URL Endpoints", () => {
-  it("should create a new shortened url", async () => {
-    const res = await request(server).post("/url").send({
+  let agent: ReturnType<typeof request.agent>;
+
+  before(async () => {
+    agent = request.agent(server);
+    // Establish a session cookie for unauthenticated requests
+    await agent.get("/auth/status");
+  });
+
+  it("should create a new classic shortened url", async () => {
+    const res = await agent.post("/url").send({
       url: "http://www.example.com",
+      type: "classic",
     });
 
     assert.strictEqual(res.statusCode, 200);
-    assert.ok(Object.prototype.hasOwnProperty.call(res.body, "shortenedURL"));
+    assert.ok(Object.prototype.hasOwnProperty.call(res.body, "code"));
     assert.strictEqual(res.body.realURL, "http://www.example.com");
   });
 
-  it("should not create a new shortened url if the url is not valid", async () => {
-    const res = await request(server).post("/url").send({
+  it("should create a new digit shortened url", async () => {
+    const res = await agent.post("/url").send({
+      url: "http://www.example.com",
+      type: "digit",
+    });
+
+    assert.strictEqual(res.statusCode, 200);
+    assert.ok(Object.prototype.hasOwnProperty.call(res.body, "code"));
+    assert.strictEqual(res.body.realURL, "http://www.example.com");
+  });
+
+  it("should not create a new classic shortened url if the url is not valid", async () => {
+    const res = await agent.post("/url").send({
       url: "random text",
+      type: "classic",
     });
 
     assert.strictEqual(res.statusCode, 400);
