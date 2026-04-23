@@ -22,11 +22,18 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    env_file:
+      - ./packages/server/.env
     environment:
       - SEED_DB
       - START_MODE
+      - DOCKER=true
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=weer
+      - DB_PASSWORD=weer
+      - DB_DATABASE=weer
     volumes:
-      - ./packages/server/.env:/mnt/host_server/.env:ro
       - app_logs:/app/packages/server/logs
 
 volumes:

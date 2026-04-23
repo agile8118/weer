@@ -1,3 +1,6 @@
+# This is an old file that needs to be updated to match the new build process. It is currently not used in the project, 
+# but it may be useful as a reference for setting up CI/CD pipelines in the future.
+
 version: 0.0
 os: linux
 files:

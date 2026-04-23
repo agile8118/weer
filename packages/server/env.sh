@@ -3,7 +3,9 @@
 # This script loads environment variables either from a local .env file (for development) 
 # or from AWS SSM (for production), and then executes the given command.
 
-if [ -f .env ]; then
+if [ "${DOCKER:-false}" = "true" ]; then
+    echo "Running in Docker: Environment variables already injected by Docker Compose..."
+elif [ -f .env ]; then
     echo "Running Locally: Loading environment variables from .env file..."
     set -a
     source .env
