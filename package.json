@@ -7,13 +7,13 @@
     "packages/*"
   ],
   "scripts": {
-    "setup": "NODE_ENV=development yarn install && yarn build && cd packages/server && yarn seed",
+    "build": "cd packages/reusable && yarn run build && cd ../common && npm run build && cd ../web && yarn run build && cd ../styles && yarn run build && cd ../server && yarn run build",
     "seed": "cd packages/server && yarn seed",
-    "start": "cd packages/server && yarn prod",
     "dev": "cd packages/server && yarn run dev",
-    "build": "cd packages/reusable && yarn run build && cd ../common && npm run build && cd ../web && yarn run build && cd ../styles && yarn run build && cd ../server && yarn run build"
+    "setup": "NODE_ENV=development yarn install && yarn build && cd packages/server && yarn seed",
+    "start": "cd packages/server && yarn prod && echo 'Server started with PM2. Run `pm2 logs` to view logs.'"
   },
-  "repository": "git@github.com:agile8118/weer.git",
+  "repository": "https://github.com/agile8118/weer.git",
   "author": "Cododev Technology",
   "license": "ISC"
 }

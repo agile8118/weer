@@ -1,0 +1,17 @@
+node_modules
+packages/*/node_modules
+
+# Build output (rebuilt inside Docker)
+packages/server/dist
+packages/server/public/scripts
+packages/server/public/styles.css
+packages/server/public/styles.css.map
+packages/reusable/dist
+packages/common/dist
+
+packages/server/logs
+packages/server/.env
+
+.git
+.claude
+.DS_Store

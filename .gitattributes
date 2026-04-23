@@ -1,0 +1,11 @@
+# This file is used to ensure consistent line endings across different operating systems and to 
+# specify how Git should handle certain file types.
+
+# Windows uses CRLF (\r\n), while Mac/Linux use LF (\n). Without these rules, Git might think a file has changed just because someone 
+# opened it on a different operating system or settings.
+
+# Tells git to normalize line endings automatically, which prevents phantom diffs when files are opened on different OSes.
+* text=auto
+
+# Forces shell scripts to always check out with LF on Windows, so Docker doesn't break.
+*.sh text eol=lf

@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: weer
+      POSTGRES_PASSWORD: weer
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U weer" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    image: weer
+    container_name: weer
+    ports:
+      - "2080:2080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - SEED_DB
+      - START_MODE
+    volumes:
+      - ./packages/server/.env:/mnt/host_server/.env:ro
+      - app_logs:/app/packages/server/logs
+
+volumes:
+  postgres_data:
+  app_logs:

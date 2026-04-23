@@ -10,7 +10,7 @@
     "dev": "./env.sh tsx watch ./src/index.ts",
     "dev-inspect": "./env.sh tsx --inspect ./src/index.ts",
     "janitor": "./env.sh tsx ./src/janitor.ts",
-    "build": "./env.sh rm -rf ./dist && tsc -p .",
+    "build": "rm -rf ./dist && tsc -p .",
     "start": "./env.sh node ./dist/index.js",
     "cluster-dev": "./env.sh tsx ./src/cluster.ts",
     "prod": "./env.sh pm2 start ecosystem.config.cjs"
