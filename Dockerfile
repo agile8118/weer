@@ -31,6 +31,5 @@ RUN cd packages/server && yarn build
 
 COPY docker-entrypoint.sh ./
 
-EXPOSE 2080
 
 ENTRYPOINT ["./docker-entrypoint.sh"]

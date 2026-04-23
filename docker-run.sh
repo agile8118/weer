@@ -51,7 +51,9 @@ SEED_DB=$SEED_DB START_MODE=$START_MODE docker compose up -d $BUILD_FLAG
 printf "\nYou can now close this terminal tab and the server will keep running in the background.\n"
 printf "For shell access run: docker exec -it weer sh\n"
 printf "To view environment variables run: docker exec -it weer printenv\n"
-printf "To view logs again after closing this session run: docker logs -f weer\n\n"
+printf "To view logs again after closing this session run: docker logs -f weer\n"
+printf "To nuke everything Docker created (containers, image, volumes): docker compose down --rmi all --volumes\n\n"
+
 
 docker logs -f weer
 
