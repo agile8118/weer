@@ -12,7 +12,8 @@
     "janitor": "./env.sh tsx ./src/janitor.ts",
     "build": "./env.sh rm -rf ./dist && tsc -p .",
     "start": "./env.sh node ./dist/index.js",
-    "cluster-dev": "./env.sh tsx ./src/cluster.ts"
+    "cluster-dev": "./env.sh tsx ./src/cluster.ts",
+    "prod": "./env.sh pm2 start ecosystem.config.cjs"
   },
   "author": "",
   "license": "ISC",

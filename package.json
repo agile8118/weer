@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "start": "cd packages/server && yarn start",
+    "start": "cd packages/server && yarn prod",
     "dev": "cd packages/server && yarn run dev",
     "build": "cd packages/reusable && yarn run build && cd ../common && npm run build && cd ../web && yarn run build && cd ../styles && yarn run build && cd ../server && yarn run build"
   },
