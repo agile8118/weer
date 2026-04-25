@@ -1,0 +1,12 @@
+{
+  "name": "@weer/stressor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "classic-rw": "node classic-rw.mjs"
+  },
+  "dependencies": {
+    "autocannon": "^8.0.0"
+  }
+}

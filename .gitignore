@@ -2,6 +2,8 @@ dev.ts
 .claude
 .mcp.json
 
+packages/stressor/codes.txt
+
 node_modules
 .DS_Store
 .env
