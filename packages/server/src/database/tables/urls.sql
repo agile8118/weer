@@ -47,6 +47,9 @@ CREATE TABLE IF NOT EXISTS urls (
   )
 );
 
+-- Index for quick lookup of shortened URLs
+CREATE INDEX idx_urls_shortened_url_id ON urls (shortened_url_id);
+
 -- Ensure a record cannot have the same shortened_url_id more than once if it's not on a username
 CREATE UNIQUE INDEX unique_global_url_code
   ON urls (shortened_url_id)
