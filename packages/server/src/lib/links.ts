@@ -18,6 +18,18 @@ import type { LinkType } from "@weer/common";
 
 const MAX_ATTEMPTS = 10; // Max number of retries for generating unique IDs (QR Code and Shortened URL id)
 
+// For performance, we pre-build the regex and conversion maps for cleaning up codes for classic, ultra, and digit types
+const buildConversion = (
+  conversions: Record<string, string>
+): [RegExp, Record<string, string>] => [
+  new RegExp(`[${Object.keys(conversions).join("")}]`, "g"),
+  conversions,
+];
+
+const [CLASSIC_RE, CLASSIC_MAP] = buildConversion(LINKS.classic.conversions);
+const [ULTRA_RE, ULTRA_MAP] = buildConversion(LINKS.ultra.conversions);
+const [DIGIT_RE, DIGIT_MAP] = buildConversion(LINKS.digit.conversions);
+
 /**
  * This function figures out the link type based on the code provided, and then
  * validates it and returns the clean up code.
@@ -76,16 +88,8 @@ const isUltraCode = (code: string): boolean => {
 };
 
 // Clean ultra code (make lowercase & replace non-supported characters)
-const cleanUltraCode = (code: string): string => {
-  let cleanedCode = code.toLowerCase();
-
-  // Replace characters based on conversions
-  for (const [key, value] of Object.entries(LINKS.ultra.conversions)) {
-    cleanedCode = cleanedCode.replace(new RegExp(key, "g"), String(value));
-  }
-
-  return cleanedCode;
-};
+const cleanUltraCode = (code: string): string =>
+  code.toLowerCase().replace(ULTRA_RE, (c) => ULTRA_MAP[c]);
 
 // Validate ultra code after running isUltraCode and cleanUltraCode
 const validateUltraCode = (code: string): boolean => {
@@ -103,16 +107,8 @@ const isClassicCode = (code: string): boolean => {
 };
 
 // Clean classic code (e.g. make lowercase)
-const cleanClassicCode = (code: string): string => {
-  let cleanedCode = code.toLowerCase();
-
-  // Replace characters based on conversions
-  for (const [key, value] of Object.entries(LINKS.classic.conversions)) {
-    cleanedCode = cleanedCode.replace(new RegExp(key, "g"), String(value));
-  }
-
-  return cleanedCode;
-};
+const cleanClassicCode = (code: string): string =>
+  code.toLowerCase().replace(CLASSIC_RE, (c) => CLASSIC_MAP[c]);
 
 // Validate classic code after running isClassicCode and cleanClassicCode
 const validateClassicCode = (code: string): boolean => {
@@ -136,16 +132,8 @@ const isDigitCode = (code: string): boolean => {
   return true;
 };
 
-const cleanDigitCode = (code: string): string => {
-  let cleanedCode = code.toLowerCase();
-
-  // Replace characters based on conversions
-  for (const [key, value] of Object.entries(LINKS.classic.conversions)) {
-    cleanedCode = cleanedCode.replace(new RegExp(key, "g"), String(value));
-  }
-
-  return cleanedCode;
-};
+const cleanDigitCode = (code: string): string =>
+  code.toLowerCase().replace(DIGIT_RE, (c) => DIGIT_MAP[c]);
 
 // Validate digit code after running isDigitCode and cleanDigitCode
 const validateDigitCode = (code: string): boolean => {
