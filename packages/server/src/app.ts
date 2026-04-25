@@ -53,6 +53,7 @@ app.beforeEach(
 app.beforeEach(passport.initialize() as any);
 app.beforeEach(passport.session());
 
+// Logging middleware
 app.beforeEach((req, res, next) => {
   const requestStart = Date.now();
   // Grab requester ip address

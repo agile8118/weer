@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "classic-rw": "node classic-rw.mjs"
+    "classic-rw": "node src/classic-rw.mjs --url http://localhost:2080 --connections 5 --sessions 500 --duration 10 write-ratio 20 --output codes.txt"
   },
   "dependencies": {
     "autocannon": "^8.0.0"

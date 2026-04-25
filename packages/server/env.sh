@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# @TODO, on ubuntu /bin/sh is dash, which doesn't support arrays. We should switch to bash or rewrite this script to be compatible with dash.
+
 # This script loads environment variables either from a local .env file (for development) 
 # or from AWS SSM (for production), and then executes the given command.
 
