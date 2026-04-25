@@ -47,8 +47,12 @@ CREATE TABLE IF NOT EXISTS urls (
   )
 );
 
--- Index for quick lookup of shortened URLs
-CREATE INDEX idx_urls_shortened_url_id ON urls (shortened_url_id);
+-- Hash Index for quick lookup of shortened URLs.
+-- Note: Why hash indexes? Since the codes are random, creating a b-tree index will make writes slightly slower (still will make reads much faster).
+--       The difference in write performance will become pronounced as the number of records grows (billions of records).
+--       But with hash indexes, the write performance will remain consistent regardless of the number of records. Tradeoff is that we can't do range queries, but we don't need that for shortened URLs.
+CREATE INDEX idx_urls_shortened_url_id ON urls USING HASH (shortened_url_id);
+
 
 -- Ensure a record cannot have the same shortened_url_id more than once if it's not on a username
 CREATE UNIQUE INDEX unique_global_url_code
