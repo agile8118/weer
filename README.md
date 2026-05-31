@@ -24,6 +24,12 @@ The development of the project will take months to complete. So follow the proje
 
 ---
 
+### Setup
+
+See [Setup](./SETUP.md) for instructions on running the project with Docker or natively.
+
+---
+
 #### Notes
 
 This project will be completely open-source, and documentation on setting up the project, source code structure, running tests, contribution, deployment, etc., will be added in the future. Thank you for your interest!
