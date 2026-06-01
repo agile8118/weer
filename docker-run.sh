@@ -65,7 +65,7 @@ printf "To view logs again after closing this session run: docker compose $PROFI
 if [ "$START_MODE" = "pm2" ]; then
   printf "To view janitor logs only: docker exec -it weer pm2 logs janitor\n"
 fi
-printf "To nuke everything Docker created (containers, image, volumes): docker compose --profile node down --rmi all --volumes\n\n"
+printf "To nuke everything Docker created (containers, images, volumes): docker compose --profile node down --rmi all --volumes\n\n"
 
 
 docker compose $PROFILE_FLAG logs -f $LOGS_SERVICES
