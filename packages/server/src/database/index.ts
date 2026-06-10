@@ -67,9 +67,9 @@ const cleanResult = (data: any) => {
 };
 
 // Fetch from the database, returns only one object or null
-const find = <T>(query: string, values: any[] = []): Promise<T | null> => {
+const find = <T>(query: string, values: any[] = [], client?: pkg.PoolClient): Promise<T | null> => {
   return new Promise((resolve, reject) => {
-    pool.query(query, values, (err, res) => {
+    (client || pool).query(query, values, (err, res) => {
       if (err) return reject(err);
 
       let rows: any[];
@@ -86,9 +86,9 @@ const find = <T>(query: string, values: any[] = []): Promise<T | null> => {
 };
 
 // Fetch from database all in one array
-const findMany = <T>(query: string, values: any[] = []): Promise<T[]> => {
+const findMany = <T>(query: string, values: any[] = [], client?: pkg.PoolClient): Promise<T[]> => {
   return new Promise((resolve, reject) => {
-    pool.query(query, values, (err, res) => {
+    (client || pool).query(query, values, (err, res) => {
       if (err) return reject(err);
 
       let rows: any[];
@@ -104,7 +104,7 @@ const findMany = <T>(query: string, values: any[] = []): Promise<T[]> => {
 };
 
 // Insert an item to the the specified table
-const insert = <T>(table: TTables, data: Partial<T>) => {
+const insert = <T>(table: TTables, data: Partial<T>, client?: pkg.PoolClient) => {
   return new Promise(function (resolve: (insertedData: T) => void, reject) {
     const _values: any[] = [];
     let _valuesSpecifiers = "";
@@ -123,7 +123,7 @@ const insert = <T>(table: TTables, data: Partial<T>) => {
 
     const query = `INSERT INTO ${table}(${_columns}) VALUES (${_valuesSpecifiers}) RETURNING *`;
 
-    pool.query(query, _values, function (error, result) {
+    (client || pool).query(query, _values, function (error, result) {
       if (error) {
         reject(error);
       } else {
@@ -139,6 +139,7 @@ const update = <T>(
   data: Partial<T>,
   where: string,
   valuesForWhere: any[] = [],
+  client?: pkg.PoolClient,
 ) => {
   return new Promise(function (resolve: (result: any) => void, reject) {
     let _columnsWithValueSpecifiers = "";
@@ -174,7 +175,7 @@ const update = <T>(
       });
     }
 
-    pool.query(query, _values, function (error, result) {
+    (client || pool).query(query, _values, function (error, result) {
       if (error) {
         reject(error);
       } else {
@@ -185,9 +186,9 @@ const update = <T>(
 };
 
 // Delete from the database
-const del = <T>(table: TTables, where: string, values: any[] = []) => {
+const del = <T>(table: TTables, where: string, values: any[] = [], client?: pkg.PoolClient) => {
   return new Promise(function (resolve: (value: T | null) => void, reject) {
-    pool.query(
+    (client || pool).query(
       `DELETE FROM ${table} WHERE ${where} RETURNING *`,
       values,
       function (err, res) {
@@ -204,9 +205,9 @@ const del = <T>(table: TTables, where: string, values: any[] = []) => {
 };
 
 // For any general query, will be used for less common and more advanced queries
-const query = (query: string, values: any[] = []) => {
+const query = (query: string, values: any[] = [], client?: pkg.PoolClient) => {
   return new Promise(function (resolve: (value: any) => void, reject) {
-    pool.query(query, values, function (err, res) {
+    (client || pool).query(query, values, function (err, res) {
       if (err) {
         reject(err);
       } else {
@@ -214,6 +215,22 @@ const query = (query: string, values: any[] = []) => {
       }
     });
   });
+};
+
+const beginTransaction = async (): Promise<pkg.PoolClient> => {
+  const client = await pool.connect();
+  await client.query("BEGIN");
+  return client;
+};
+
+const commit = async (client: pkg.PoolClient): Promise<void> => {
+  await client.query("COMMIT");
+  client.release();
+};
+
+const rollback = async (client: pkg.PoolClient): Promise<void> => {
+  await client.query("ROLLBACK");
+  client.release();
 };
 
 export const DB = {
@@ -224,4 +241,7 @@ export const DB = {
   delete: del,
   query,
   cleanResult,
+  beginTransaction,
+  commit,
+  rollback,
 };
