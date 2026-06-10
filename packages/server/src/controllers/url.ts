@@ -293,15 +293,20 @@ const changeUrlType = async (req: Request, res: Response) => {
       }
 
       // Update the url record with the affix code
-      await DB.update<IUrl>(
-        "urls",
-        {
-          shortened_url_id: affixCode,
-          link_type: "affix",
-        },
-        `id = $3`,
-        [id]
-      );
+      try {
+        await DB.update<IUrl>(
+          "urls",
+          {
+            shortened_url_id: affixCode,
+            link_type: "affix",
+          },
+          `id = $3`,
+          [id]
+        );
+      } catch (e: any) {
+        if (e.code === "23505") throw { status: 400, message: "Code is not available" };
+        throw e;
+      }
 
       newShortenedCode = affixCode;
       break;
@@ -316,15 +321,20 @@ const changeUrlType = async (req: Request, res: Response) => {
       }
 
       // Update the url record with the custom code
-      await DB.update<IUrl>(
-        "urls",
-        {
-          shortened_url_id: customCode,
-          link_type: "custom",
-        },
-        `id = $3`,
-        [id]
-      );
+      try {
+        await DB.update<IUrl>(
+          "urls",
+          {
+            shortened_url_id: customCode,
+            link_type: "custom",
+          },
+          `id = $3`,
+          [id]
+        );
+      } catch (e: any) {
+        if (e.code === "23505") throw { status: 400, message: "Code is not available" };
+        throw e;
+      }
 
       newShortenedCode = customCode;
       break;

@@ -237,6 +237,9 @@ export const generateUltra = async (id: number) => {
    * Find the first available ultra code. And then update that ultra code to be linked
    * to this url id.
    * We do this atomically to avoid race conditions when many people are hitting this route.
+   *
+   * 'for update' here means that we are locking the selected row until the transaction is committed.
+   * This prevents other transactions from modifying or selecting these rows until we're done with them.
    */
   try {
     const result = await DB.query(
