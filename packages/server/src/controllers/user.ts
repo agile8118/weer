@@ -49,47 +49,61 @@ const updateUsername = async (req: Request, res: Response) => {
     return res.status(409).json({ error: "Username is already taken" });
   }
 
-  // Get all user's usernames. First record is the one that expires the soonest due to ORDER BY expires_at, and last
-  // one is the active username (expires_at is NULL for active username)
-  const usernameRecords = await DB.findMany<IUsername>(
-    `SELECT username, expires_at, active FROM usernames WHERE user_id = $1 ORDER BY expires_at ASC NULLS LAST`,
-    [userId]
-  );
-
-  // Find the user's active username
-  const oldUsername = usernameRecords.find((r) => r.active)?.username;
-
-  // We only keep 3 inactive usernames per user. If the user already has 3 inactive usernames, delete
-  // the one that is set to expire the soonest
-
-  const inactiveUsernames = usernameRecords
-    ? usernameRecords.filter((r) => !r.active)
-    : [];
-
-  if (inactiveUsernames.length >= 3) {
-    // Find the oldest inactive username
-    const oldest = inactiveUsernames[0];
-
-    // Delete the oldest inactive username
-    await DB.query(
-      `DELETE FROM usernames WHERE user_id = $1 AND username = $2`,
-      [userId, oldest.username]
+  const client = await DB.beginTransaction();
+  try {
+    // Get all user's usernames. First record is the one that expires the soonest due to ORDER BY expires_at, and last
+    // one is the active username (expires_at is NULL for active username)
+    const usernameRecords = await DB.findMany<IUsername>(
+      `SELECT username, expires_at, active FROM usernames WHERE user_id = $1 ORDER BY expires_at ASC NULLS LAST`,
+      [userId],
+      client
     );
+
+    // Find the user's active username
+    const oldUsername = usernameRecords.find((r) => r.active)?.username;
+
+    // We only keep 3 inactive usernames per user. If the user already has 3 inactive usernames, delete
+    // the one that is set to expire the soonest
+
+    const inactiveUsernames = usernameRecords
+      ? usernameRecords.filter((r) => !r.active)
+      : [];
+
+    if (inactiveUsernames.length >= 3) {
+      // Find the oldest inactive username
+      const oldest = inactiveUsernames[0];
+
+      // Delete the oldest inactive username
+      await DB.query(
+        `DELETE FROM usernames WHERE user_id = $1 AND username = $2`,
+        [userId, oldest.username],
+        client
+      );
+    }
+
+    // Deactivate the existing username for the user and set expires_at one month from now
+    await DB.query(
+      `UPDATE usernames SET active = false, expires_at = NOW() + INTERVAL '1 month' WHERE user_id = $1 AND username = $2`,
+      [userId, oldUsername],
+      client
+    );
+
+    // Insert the new username
+    await DB.query(
+      `INSERT INTO usernames (user_id, username, active) VALUES ($1, $2, true)`,
+      [userId, newUsername.toLowerCase()],
+      client
+    );
+
+    await DB.commit(client);
+    return res.status(200).json({ message: "Username updated successfully" });
+  } catch (e: any) {
+    await DB.rollback(client);
+    if (e.code === "23505") {
+      return res.status(409).json({ error: "Username is already taken" });
+    }
+    throw e;
   }
-
-  // Deactivate the existing username for the user and set expires_at one month from now
-  await DB.query(
-    `UPDATE usernames SET active = false, expires_at = NOW() + INTERVAL '1 month' WHERE user_id = $1 AND username = $2`,
-    [userId, oldUsername]
-  );
-
-  // Insert the new username
-  await DB.query(
-    `INSERT INTO usernames (user_id, username, active) VALUES ($1, $2, true)`,
-    [userId, newUsername.toLowerCase()]
-  );
-
-  return res.status(200).json({ message: "Username updated successfully" });
 };
 
 const switchUsername = async (req: Request, res: Response) => {

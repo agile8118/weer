@@ -7,7 +7,7 @@
  */
 
 import autocannon from 'autocannon';
-import { writeFileSync, readFileSync, existsSync } from 'fs';
+import { writeFileSync, readSync, openSync, closeSync, existsSync } from 'fs';
 import { randomBytes } from 'crypto';
 
 const DOMAINS = [
@@ -128,8 +128,13 @@ async function main() {
 
   // Seed the code pool from the output file (populated by a prior write run)
   if (existsSync(opts.output)) {
-    const lines = readFileSync(opts.output, 'utf8').split('\n').filter(Boolean);
-    codePool.push(...lines);
+    const fd = openSync(opts.output, 'r');
+    const buffer = Buffer.alloc(1_000_000);
+    const bytesRead = readSync(fd, buffer, 0, buffer.length, 0);
+    closeSync(fd);
+    const lines = buffer.toString('utf8', 0, bytesRead).split('\n').filter(Boolean);
+    if (bytesRead === buffer.length) lines.pop(); // last line may be cut off mid-code
+    for (const line of lines) codePool.push(line);
     console.log(`Loaded ${codePool.length} codes from ${opts.output}.\n`);
   } else if (opts.writeRatio < 100) {
     console.warn(`Warning: ${opts.output} not found — read requests will have no codes until writes produce some.\n`);
