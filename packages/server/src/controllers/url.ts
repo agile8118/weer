@@ -14,6 +14,7 @@ import type {
 import util from "../lib/util.js";
 import { push as pushView } from "../redis/views-stream.js";
 import keys from "../config/keys.js";
+import { isAllowlistedDomain } from "../lib/domain-allowlist.js";
 import {
   generateClassic,
   generateUltra,
@@ -304,7 +305,8 @@ const changeUrlType = async (req: Request, res: Response) => {
           [id]
         );
       } catch (e: any) {
-        if (e.code === "23505") throw { status: 400, message: "Code is not available" };
+        if (e.code === "23505")
+          throw { status: 400, message: "Code is not available" };
         throw e;
       }
 
@@ -332,7 +334,8 @@ const changeUrlType = async (req: Request, res: Response) => {
           [id]
         );
       } catch (e: any) {
-        if (e.code === "23505") throw { status: 400, message: "Code is not available" };
+        if (e.code === "23505")
+          throw { status: 400, message: "Code is not available" };
         throw e;
       }
 
@@ -353,26 +356,15 @@ const changeUrlType = async (req: Request, res: Response) => {
   });
 };
 
-/** @TODO FIX ERROR RETURN IN CPEAK SEND FILE */
-// Redirect to the real url
-const redirect = async (req: Request, res: Response) => {
-  const code = req.params?.id;
-
-  if (!code) {
-    throw new Error("No URL ID provided");
-  }
-
-  const processedCode = processCode(code, req.params?.username, req.url);
-
-  if (!processedCode) {
-    return res.sendFile(path.join(publicPath, "./no-url.html"), "text/html");
-  }
-
-  let url;
-
+// Resolve a processed code (+ username, for affix links) back to its urls record.
+// Shared by redirect() and redirectWarningPage() so both use the exact same lookup.
+async function resolveUrlRecord(
+  processedCode: { type: LinkType; code: string },
+  username?: string
+): Promise<IUrl | null> {
   switch (processedCode.type) {
     case "ultra":
-      url = await DB.find<IUrl>(
+      return DB.find<IUrl>(
         `
         SELECT urls.real_url, urls.id, urls.link_type
         FROM urls
@@ -382,16 +374,13 @@ const redirect = async (req: Request, res: Response) => {
       `,
         [processedCode.code]
       );
-
-      break;
     case "classic":
-      url = await DB.find<IUrl>(
+      return DB.find<IUrl>(
         `SELECT real_url, id, link_type FROM urls WHERE shortened_url_id=$1`,
         [processedCode.code]
       );
-      break;
     case "digit":
-      url = await DB.find<IUrl>(
+      return DB.find<IUrl>(
         `
         SELECT urls.real_url, urls.id, urls.link_type
         FROM urls
@@ -401,18 +390,10 @@ const redirect = async (req: Request, res: Response) => {
       `,
         [processedCode.code]
       );
-      break;
     case "affix":
-      const username = req.params?.username;
+      if (!username) return null;
 
-      if (!username) {
-        return res.sendFile(
-          path.join(publicPath, "./no-url.html"),
-          "text/html"
-        );
-      }
-
-      url = await DB.find<IUrl>(
+      return DB.find<IUrl>(
         `
         SELECT urls.real_url, urls.id, urls.link_type
         FROM urls
@@ -425,26 +406,40 @@ const redirect = async (req: Request, res: Response) => {
       `,
         [processedCode.code, username]
       );
-
-      break;
-
     case "qr":
-      url = await DB.find<IUrl>(
+      return DB.find<IUrl>(
         `SELECT real_url, id FROM urls WHERE qr_code_id=$1`,
         [processedCode.code]
       );
-      break;
-
     case "custom":
-      url = await DB.find<IUrl>(
+      return DB.find<IUrl>(
         `SELECT real_url, id, link_type FROM urls WHERE shortened_url_id=$1`,
         [processedCode.code]
       );
-      break;
+    default:
+      return null;
+  }
+}
+
+/** @TODO FIX ERROR RETURN IN CPEAK SEND FILE */
+// Redirect to the real url
+const redirect = async (req: Request, res: Response) => {
+  const code = req.params?.id;
+
+  if (!code) {
+    throw new Error("No URL ID provided");
   }
 
+  const processedCode = processCode(code, req.params?.username, req.url);
+
+  if (!processedCode) {
+    return res.sendFile(path.join(publicPath, "./404.html"), "text/html");
+  }
+
+  const url = await resolveUrlRecord(processedCode, req.params?.username);
+
   if (!url) {
-    return res.sendFile(path.join(publicPath, "./no-url.html"), "text/html");
+    return res.sendFile(path.join(publicPath, "./404.html"), "text/html");
   }
 
   /** Handling the views logic */
@@ -482,7 +477,34 @@ const redirect = async (req: Request, res: Response) => {
     await DB.insert<IView>("views", viewData);
   }
 
-  res.redirect(url.real_url);
+  if (isAllowlistedDomain(url.real_url)) {
+    res.redirect(url.real_url);
+  } else {
+    const queryString = new URLSearchParams({
+      type: processedCode.type,
+      code: processedCode.code,
+    });
+    if (req.params?.username) queryString.set("username", req.params.username);
+    res.redirect(`/redirect-warning?${queryString.toString()}`);
+  }
+};
+
+// Shown before redirecting to a non-whitelisted destination, so visitors can see
+// where they're actually being sent before continuing.
+const redirectWarningPage = async (req: Request, res: Response) => {
+  res.sendFile(path.join(publicPath, "./redirect-warning.html"), "text/html");
+};
+
+// Called client-side by redirect-warning.html to fetch the destination it should show
+const redirectWarningData = async (req: Request, res: Response) => {
+  const type = req.query?.type as LinkType | undefined;
+  const code = req.query?.code as string | undefined;
+  const username = req.query?.username as string | undefined;
+
+  const url =
+    type && code ? await resolveUrlRecord({ type, code }, username) : null;
+
+  res.json({ realUrl: url?.real_url ?? null });
 };
 
 // Delete a url record
@@ -632,6 +654,8 @@ export default {
   getUrls,
   shorten,
   redirect,
+  redirectWarningPage,
+  redirectWarningData,
   remove,
   sendQrCode,
   changeUrlType,

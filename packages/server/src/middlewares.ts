@@ -7,11 +7,14 @@ import type {
 import { DB } from "./database/index.js";
 import type { IUser, IUrl, ISession } from "./database/types.js";
 import keys from "./config/keys.js";
+import { isAllowlistedDomain } from "./lib/domain-allowlist.js";
+import { isUrlMalicious } from "./lib/web-risk.js";
 
 interface Middlewares {
   isValidURL: RouteMiddleware;
   checkUrlOwnership: RouteMiddleware;
   requireAuth: RouteMiddleware;
+  checkUrlSafety: RouteMiddleware;
 }
 
 function isValidURL(req: Request, res: Response, next: Next) {
@@ -71,10 +74,24 @@ async function requireAuth(req: Request, res: Response, next: Next) {
   next();
 }
 
+async function checkUrlSafety(req: Request, res: Response, next: Next) {
+  const url = (req.body as { url?: string })?.url || "";
+
+  if (!isAllowlistedDomain(url) && (await isUrlMalicious(url))) {
+    throw {
+      status: 400,
+      message: "This URL has been flagged as unsafe and cannot be shortened.",
+    };
+  }
+
+  next();
+}
+
 const middlewares: Middlewares = {
   isValidURL,
   checkUrlOwnership,
   requireAuth,
+  checkUrlSafety,
 };
 
 export default middlewares;

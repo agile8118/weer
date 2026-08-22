@@ -80,14 +80,10 @@ app.route("get", "/", (req: Request, res: Response) => {
 // ------ API Routes ------ //
 apiRouter(app);
 
-/*
-
-// Send 404 page
-app.get("*", (req, res) => {
-  res.sendFile("404.html", { root: __dirname + "/../public" });
+// Send 404 page for any route nothing else matched
+app.fallback((req: Request, res: Response) => {
+  res.sendFile(path.join(publicPath, "./404.html"), "text/html");
 });
-
-*/
 
 // Handle all the errors that could happen in the routes
 app.handleErr((error: any, req: Request, res: Response) => {

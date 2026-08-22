@@ -56,13 +56,13 @@ export default (app: Cpeak) => {
   // ------------------------------------------------ //
 
   // Get the url, shorten it and save to database
-  app.route("post", "/url", middlewares.isValidURL, Url.shorten);
+  app.route("post", "/url", middlewares.isValidURL, middlewares.checkUrlSafety, Url.shorten);
 
   // Change the type of a url (e.g. from default to custom). User can do this from the customization modal
   app.route("patch", "/url/:id/type", Url.changeUrlType);
 
   // Update the destination URL of an existing shortened link
-  app.route("patch", "/url/:id/real-url", middlewares.checkUrlOwnership, middlewares.isValidURL, Url.updateRealUrl);
+  app.route("patch", "/url/:id/real-url", middlewares.checkUrlOwnership, middlewares.isValidURL, middlewares.checkUrlSafety, Url.updateRealUrl);
 
   // Return the list of urls user has shortened
   app.route("get", "/url", Url.getUrls);
@@ -82,6 +82,12 @@ export default (app: Cpeak) => {
 
   // Redirect to the real url via QR code
   app.route("get", "/q/:id", Url.redirect);
+
+  // Shown before redirecting to a non-whitelisted destination
+  app.route("get", "/redirect-warning", Url.redirectWarningPage);
+
+  // Fetched client-side by the redirect warning page to get the destination it should show
+  app.route("get", "/redirect-warning/data", Url.redirectWarningData);
 
   // Redirect to the real url
   app.route("get", "/:id", Url.redirect);

@@ -5,34 +5,3 @@
   margin-top: 3rem;
   text-align: center;
 }
-
-.no-url-box-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.no-url-box {
-  max-width: 65rem;
-  border-radius: 1rem;
-  margin: 4rem 2rem 0 2rem;
-  font-size: 1.8rem;
-  text-align: center;
-  color: #fff;
-  background-color: $color-default;
-  padding: 2.5rem 5rem;
-  box-shadow: 0 0 7px 3px rgba(0, 0, 0, 0.32);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-
-  h2 {
-    font-weight: 300;
-    margin-bottom: 1rem;
-  }
-
-  .button {
-    margin-top: 2rem;
-  }
-}

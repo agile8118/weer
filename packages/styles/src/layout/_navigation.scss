@@ -1,5 +1,9 @@
 @use "../abstracts/variables" as *;
 
+.has-fixed-nav {
+  padding-top: 5rem;
+}
+
 .navigation {
   font-size: 1.8rem;
   padding: 0 2rem;

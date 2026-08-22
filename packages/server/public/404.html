@@ -1,32 +1,60 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" dir="ltr">
-
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
-    <title>No URL Found</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="manifest" href="/site.webmanifest" />
-    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
-    <meta name="msapplication-TileColor" content="#da532c" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
+    />
+    <title>Page Not Found | Weer</title>
+    <link
+      rel="icon"
+      type="image/png"
+      href="/favicons/favicon-96x96.png"
+      sizes="96x96"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg" />
+    <link rel="shortcut icon" href="/favicons/favicon.ico" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/favicons/apple-touch-icon.png"
+    />
+    <link rel="manifest" href="/favicons/site.webmanifest" />
     <meta name="theme-color" content="#ffffff" />
 
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato:100,300,300i,400,500,700"
+      rel="stylesheet"
+    />
+
     <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/font-awesome/css/all.min.css" />
   </head>
 
-  <body>
-    <div class="box-message">
-      <h1>404</h1>
-      <h2>Page not found</h2>
-      <p>
-        The page you are looking for was not found in our database.
-        You may want to visit our <a href="/">Home Page</a>.
+  <body class="body-404">
+    <nav class="nav-404">
+      <a href="/" class="navigation__logo">
+        <img src="/logo.svg" alt="Weer Logo" />
+        <span>Weer</span>
+      </a>
+    </nav>
+
+    <main class="not-found">
+      <div class="not-found__glow"></div>
+      <div class="not-found__number">404</div>
+      <div class="not-found__icon"><i class="fa-solid fa-compass"></i></div>
+      <h1 class="not-found__title">Page not found</h1>
+      <p class="not-found__subtitle">
+        The page you're looking for doesn't exist or has been moved. Let's
+        get you back on track.
       </p>
-    </div>
-
-    <br /><br /><br />
+      <div class="not-found__actions">
+        <a href="/" class="button button-blue button-rounded button-with-icon"
+          ><span class="button__icon-left"><i class="fa-solid fa-house"></i></span
+          ><span>Go Home &rarr;</span></a
+        >
+      </div>
+    </main>
   </body>
-
 </html>

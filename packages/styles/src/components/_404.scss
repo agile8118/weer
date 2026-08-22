@@ -1,0 +1,135 @@
+@use "../abstracts/variables" as *;
+
+.body-404 {
+  min-height: 100vh;
+  background-color: #fafbfc;
+  overflow: hidden;
+
+  @media only screen and (max-width: 900px) {
+    padding: 0;
+  }
+}
+
+.nav-404 {
+  padding: 3rem 5rem 0;
+  display: flex;
+
+  @media only screen and (max-width: 500px) {
+    padding: 2.5rem 2.5rem 0;
+  }
+}
+
+@keyframes not-found-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes not-found-drift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.2rem);
+  }
+}
+
+.not-found {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem 8rem;
+  animation: not-found-fade-up 0.5s ease both;
+
+  &__glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60rem;
+    height: 60rem;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(
+      circle,
+      rgba($color-blue, 0.14) 0%,
+      rgba($color-blue, 0) 65%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  &__number {
+    position: relative;
+    z-index: 1;
+    font-size: 18rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0;
+    user-select: none;
+    color: transparent;
+    -webkit-text-stroke: 3px $color-blue;
+    animation: not-found-drift 5s ease-in-out infinite;
+
+    @media only screen and (max-width: 500px) {
+      font-size: 10rem;
+      -webkit-text-stroke-width: 2px;
+    }
+  }
+
+  &__icon {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 5.4rem;
+    height: 5.4rem;
+    margin-top: 1rem;
+    border-radius: 50%;
+    background-color: rgba($color-blue, 0.1);
+    color: $color-blue;
+    font-size: 2.2rem;
+  }
+
+  &__title {
+    position: relative;
+    z-index: 1;
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: $color-blue-dark;
+    margin-top: 1.4rem;
+    margin-bottom: 1.4rem;
+
+    @media only screen and (max-width: 500px) {
+      font-size: 2.1rem;
+    }
+  }
+
+  &__subtitle {
+    position: relative;
+    z-index: 1;
+    font-size: 1.7rem;
+    color: #777;
+    max-width: 44rem;
+    margin-bottom: 4rem;
+    line-height: 1.7;
+  }
+
+  &__actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

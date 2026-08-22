@@ -11,6 +11,7 @@ export default {
   googleClientID: getEnv("GOOGLE_CLIENT_ID"),
   googleClientSecret: getEnv("GOOGLE_CLIENT_SECRET"),
   cookieKey: getEnv("COOKIE_KEY"),
+  webRiskApiKey: getEnv("WEB_RISK_API_KEY"),
   // Postgres
   dbUser: getEnv("DB_USER"),
   dbHost: getEnv("DB_HOST"),
