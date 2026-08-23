@@ -7,7 +7,8 @@ export type TTables =
   | "sessions"
   | "digit_codes"
   | "usernames"
-  | "views";
+  | "views"
+  | "rate_limits";
 
 export interface IUser {
   id: number;
@@ -17,10 +18,17 @@ export interface IUser {
   name?: string;
   password?: string;
   verified?: boolean;
+  link_credits?: number;
   token_code?: string;
   token_date?: Date;
   updated_at: Date;
   created_at: Date;
+}
+
+export interface IRateLimit {
+  ip_address: string;
+  burst_count: number;
+  burst_reset_at: Date;
 }
 
 export interface IUsername {

@@ -9,12 +9,14 @@ import type { IUser, IUrl, ISession } from "./database/types.js";
 import keys from "./config/keys.js";
 import { isAllowlistedDomain } from "./lib/domain-allowlist.js";
 import { isUrlMalicious } from "./lib/web-risk.js";
+import { enforceRateLimit } from "./lib/rate-limit.js";
 
 interface Middlewares {
   isValidURL: RouteMiddleware;
   checkUrlOwnership: RouteMiddleware;
   requireAuth: RouteMiddleware;
   checkUrlSafety: RouteMiddleware;
+  rateLimitUrl: RouteMiddleware;
 }
 
 function isValidURL(req: Request, res: Response, next: Next) {
@@ -87,11 +89,17 @@ async function checkUrlSafety(req: Request, res: Response, next: Next) {
   next();
 }
 
+async function rateLimitUrl(req: Request, res: Response, next: Next) {
+  await enforceRateLimit(req);
+  next();
+}
+
 const middlewares: Middlewares = {
   isValidURL,
   checkUrlOwnership,
   requireAuth,
   checkUrlSafety,
+  rateLimitUrl,
 };
 
 export default middlewares;

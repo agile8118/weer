@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
 
   link_count INTEGER DEFAULT 0, -- number of URLs user has shortened. Includes deleted links and customization.
 
+  link_credits INTEGER NOT NULL DEFAULT 100, -- lifetime link creation/edit budget. Can be increased.
+
   token_code VARCHAR(200),
   token_date TIMESTAMP,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,

@@ -19,6 +19,7 @@ const DROP_ORDER = [
   "link_type_enum", // this is a TYPE, not a table
   "usernames",
   "sessions",
+  "rate_limits",
   "users",
 ];
 
@@ -31,6 +32,7 @@ const CREATE_ORDER: Array<[name: string, file: string]> = [
   ["digit_codes", "tables/digit_codes.sql"],
   ["views", "tables/views.sql"],
   ["usernames", "tables/usernames.sql"],
+  ["rate_limits", "tables/rate_limits.sql"],
 ];
 
 // Create the database if it doesn't exist
@@ -140,7 +142,7 @@ export async function seedCodes(pool: Pool, opts: { verbose?: boolean } = {}) {
 // Note: ultra_codes rows are preserved but freed (url_id reset to NULL).
 export async function truncateAll(pool: Pool) {
   await pool.query(
-    `TRUNCATE views, digit_codes, ultra_codes, urls, sessions, usernames, users RESTART IDENTITY`,
+    `TRUNCATE views, digit_codes, ultra_codes, urls, sessions, usernames, rate_limits, users RESTART IDENTITY`,
   );
   // ultra_codes is pre-seeded reference data — restore it after truncation
   await seedCodes(pool);

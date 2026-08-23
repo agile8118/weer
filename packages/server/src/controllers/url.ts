@@ -15,6 +15,7 @@ import util from "../lib/util.js";
 import { push as pushView } from "../redis/views-stream.js";
 import keys from "../config/keys.js";
 import { isAllowlistedDomain } from "../lib/domain-allowlist.js";
+import { enforceRateLimit } from "../lib/rate-limit.js";
 import {
   generateClassic,
   generateUltra,
@@ -349,6 +350,8 @@ const changeUrlType = async (req: Request, res: Response) => {
 
   const typesWithExpiresAt = ["ultra", "digit"];
 
+  await enforceRateLimit(req);
+
   return res.json({
     newType,
     expiresAt: typesWithExpiresAt.includes(newType) ? expiresAt : null,
@@ -444,7 +447,7 @@ const redirect = async (req: Request, res: Response) => {
 
   /** Handling the views logic */
 
-  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  const ip = util.getClientIp(req);
   const userAgent = req.headers["user-agent"] || "";
   const acceptLang = req.headers["accept-language"] || "";
   const referrer = req.headers["referer"] || "";
@@ -457,10 +460,7 @@ const redirect = async (req: Request, res: Response) => {
 
   const viewData = {
     url_id: url.id,
-
-    // For now, due to legal reasons, we won't save the ip address until we have a proper privacy policy in place.
-    // ip_address: ip ? ip.toString() : undefined,
-
+    ip_address: ip ?? undefined,
     user_agent: userAgent,
     referrer: referrer,
     link_type: processedCode.type !== "qr" ? url.link_type : undefined,
