@@ -77,6 +77,14 @@ app.route("get", "/", (req: Request, res: Response) => {
   res.sendFile(path.join(publicPath, "./index.html"), "text/html");
 });
 
+app.route("get", "/terms", (req: Request, res: Response) => {
+  res.sendFile(path.join(publicPath, "./terms.html"), "text/html");
+});
+
+app.route("get", "/privacy", (req: Request, res: Response) => {
+  res.sendFile(path.join(publicPath, "./privacy.html"), "text/html");
+});
+
 // ------ API Routes ------ //
 apiRouter(app);
 
