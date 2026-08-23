@@ -11,6 +11,8 @@ import QRCodeModal from "./QRCode";
 import Username from "./Username";
 import EditRealUrlModal from "./EditRealUrl";
 import LinkStatsModal from "./LinkStats";
+import AccountModal from "./AccountModal";
+import CreditsModal from "./CreditsModal";
 
 interface GlobalModalRendererProps {
   modal: { type: string | null; props?: Record<string, any> };
@@ -40,6 +42,12 @@ export const GlobalModalRenderer = ({
 
     case "username":
       return <Username open onClose={closeModal} />;
+
+    case "account":
+      return <AccountModal open onClose={closeModal} />;
+
+    case "credits":
+      return <CreditsModal open onClose={closeModal} />;
 
     case "customizeLink":
       return (

@@ -4,6 +4,7 @@ import axios from "axios";
 import { Modal, Button, Input } from "@weer/reusable";
 import dom from "../../lib/dom";
 import lib from "../../lib";
+import { useAuth } from "../../AuthContext";
 
 interface EditRealUrlProps {
   open: boolean;
@@ -17,6 +18,7 @@ const EditRealUrl: FC<EditRealUrlProps> = (props) => {
   const [value, setValue] = useState<string>(props.realUrl);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const { refreshAuth } = useAuth();
 
   const onSubmit = async () => {
     if (!props.urlId) return;
@@ -35,6 +37,7 @@ const EditRealUrl: FC<EditRealUrlProps> = (props) => {
       props.onSuccess(newUrl);
       props.onClose();
       dom.message("Destination URL updated.", "success");
+      refreshAuth();
     } catch (e) {
       lib.handleErr(e);
     }

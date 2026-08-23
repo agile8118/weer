@@ -16,6 +16,7 @@ interface AuthContextValue {
   refreshAuth: () => Promise<void>;
   updateUsername: (newUsername: string) => Promise<void>;
   inactiveUsernames: InactiveUsername[];
+  linkCredits: number;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -43,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [inactiveUsernames, setInactiveUsernames] = useState<
     InactiveUsername[]
   >([]);
+  const [linkCredits, setLinkCredits] = useState<number>(0);
 
   const refreshAuth = useCallback(async () => {
     setLoading(true);
@@ -50,6 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     setIsSignedIn(data.isSignedIn);
     setEmail(data.email);
+    setLinkCredits(data.linkCredits ?? 0);
 
     if (data.isSignedIn) {
       // Find the active username and set it
@@ -100,6 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         loading,
         updateUsername,
         inactiveUsernames,
+        linkCredits,
       }}
     >
       {children}

@@ -63,6 +63,25 @@
   margin-right: 1rem;
 }
 
+.nav-credits-btn {
+  display: inline-flex;
+  align-items: center;
+  color: $color-green;
+  background-color: rgba($color-green, 0.1);
+  border: 1.5px solid rgba($color-green, 0.5);
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  margin-right: 0.2rem;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: rgba($color-green, 0.18);
+    border-color: $color-green;
+  }
+}
+
 /* Navigation dropdown */
 .nav-dropdown {
   margin-right: 1rem;

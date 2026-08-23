@@ -82,12 +82,14 @@ const checkAuthStatus = async (req: Request, res: Response) => {
   if (req.user) {
     interface UserWithUsernames {
       email: string;
+      link_credits: number;
       usernames: { value: string; expires_at: Date | null; active: boolean }[];
     }
 
     const user = await DB.find<UserWithUsernames>(
       `SELECT
         users.email,
+        users.link_credits,
         COALESCE(
         JSON_AGG(
           JSON_BUILD_OBJECT(
@@ -108,6 +110,7 @@ const checkAuthStatus = async (req: Request, res: Response) => {
       return res.json({
         isSignedIn: true,
         email: user.email,
+        linkCredits: user.link_credits,
         usernames: user.usernames,
       });
     } else {

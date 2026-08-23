@@ -234,7 +234,7 @@ const Username: FC<UsernameProps> = (props) => {
 
         {!usernameInactiveWarning && (
           <form action="">
-            <div className="form-group">
+            <div className="form-group u-margin-top-1">
               <Input
                 success={inputSuccess ?? undefined}
                 error={inputError ?? undefined}

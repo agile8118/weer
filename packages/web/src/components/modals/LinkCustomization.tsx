@@ -26,7 +26,7 @@ interface LinkCustomizationProps {
 }
 
 const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
-  const { isSignedIn, username } = useAuth();
+  const { isSignedIn, username, refreshAuth } = useAuth();
   const { openModal, closeModal } = useModal();
 
   const [ultraLoading, setUltraLoading] = useState<boolean>(false);
@@ -75,6 +75,7 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
       });
 
       props.onChangeType("ultra", data.expiresAt, data.code);
+      refreshAuth();
     } catch (error: any) {
       lib.handleErr(error);
     } finally {
@@ -91,6 +92,7 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
       });
 
       props.onChangeType("classic", undefined, data.code);
+      refreshAuth();
     } catch (error: any) {
       lib.handleErr(error);
     } finally {
@@ -107,6 +109,7 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
       });
 
       props.onChangeType("digit", data.expiresAt, data.code);
+      refreshAuth();
     } catch (error: any) {
       lib.handleErr(error);
     } finally {
@@ -196,6 +199,7 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
       });
 
       props.onChangeType("affix", undefined, affixCode);
+      refreshAuth();
     } catch (error: any) {
       lib.handleErr(error);
     } finally {
@@ -279,6 +283,7 @@ const LinkCustomization: FC<LinkCustomizationProps> = (props) => {
       });
 
       props.onChangeType("custom", undefined, customCode);
+      refreshAuth();
     } catch (error: any) {
       lib.handleErr(error);
     } finally {

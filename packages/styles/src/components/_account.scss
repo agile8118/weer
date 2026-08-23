@@ -1,0 +1,37 @@
+@use "../abstracts/variables" as *;
+
+.account-credits {
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba($color-green, 0.1);
+    border: 1px solid rgba($color-green, 0.3);
+    border-radius: 12px 12px 0 0;
+    padding: 1.2rem 1.6rem;
+
+    .tooltip__text {
+      width: 22rem;
+    }
+  }
+
+  &__title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: $color-green;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &__count {
+    background-color: rgba($color-green, 0.04);
+    border: 1px solid rgba($color-green, 0.3);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 0rem 1.6rem;
+    text-align: center;
+    font-size: 4rem;
+    font-weight: 700;
+    color: $color-green;
+  }
+}

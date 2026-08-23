@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import axios from "axios";
 import lib from "./lib";
+import { useAuth } from "./AuthContext";
 
 import type { IUrl } from "./types";
 import type { LinkType } from "@weer/common";
@@ -40,6 +41,7 @@ export const UrlProvider: React.FC<{ children: React.ReactNode }> = ({
   const [domain, setDomain] = useState<string | null>(null);
   const [loading, setLoading] = useState(true); // for fetching URLs
   const [justCreatedUrlId, setJustCreatedUrlId] = useState<string | null>(null);
+  const { refreshAuth } = useAuth();
 
   // Centralized fetch function
   const fetchUrls = async () => {
@@ -70,6 +72,7 @@ export const UrlProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setUrls((prev) => [newUrlObj, ...prev]);
       setJustCreatedUrlId(newUrlObj.id);
+      refreshAuth();
     };
 
     try {

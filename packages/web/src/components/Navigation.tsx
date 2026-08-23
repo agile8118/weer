@@ -2,10 +2,9 @@ import React, { FC, useState } from "react";
 import { Modal, Input, Button } from "@weer/reusable";
 import { useAuth } from "../AuthContext";
 import { useModal } from "../ModalContext";
-import dom from "../lib/dom";
 
 const Navigation: FC = () => {
-  const { isSignedIn, email, username, loading } = useAuth();
+  const { isSignedIn, email, username, loading, linkCredits } = useAuth();
   const { openModal } = useModal();
 
   return (
@@ -23,6 +22,15 @@ const Navigation: FC = () => {
               onClick={() => openModal("login")}
             >
               Login
+            </button>
+          )}
+
+          {isSignedIn && !loading && (
+            <button
+              className="button-reset nav-credits-btn"
+              onClick={() => openModal("credits")}
+            >
+              Credits: {linkCredits}
             </button>
           )}
 
@@ -67,9 +75,8 @@ const Navigation: FC = () => {
                 </button>
                 <button
                   className="button-reset nav-dropdown-btn"
-                  onClick={() => {
-                    dom.message("Feature coming soon.", "default");
-                  }}
+                  onClick={() => openModal("account")}
+                  data-role="dropdown"
                 >
                   <i className="fa fa-key"></i>Account
                 </button>
