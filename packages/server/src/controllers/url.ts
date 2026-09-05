@@ -427,6 +427,8 @@ async function resolveUrlRecord(
 /** @TODO FIX ERROR RETURN IN CPEAK SEND FILE */
 // Redirect to the real url
 const redirect = async (req: Request, res: Response) => {
+  res.setHeader("X-Robots-Tag", "noindex");
+
   const code = req.params?.id;
 
   if (!code) {
@@ -436,13 +438,17 @@ const redirect = async (req: Request, res: Response) => {
   const processedCode = processCode(code, req.params?.username, req.url);
 
   if (!processedCode) {
-    return res.sendFile(path.join(publicPath, "./404.html"), "text/html");
+    return res
+      .status(404)
+      .sendFile(path.join(publicPath, "./404.html"), "text/html");
   }
 
   const url = await resolveUrlRecord(processedCode, req.params?.username);
 
   if (!url) {
-    return res.sendFile(path.join(publicPath, "./404.html"), "text/html");
+    return res
+      .status(404)
+      .sendFile(path.join(publicPath, "./404.html"), "text/html");
   }
 
   /** Handling the views logic */

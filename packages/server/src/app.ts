@@ -90,7 +90,7 @@ apiRouter(app);
 
 // Send 404 page for any route nothing else matched
 app.fallback((req: Request, res: Response) => {
-  res.sendFile(path.join(publicPath, "./404.html"), "text/html");
+  res.status(404).sendFile(path.join(publicPath, "./404.html"), "text/html");
 });
 
 // Handle all the errors that could happen in the routes
