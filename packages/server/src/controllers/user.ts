@@ -1,10 +1,22 @@
 import type { CpeakRequest as Request, CpeakResponse as Response } from "cpeak";
+import { isValidEmail, isValidPassword, isValidUsername } from "@weer/common";
+import type { API } from "@weer/common";
 import crypto from "crypto";
 
 import { DB } from "../database/index.js";
-import type { IUser, ISession, IUsername } from "../database/types.js";
+import type { IUser, IUsername } from "../database/types.js";
+import sendEmail from "../lib/email/index.js";
+import { enforceEmailCooldown } from "../lib/rate-limit.js";
+import { verifyEmailCode } from "../lib/email-codes.js";
+import { RESERVED_ROUTE_SEGMENTS } from "../lib/link-definitions.js";
 
-const isUsernameAvailable = async (username: string): Promise<boolean> => {
+const CODE_EXPIRY_MINUTES = 10;
+
+const isValidUsernameFormat = (username: string): boolean =>
+  isValidUsername(username) &&
+  !RESERVED_ROUTE_SEGMENTS.includes(username.toLowerCase());
+
+export const isUsernameAvailable = async (username: string): Promise<boolean> => {
   // We use EXISTS to optimize the query since we only care about existence
   const [{ taken }] = await DB.query(
     `SELECT EXISTS(
@@ -20,7 +32,11 @@ const isUsernameAvailable = async (username: string): Promise<boolean> => {
 const checkUsernameAvailability = async (req: Request, res: Response) => {
   const username = req.params?.username;
 
-  if (!username || typeof username !== "string") {
+  if (
+    !username ||
+    typeof username !== "string" ||
+    !isValidUsernameFormat(username)
+  ) {
     return res
       .status(400)
       .json({ available: false, error: "Invalid username" });
@@ -38,7 +54,11 @@ const updateUsername = async (req: Request, res: Response) => {
   const userId = req.user.id;
   const newUsername = req.body?.username;
 
-  if (!newUsername || typeof newUsername !== "string") {
+  if (
+    !newUsername ||
+    typeof newUsername !== "string" ||
+    !isValidUsernameFormat(newUsername)
+  ) {
     return res.status(400).json({ error: "Invalid username" });
   }
 
@@ -151,4 +171,125 @@ const switchUsername = async (req: Request, res: Response) => {
   return res.status(200).json({ message: "Username switched successfully" });
 };
 
-export default { checkUsernameAvailability, updateUsername, switchUsername };
+// Sends a 5-digit code to a new email address to confirm the user owns it before changing to it
+const sendEmailChangeCode = async (
+  req: Request<API.User.SendEmailChangeCodeBody>,
+  res: Response
+) => {
+  const newEmail = req.body?.newEmail;
+
+  if (!isValidEmail(newEmail || ""))
+    throw { status: 400, message: "Please enter a valid email address." };
+
+  const normalizedEmail = newEmail!.toLowerCase();
+
+  const existing = await DB.find<IUser>(
+    "SELECT id FROM users WHERE email = $1 AND id != $2",
+    [normalizedEmail, req.user.id]
+  );
+
+  if (existing) throw { status: 409, message: "This email is already in use." };
+
+  await enforceEmailCooldown(normalizedEmail);
+
+  const code = crypto.randomInt(10000, 100000);
+
+  await DB.delete("email_codes", "email = $1", [normalizedEmail]);
+  await DB.insert("email_codes", {
+    email: normalizedEmail,
+    code,
+    expires_at: new Date(Date.now() + CODE_EXPIRY_MINUTES * 60 * 1000),
+  });
+
+  await sendEmail(normalizedEmail, "Confirm your new email address", {
+    htmlFile: "change-email",
+    templateData: {
+      title: "Confirm your new email address",
+      code,
+      expiresIn: `${CODE_EXPIRY_MINUTES} minutes`,
+    },
+  });
+
+  res.status(200).json({ message: "Verification code sent." });
+};
+
+// Confirms the code sent to the new email address and applies the change
+const confirmEmailChange = async (
+  req: Request<API.User.ConfirmEmailChangeBody>,
+  res: Response
+) => {
+  const { newEmail, code } = req.body ?? {};
+
+  if (!isValidEmail(newEmail || ""))
+    throw { status: 400, message: "Please enter a valid email address." };
+
+  const normalizedEmail = newEmail!.toLowerCase();
+
+  await verifyEmailCode(normalizedEmail, code!);
+
+  const oldUser = await DB.find<IUser>("SELECT email FROM users WHERE id = $1", [req.user.id]);
+
+  try {
+    await DB.update<IUser>("users", { email: normalizedEmail }, "id = $2", [req.user.id]);
+  } catch (e: any) {
+    if (e.code === "23505") {
+      throw { status: 409, message: "This email is already in use." };
+    }
+    throw e;
+  }
+
+  if (oldUser?.email) {
+    // Best-effort notice to the old address, don't fail the request if this errors
+    try {
+      await sendEmail(oldUser.email, "Your email address was changed", {
+        htmlFile: "email-changed-notice",
+        templateData: { title: "Your email address was changed", newEmail: normalizedEmail },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  if (req.user.tokenId) {
+    await DB.delete("tokens", "user_id = $1 AND id != $2", [req.user.id, req.user.tokenId]);
+  } else {
+    await DB.delete("tokens", "user_id = $1", [req.user.id]);
+  }
+
+  res.status(200).json({ message: "Email updated successfully.", email: normalizedEmail });
+};
+
+const changePassword = async (
+  req: Request<API.User.ChangePasswordBody>,
+  res: Response
+) => {
+  const { newPassword } = req.body ?? {};
+
+  if (!isValidPassword(newPassword || ""))
+    throw {
+      status: 400,
+      message:
+        "Password must be 8-30 characters and include an uppercase letter, a lowercase letter, and a number.",
+    };
+
+  const hash = await req.hashPassword({ password: newPassword! });
+
+  await DB.update<IUser>("users", { password: hash }, "id = $2", [req.user.id]);
+
+  if (req.user.tokenId) {
+    await DB.delete("tokens", "user_id = $1 AND id != $2", [req.user.id, req.user.tokenId]);
+  } else {
+    await DB.delete("tokens", "user_id = $1", [req.user.id]);
+  }
+
+  res.status(200).json({ message: "Password updated successfully." });
+};
+
+export default {
+  checkUsernameAvailability,
+  updateUsername,
+  switchUsername,
+  sendEmailChangeCode,
+  confirmEmailChange,
+  changePassword,
+};

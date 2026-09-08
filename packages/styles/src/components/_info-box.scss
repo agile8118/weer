@@ -104,7 +104,7 @@
 .info-box__grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2.4rem;
+  gap: 1.6rem;
 
   @media only screen and (max-width: 900px) {
     grid-template-columns: repeat(2, 1fr);
@@ -112,25 +112,30 @@
 
   @media only screen and (max-width: 550px) {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.2rem;
   }
 }
 
 .info-box__item {
   display: flex;
   flex-direction: column;
+  padding: 1.8rem;
+  border-radius: 8px;
+  text-align: center;
+  background: #f9fbfd;
+  border: 1px solid #e8eef3;
 }
 
 .info-box__item-icon {
   color: $color-blue;
-  font-size: 2rem;
-  margin-bottom: 0.8rem;
+  font-size: 4rem;
+  margin: 1rem auto;
 }
 
 .info-box__item-heading {
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: $color-default;
+  font-size: 2rem;
+  font-weight: 300;
+  color: #333;
   margin: 0 0 0.5rem 0;
 }
 

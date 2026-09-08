@@ -22,6 +22,8 @@ import {
   generateDigit,
   generateQRCode,
   processCode,
+  validateCustomCode,
+  validateAffixCode,
 } from "../lib/links.js";
 
 const publicPath = new URL("../../public", import.meta.url).pathname;
@@ -101,15 +103,8 @@ const getUrls = async (req: Request, res: Response) => {
   });
 };
 
-/** @TODO clean this up */
-interface IRequestBody {
-  url: string;
-  type: LinkType;
-  custom?: string; // only if type is custom or customOnUsername
-}
-
 // Get the url, shorten it and save to database
-const shorten = async (req: Request<IRequestBody>, res: Response) => {
+const shorten = async (req: Request<API.Url.ShortenBody>, res: Response) => {
   // Get the user id if the user is logged in
   let userId = req.user ? req.user.id : null;
 
@@ -204,7 +199,7 @@ const shorten = async (req: Request<IRequestBody>, res: Response) => {
 };
 
 // Change the type of a url (e.g. from classic to custom). User can do this from the customization modal
-const changeUrlType = async (req: Request, res: Response) => {
+const changeUrlType = async (req: Request<API.Url.ChangeTypeBody>, res: Response) => {
   const id = Number(req.params?.id);
   const newType = req.body?.type as LinkType;
 
@@ -287,7 +282,15 @@ const changeUrlType = async (req: Request, res: Response) => {
     case "affix": {
       if (!req.user) throw { status: 401, message: "Unauthorized" };
       const affixCode = req.body?.code;
-      /** @todo validate the affixCode */
+
+      if (!affixCode) throw { status: 400, message: "No code provided" };
+      if (!validateAffixCode(affixCode)) {
+        throw {
+          status: 400,
+          message:
+            "Affix code must be 1-80 characters and contain only letters, numbers, hyphens, and underscores.",
+        };
+      }
 
       const available = await isAffixAvailable(affixCode, req.user.id);
       if (!available) {
@@ -316,7 +319,15 @@ const changeUrlType = async (req: Request, res: Response) => {
     }
     case "custom": {
       const customCode = req.body?.code;
-      /** @todo validate the customCode */
+
+      if (!customCode) throw { status: 400, message: "No code provided" };
+      if (!validateCustomCode(customCode)) {
+        throw {
+          status: 400,
+          message:
+            "Custom code must be 7-80 characters, contain only letters, numbers, hyphens, and underscores, and cannot be a reserved word.",
+        };
+      }
 
       const available = await isCustomAvailable(customCode);
       if (!available) {
@@ -609,7 +620,7 @@ const checkCustomAvailability = async (req: Request, res: Response) => {
 };
 
 // Update the destination URL of an existing shortened link
-const updateRealUrl = async (req: Request, res: Response) => {
+const updateRealUrl = async (req: Request<API.Url.UpdateRealUrlBody>, res: Response) => {
   const id = Number(req.params?.id);
   const newRealUrl = req.body?.url;
 
