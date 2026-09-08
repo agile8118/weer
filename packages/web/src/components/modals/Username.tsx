@@ -92,10 +92,10 @@ const Username: FC<UsernameProps> = (props) => {
       if (data.available) {
         setInputSuccess(`${value} is available.`);
       } else {
-        setInputError(`${value} is already taken.`);
+        setInputError(`${value} is not available.`);
       }
     } catch (error) {
-      setInputError("Failed to check availability.");
+      setInputError(`Failed to check availability.`);
     } finally {
       setInputLoading(false);
     }

@@ -9,7 +9,7 @@ import { exchangeCodeForProfile } from "../lib/google-oauth.js";
 import sendEmail from "../lib/email/index.js";
 import { enforceEmailCooldown, enforceIpLimit } from "../lib/rate-limit.js";
 import { verifyEmailCode } from "../lib/email-codes.js";
-import { isUsernameAvailable } from "./user.js";
+import { isUsernameAvailable, isValidUsernameFormat } from "./user.js";
 import keys from "../config/keys.js";
 import util from "../lib/util.js";
 
@@ -223,8 +223,11 @@ const sendCode = async (req: Request<API.Auth.SendCodeBody>, res: Response) => {
     };
   }
 
-  if (username && !(await isUsernameAvailable(username))) {
-    throw { status: 409, message: "Username is already taken." };
+  if (
+    username &&
+    (!isValidUsernameFormat(username) || !(await isUsernameAvailable(username)))
+  ) {
+    throw { status: 409, message: "Username is not available." };
   }
 
   await enforceEmailCooldown(normalizedEmail);
@@ -282,23 +285,50 @@ const register = async (req: Request<API.Auth.RegisterBody>, res: Response) => {
     };
   }
 
-  if (username && !(await isUsernameAvailable(username))) {
-    throw { status: 409, message: "Username is already taken." };
+  if (
+    username &&
+    (!isValidUsernameFormat(username) || !(await isUsernameAvailable(username)))
+  ) {
+    throw { status: 409, message: "Username is not available." };
   }
 
   await verifyEmailCode(normalizedEmail, code!);
 
   const hash = await req.hashPassword({ password: password! });
 
+  const client = await DB.beginTransaction();
   let user: IUser;
   try {
-    user = await DB.insert<IUser>("users", {
-      name,
-      email: normalizedEmail,
-      password: hash,
-      verified: true,
-    });
+    user = await DB.insert<IUser>(
+      "users",
+      {
+        name,
+        email: normalizedEmail,
+        password: hash,
+        verified: true,
+      },
+      client
+    );
+
+    if (username) {
+      try {
+        await DB.insert(
+          "usernames",
+          {
+            user_id: user.id,
+            username: username.toLowerCase(),
+            active: true,
+          },
+          client
+        );
+      } catch (e: any) {
+        if (e.code !== "23505") throw e;
+      }
+    }
+
+    await DB.commit(client);
   } catch (e: any) {
+    await DB.rollback(client);
     if (e.code === "23505") {
       throw {
         status: 409,
@@ -306,18 +336,6 @@ const register = async (req: Request<API.Auth.RegisterBody>, res: Response) => {
       };
     }
     throw e;
-  }
-
-  if (username) {
-    try {
-      await DB.insert("usernames", {
-        user_id: user.id,
-        username: username.toLowerCase(),
-        active: true,
-      });
-    } catch (e: any) {
-      if (e.code !== "23505") throw e;
-    }
   }
 
   const token = await req.login({

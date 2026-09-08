@@ -1,4 +1,5 @@
 import React, { FC, useState } from "react";
+import { isValidEmail } from "@weer/common";
 
 import { Modal, Input, Button } from "@weer/reusable";
 import { useAuth } from "../../AuthContext";
@@ -16,10 +17,21 @@ const ForgotPassword: FC<ForgotPasswordProps> = (props) => {
   const { openModal, closeModal } = useModal();
 
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const validateEmail = (value: string) => {
+    if (value && !isValidEmail(value)) {
+      setEmailError("Please enter a valid email address.");
+    } else {
+      setEmailError(null);
+    }
+  };
+
   const onSubmit = async () => {
-    if (!email) return;
+    validateEmail(email);
+
+    if (!email || !isValidEmail(email)) return;
 
     setLoading(true);
     try {
@@ -56,7 +68,11 @@ const ForgotPassword: FC<ForgotPasswordProps> = (props) => {
               id="forgot-password-email"
               required
               value={email}
-              onChange={setEmail}
+              onChange={(value) => {
+                setEmail(value);
+                validateEmail(value);
+              }}
+              error={emailError ?? undefined}
             />
           </div>
 
@@ -66,6 +82,7 @@ const ForgotPassword: FC<ForgotPasswordProps> = (props) => {
               color="blue"
               outlined={true}
               block={true}
+              disabled={!email || !!emailError}
               loading={loading}
               onClick={onSubmit}
             >

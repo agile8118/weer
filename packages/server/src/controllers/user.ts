@@ -6,17 +6,20 @@ import crypto from "crypto";
 import { DB } from "../database/index.js";
 import type { IUser, IUsername } from "../database/types.js";
 import sendEmail from "../lib/email/index.js";
-import { enforceEmailCooldown } from "../lib/rate-limit.js";
+import { enforceEmailCooldown, enforceIpLimit } from "../lib/rate-limit.js";
 import { verifyEmailCode } from "../lib/email-codes.js";
 import { RESERVED_ROUTE_SEGMENTS } from "../lib/link-definitions.js";
+import util from "../lib/util.js";
 
 const CODE_EXPIRY_MINUTES = 10;
 
-const isValidUsernameFormat = (username: string): boolean =>
+export const isValidUsernameFormat = (username: string): boolean =>
   isValidUsername(username) &&
   !RESERVED_ROUTE_SEGMENTS.includes(username.toLowerCase());
 
-export const isUsernameAvailable = async (username: string): Promise<boolean> => {
+export const isUsernameAvailable = async (
+  username: string
+): Promise<boolean> => {
   // We use EXISTS to optimize the query since we only care about existence
   const [{ taken }] = await DB.query(
     `SELECT EXISTS(
@@ -37,9 +40,7 @@ const checkUsernameAvailability = async (req: Request, res: Response) => {
     typeof username !== "string" ||
     !isValidUsernameFormat(username)
   ) {
-    return res
-      .status(400)
-      .json({ available: false, error: "Invalid username" });
+    return res.status(200).json({ available: false });
   }
 
   const available = await isUsernameAvailable(username);
@@ -134,41 +135,57 @@ const switchUsername = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Invalid username" });
   }
 
-  // Get all user's usernames
-  const usernameRecords = await DB.findMany<IUsername>(
-    `SELECT username, expires_at, active FROM usernames WHERE user_id = $1`,
-    [userId]
-  );
-
-  // Check if the requested username exists and is inactive
-  const targetRecord = usernameRecords.find(
-    (r) => r.username === newUsername && !r.active
-  );
-
-  if (!targetRecord) {
-    return res.status(404).json({
-      error: "The specified username does not exist or is already active",
-    });
-  }
-
-  // Find the user's current active username
-  const currentActiveRecord = usernameRecords.find((r) => r.active);
-
-  // Deactivate the current active username and set expires_at one month from now
-  if (currentActiveRecord) {
-    await DB.query(
-      `UPDATE usernames SET active = false, expires_at = NOW() + INTERVAL '1 month' WHERE user_id = $1 AND username = $2`,
-      [userId, currentActiveRecord.username]
+  const client = await DB.beginTransaction();
+  try {
+    // Get all user's usernames
+    const usernameRecords = await DB.findMany<IUsername>(
+      `SELECT username, expires_at, active FROM usernames WHERE user_id = $1 FOR UPDATE`,
+      [userId],
+      client
     );
+
+    // Check if the requested username exists and is inactive
+    const targetRecord = usernameRecords.find(
+      (r) => r.username === newUsername && !r.active
+    );
+
+    if (!targetRecord) {
+      await DB.rollback(client);
+      return res.status(404).json({
+        error: "The specified username does not exist or is already active",
+      });
+    }
+
+    // Find the user's current active username
+    const currentActiveRecord = usernameRecords.find((r) => r.active);
+
+    // Deactivate the current active username and set expires_at one month from now
+    if (currentActiveRecord) {
+      await DB.query(
+        `UPDATE usernames SET active = false, expires_at = NOW() + INTERVAL '1 month' WHERE user_id = $1 AND username = $2`,
+        [userId, currentActiveRecord.username],
+        client
+      );
+    }
+
+    // Activate the target username and clear expires_at
+    await DB.query(
+      `UPDATE usernames SET active = true, expires_at = NULL WHERE user_id = $1 AND username = $2`,
+      [userId, newUsername],
+      client
+    );
+
+    await DB.commit(client);
+    return res.status(200).json({ message: "Username switched successfully" });
+  } catch (e: any) {
+    await DB.rollback(client);
+    if (e.code === "23505") {
+      return res.status(409).json({
+        error: "Could not switch usernames. Please refresh and try again.",
+      });
+    }
+    throw e;
   }
-
-  // Activate the target username and clear expires_at
-  await DB.query(
-    `UPDATE usernames SET active = true, expires_at = NULL WHERE user_id = $1 AND username = $2`,
-    [userId, newUsername]
-  );
-
-  return res.status(200).json({ message: "Username switched successfully" });
 };
 
 // Sends a 5-digit code to a new email address to confirm the user owns it before changing to it
@@ -191,6 +208,9 @@ const sendEmailChangeCode = async (
   if (existing) throw { status: 409, message: "This email is already in use." };
 
   await enforceEmailCooldown(normalizedEmail);
+
+  const ip = util.getClientIp(req);
+  if (ip) await enforceIpLimit(ip);
 
   const code = crypto.randomInt(10000, 100000);
 
@@ -227,10 +247,15 @@ const confirmEmailChange = async (
 
   await verifyEmailCode(normalizedEmail, code!);
 
-  const oldUser = await DB.find<IUser>("SELECT email FROM users WHERE id = $1", [req.user.id]);
+  const oldUser = await DB.find<IUser>(
+    "SELECT email FROM users WHERE id = $1",
+    [req.user.id]
+  );
 
   try {
-    await DB.update<IUser>("users", { email: normalizedEmail }, "id = $2", [req.user.id]);
+    await DB.update<IUser>("users", { email: normalizedEmail }, "id = $2", [
+      req.user.id,
+    ]);
   } catch (e: any) {
     if (e.code === "23505") {
       throw { status: 409, message: "This email is already in use." };
@@ -243,7 +268,10 @@ const confirmEmailChange = async (
     try {
       await sendEmail(oldUser.email, "Your email address was changed", {
         htmlFile: "email-changed-notice",
-        templateData: { title: "Your email address was changed", newEmail: normalizedEmail },
+        templateData: {
+          title: "Your email address was changed",
+          newEmail: normalizedEmail,
+        },
       });
     } catch (e) {
       console.error(e);
@@ -251,12 +279,17 @@ const confirmEmailChange = async (
   }
 
   if (req.user.tokenId) {
-    await DB.delete("tokens", "user_id = $1 AND id != $2", [req.user.id, req.user.tokenId]);
+    await DB.delete("tokens", "user_id = $1 AND id != $2", [
+      req.user.id,
+      req.user.tokenId,
+    ]);
   } else {
     await DB.delete("tokens", "user_id = $1", [req.user.id]);
   }
 
-  res.status(200).json({ message: "Email updated successfully.", email: normalizedEmail });
+  res
+    .status(200)
+    .json({ message: "Email updated successfully.", email: normalizedEmail });
 };
 
 const changePassword = async (
@@ -277,7 +310,10 @@ const changePassword = async (
   await DB.update<IUser>("users", { password: hash }, "id = $2", [req.user.id]);
 
   if (req.user.tokenId) {
-    await DB.delete("tokens", "user_id = $1 AND id != $2", [req.user.id, req.user.tokenId]);
+    await DB.delete("tokens", "user_id = $1 AND id != $2", [
+      req.user.id,
+      req.user.tokenId,
+    ]);
   } else {
     await DB.delete("tokens", "user_id = $1", [req.user.id]);
   }

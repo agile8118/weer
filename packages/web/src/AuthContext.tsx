@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import axios from "axios";
 import type { API } from "@weer/common";
-import lib from "./lib";
 
 interface AuthContextValue {
   loading: boolean;
@@ -86,15 +85,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const updateUsername = async (newUsername: string) => {
-    try {
-      await axios.patch("/user/username", {
-        username: newUsername,
-      });
+    await axios.patch("/user/username", {
+      username: newUsername,
+    });
 
-      setUsername(newUsername);
-    } catch (error) {
-      lib.handleErr(error);
-    }
+    setUsername(newUsername);
   };
 
   const sendCode = async (name: string, email: string, password: string, username?: string) => {

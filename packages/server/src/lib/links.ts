@@ -267,6 +267,14 @@ export const generateUltra = async (id: number) => {
       [id, LINKS.ultra.validFor]
     );
 
+    if (result.length === 0) {
+      throw {
+        status: 503,
+        message:
+          "All of our ultra codes are in use right now. Please check back in a few minutes.",
+      };
+    }
+
     // Update the URL record to set its link_type
     await DB.update<IUrl>(
       "urls",

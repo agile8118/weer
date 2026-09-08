@@ -38,7 +38,9 @@ const SignUp: FC<SignUpProps> = (props) => {
   const [usernameSuccess, setUsernameSuccess] = useState<string | null>(null);
   const [usernameError, setUsernameError] = useState<string | null>(null);
 
-  const [password, setPassword] = useState<string | null>(props.initialPassword ?? null);
+  const [password, setPassword] = useState<string | null>(
+    props.initialPassword ?? null
+  );
 
   const [loading, setLoading] = useState(false);
 
@@ -54,7 +56,9 @@ const SignUp: FC<SignUpProps> = (props) => {
 
   const validateName = (value: string) => {
     if (value && !isValidName(value)) {
-      setNameError("Name must be 3-30 characters and only contain letters and spaces.");
+      setNameError(
+        "Name must be 3-30 characters and only contain letters and spaces."
+      );
     } else {
       setNameError(null);
     }
@@ -95,10 +99,10 @@ const SignUp: FC<SignUpProps> = (props) => {
       if (data.available) {
         setUsernameSuccess(`${value} is available.`);
       } else {
-        setUsernameError(`${value} is already taken.`);
+        setUsernameError(`${value} is not available.`);
       }
     } catch (error) {
-      setUsernameError("Failed to check availability.");
+      setUsernameError(`Failed to check availability`);
     } finally {
       setUsernameLoading(false);
     }
@@ -121,7 +125,12 @@ const SignUp: FC<SignUpProps> = (props) => {
     setLoading(true);
     try {
       await sendCode(name, email, password, username || undefined);
-      openModal("verifyEmail", { name, email, password, username: username || undefined });
+      openModal("verifyEmail", {
+        name,
+        email,
+        password,
+        username: username || undefined,
+      });
     } catch (error: any) {
       lib.handleErr(error);
     }

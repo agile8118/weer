@@ -45,6 +45,7 @@ app.beforeEach(cookieParser({ secret: keys.cookieKey }));
 app.beforeEach(
   auth({
     secret: keys.tokenSecret,
+    tokenExpiry: 30 * 24 * 60 * 60 * 1000, // 30 days
     saveToken: async (tokenId, userId, expiresAt) => {
       await DB.insert("tokens", {
         id: tokenId,

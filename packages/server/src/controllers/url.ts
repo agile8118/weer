@@ -15,7 +15,7 @@ import util from "../lib/util.js";
 import { push as pushView } from "../redis/views-stream.js";
 import keys from "../config/keys.js";
 import { isAllowlistedDomain } from "../lib/domain-allowlist.js";
-import { enforceRateLimit } from "../lib/rate-limit.js";
+import { refundUserCredit } from "../lib/rate-limit.js";
 import {
   generateClassic,
   generateUltra,
@@ -142,14 +142,16 @@ const shorten = async (req: Request<API.Url.ShortenBody>, res: Response) => {
 
   let shortenedCode;
   let expiresAt;
+  let actualType: LinkType = type;
 
   switch (type) {
     case "classic":
       try {
         shortenedCode = await generateClassic(insertedUrl!.id);
       } catch (error) {
-        // Delete the inserted URL record if we could not generate a code
+        // Delete the inserted URL record and refund the spent credit if we could not generate a code
         await DB.delete<IUrl>("urls", `id=$1`, [insertedUrl!.id]);
+        if (req.user) await refundUserCredit(req.user.id);
 
         throw error;
       }
@@ -161,8 +163,9 @@ const shorten = async (req: Request<API.Url.ShortenBody>, res: Response) => {
         expiresAt = obj.expiresAt;
         shortenedCode = obj.code;
       } catch (error) {
-        // Delete the inserted URL record if we could not generate a code
+        // Delete the inserted URL record and refund the spent credit if we could not generate a code
         await DB.delete<IUrl>("urls", `id=$1`, [insertedUrl!.id]);
+        await refundUserCredit(req.user.id);
 
         throw error;
       }
@@ -176,9 +179,11 @@ const shorten = async (req: Request<API.Url.ShortenBody>, res: Response) => {
         if (error?.status === 503) {
           // All digit codes exhausted — fall back to classic
           shortenedCode = await generateClassic(insertedUrl!.id);
+          actualType = "classic";
         } else {
-          // Delete the inserted URL record if we could not generate a code
+          // Delete the inserted URL record and refund the spent credit if we could not generate a code
           await DB.delete<IUrl>("urls", `id=$1`, [insertedUrl!.id]);
+          if (req.user) await refundUserCredit(req.user.id);
 
           throw error;
         }
@@ -192,7 +197,7 @@ const shorten = async (req: Request<API.Url.ShortenBody>, res: Response) => {
   return res.json({
     URLId: insertedUrl!.id,
     realURL: realUrl,
-    linkType: type,
+    linkType: actualType,
     code: shortenedCode,
     expiresAt: expiresAt || null,
   });
@@ -207,6 +212,21 @@ const changeUrlType = async (req: Request<API.Url.ChangeTypeBody>, res: Response
     return res.status(400).json({ message: "Missing parameters" });
   }
 
+  try {
+    return await changeUrlTypeInternal(req, res, id, newType);
+  } catch (error) {
+    // rateLimitUrl already spent a credit for this, refund it on error
+    if (req.user) await refundUserCredit(req.user.id);
+    throw error;
+  }
+};
+
+const changeUrlTypeInternal = async (
+  req: Request<API.Url.ChangeTypeBody>,
+  res: Response,
+  id: number,
+  newType: LinkType
+) => {
   // ------- 1. Clean up the old code ------- //
 
   // First find the current url type and release the current code
@@ -360,8 +380,6 @@ const changeUrlType = async (req: Request<API.Url.ChangeTypeBody>, res: Response
   }
 
   const typesWithExpiresAt = ["ultra", "digit"];
-
-  await enforceRateLimit(req);
 
   return res.json({
     newType,

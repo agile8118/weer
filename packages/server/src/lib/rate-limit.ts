@@ -22,6 +22,13 @@ async function enforceUserLimit(userId: number): Promise<void> {
   }
 }
 
+// Refunds a credit spent by enforceUserLimit when the operation it was gating ultimately failed.
+export async function refundUserCredit(userId: number): Promise<void> {
+  await DB.query(`UPDATE users SET link_credits = link_credits + 1 WHERE id = $1`, [
+    userId,
+  ]);
+}
+
 export async function enforceIpLimit(ip: string): Promise<void> {
   const row = await DB.find<{ burst_count: number }>(
     `

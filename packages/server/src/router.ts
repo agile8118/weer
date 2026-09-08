@@ -97,7 +97,7 @@ export default (app: Cpeak) => {
   app.route("post", "/url", middlewares.isValidURL, middlewares.checkUrlSafety, middlewares.rateLimitUrl, Url.shorten);
 
   // Change the type of a url (e.g. from default to custom). User can do this from the customization modal
-  app.route("patch", "/url/:id/type", middlewares.checkUrlOwnership, Url.changeUrlType);
+  app.route("patch", "/url/:id/type", middlewares.checkUrlOwnership, middlewares.rateLimitUrl, Url.changeUrlType);
 
   // Update the destination URL of an existing shortened link
   app.route("patch", "/url/:id/real-url", middlewares.checkUrlOwnership, middlewares.isValidURL, middlewares.checkUrlSafety, middlewares.rateLimitUrl, Url.updateRealUrl);
